@@ -1,0 +1,8 @@
+App\Models\User::create([
+    'nombres' => 'Carlos',
+    'apellidos' => 'Paciente',
+    'email' => 'paciente@example.com',
+    'password' => bcrypt('123456'),
+    'status' => 'activo',
+    'rol' => 'admin'
+]);
