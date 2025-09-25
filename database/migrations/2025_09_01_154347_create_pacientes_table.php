@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('pacientes', function (Blueprint $table) {
@@ -21,22 +18,13 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->date('fecha_nacimiento')->nullable();
             $table->enum('sexo', ['M', 'F'])->nullable();
-            $table->foreignId('created_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
-            $table->foreignId('updated_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->softDeletes();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('pacientes');
