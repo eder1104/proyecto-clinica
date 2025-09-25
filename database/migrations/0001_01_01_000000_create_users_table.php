@@ -8,7 +8,8 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('nombres');
+            $table->string('apellidos');
             $table->string('email')->unique();   
             $table->string('password');   
             $table->enum('role', [  
@@ -16,6 +17,7 @@ return new class extends Migration {
                 'callcenter',
                 'admisiones'
             ])->default('callcenter'); 
+            $table->enum('status', ['activo', 'inactivo'])->default('activo');
             $table->rememberToken();
             $table->timestamps();
         });

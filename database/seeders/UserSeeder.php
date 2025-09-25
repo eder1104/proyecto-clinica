@@ -33,9 +33,11 @@ class UserSeeder extends Seeder
         $admin = User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'Administrador Sistema',
+                'nombres' => 'Administrador',
+                'apellidos' => 'Sistema',
                 'password' => Hash::make('password123'),
                 'role' => 'admin',
+                'status' => 'activo',
             ]
         );
         $admin->syncRoles([$adminRole]);
@@ -43,9 +45,11 @@ class UserSeeder extends Seeder
         $callcenter = User::updateOrCreate(
             ['email' => 'callcenter@example.com'],
             [
-                'name' => 'Agente Callcenter',
+                'nombres' => 'Agente',
+                'apellidos' => 'Callcenter',
                 'password' => Hash::make('password123'),
                 'role' => 'callcenter',
+                'status' => 'activo',
             ]
         );
         $callcenter->syncRoles([$callcenterRole]);
@@ -53,9 +57,11 @@ class UserSeeder extends Seeder
         $admisiones = User::updateOrCreate(
             ['email' => 'admisiones@example.com'],
             [
-                'name' => 'Agente Admisiones',
+                'nombres' => 'Agente',
+                'apellidos' => 'Admisiones',
                 'password' => Hash::make('password123'),
                 'role' => 'admisiones',
+                'status' => 'activo',
             ]
         );
         $admisiones->syncRoles([$admisionesRole]);

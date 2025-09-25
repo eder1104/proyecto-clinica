@@ -15,13 +15,13 @@ return new class extends Migration
             $table->string('documento')->unique();
             $table->string('telefono');
             $table->string('direccion');
-            $table->string('email')->nullable();
-            $table->date('fecha_nacimiento')->nullable();
-            $table->enum('sexo', ['M', 'F'])->nullable();
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->softDeletes();
+            $table->string('email')->unique();
+            $table->date('fecha_nacimiento');
+            $table->enum('sexo', ['M','F']);
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

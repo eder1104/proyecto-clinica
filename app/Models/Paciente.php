@@ -10,6 +10,8 @@ class Paciente extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'pacientes';
+
     protected $fillable = [
         'nombres',
         'apellidos',
@@ -23,16 +25,13 @@ class Paciente extends Model
         'updated_by',
     ];
 
-    protected $table = 'pacientes';
-
-
     public function creador()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(\App\Models\User::class, 'created_by');
     }
 
     public function actualizador()
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(\App\Models\User::class, 'updated_by');
     }
 }

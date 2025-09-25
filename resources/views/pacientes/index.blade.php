@@ -23,7 +23,10 @@
                                 <th class="border px-4 py-2">Apellidos</th>
                                 <th class="border px-4 py-2">Documento</th>
                                 <th class="border px-4 py-2">Teléfono</th>
+                                <th class="border px-4 py-2">Dirección</th>
                                 <th class="border px-4 py-2">Email</th>
+                                <th class="border px-4 py-2">Fecha Nacimiento</th>
+                                <th class="border px-4 py-2">Sexo</th>
                                 <th class="border px-4 py-2">Acciones</th>
                             </tr>
                         </thead>
@@ -35,7 +38,10 @@
                                     <td class="border px-4 py-2">{{ $paciente->apellidos }}</td>
                                     <td class="border px-4 py-2">{{ $paciente->documento }}</td>
                                     <td class="border px-4 py-2">{{ $paciente->telefono }}</td>
+                                    <td class="border px-4 py-2">{{ $paciente->direccion }}</td>
                                     <td class="border px-4 py-2">{{ $paciente->email }}</td>
+                                    <td class="border px-4 py-2">{{ $paciente->fecha_nacimiento }}</td>
+                                    <td class="border px-4 py-2">{{ $paciente->sexo }}</td>
                                     <td class="border px-4 py-2 flex space-x-2">
                                         <a href="{{ route('pacientes.edit', $paciente) }}" 
                                            class="text-blue-600 hover:underline">Editar</a>
@@ -54,7 +60,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="border px-4 py-2 text-center text-gray-500">
+                                    <td colspan="10" class="border px-4 py-2 text-center text-gray-500">
                                         No hay pacientes registrados
                                     </td>
                                 </tr>

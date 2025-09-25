@@ -2,12 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Spatie\Permission\Models\Role as SpatieRole;
 
-class Role extends Model
+class Role extends SpatieRole
 {
-    use HasFactory;
+    protected $fillable = ['name', 'guard_name'];
 
-    protected $fillable = ['name'];
+    public static function rolesBasicos(): array
+    {
+        return [
+            'paciente' => 'web',
+            'admisiones' => 'web',
+            'admin' => 'web',
+            'callcenter' => 'web',
+        ];
+    }
 }

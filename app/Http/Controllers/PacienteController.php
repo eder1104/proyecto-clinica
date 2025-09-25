@@ -9,10 +9,14 @@ use Illuminate\Support\Facades\Auth;
 class PacienteController extends Controller
 {
     public function index()
-    {
-        $pacientes = Paciente::with(['creador', 'actualizador'])->get();
-        return view('pacientes.index', compact('pacientes'));
-    }
+{
+    $pacientes = Paciente::query()
+        ->select('id', 'nombres', 'apellidos', 'documento', 'telefono', 'direccion', 'email', 'fecha_nacimiento', 'sexo')
+        ->get();
+
+    return view('pacientes.index', compact('pacientes'));
+}
+
 
     public function create()
     {
