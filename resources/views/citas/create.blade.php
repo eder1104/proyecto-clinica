@@ -80,7 +80,7 @@
                                 class="mt-1 block w-full rounded-md shadow-sm">
                                 <option value="">Seleccione un paciente</option>
                                 @foreach($pacientes as $paciente)
-                                <option value="{{ $paciente->id }}" {{ old('paciente_id') == $paciente->id ? 'selected' : '' }}>
+                                <option value="{{ $paciente->id }}" {{ old(key: 'paciente_id') == $paciente->id ? 'selected' : '' }}>
                                     {{ $paciente->nombres }} {{ $paciente->apellidos }}
                                 </option>
                                 @endforeach

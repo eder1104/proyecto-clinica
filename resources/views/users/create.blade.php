@@ -11,7 +11,6 @@
                 @csrf
                 <div class="modal-body">
 
-                    {{-- Nombre --}}
                     <div class="mb-3">
                         <label for="name" class="form-label">Nombre</label>
                         <input type="text" name="name" id="name"
@@ -22,7 +21,6 @@
                         @enderror
                     </div>
 
-                    {{-- Email --}}
                     <div class="mb-3">
                         <label for="email" class="form-label">Correo Electrónico</label>
                         <input type="email" name="email" id="email"
@@ -33,7 +31,6 @@
                         @enderror
                     </div>
 
-                    {{-- Password --}}
                     <div class="mb-3">
                         <label for="password" class="form-label">Contraseña</label>
                         <input type="password" name="password" id="password"
@@ -44,7 +41,6 @@
                         @enderror
                     </div>
 
-                    {{-- Confirmación Password --}}
                     <div class="mb-3">
                         <label for="password_confirmation" class="form-label">Confirmar Contraseña</label>
                         <input type="password" name="password_confirmation" id="password_confirmation"

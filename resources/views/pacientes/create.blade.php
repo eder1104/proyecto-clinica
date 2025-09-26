@@ -5,17 +5,14 @@
 
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 p-8 relative animate-fade-in">
 
-            <!-- Botón cerrar -->
             <button @click="open = false"
                     aria-label="Cerrar"
                     class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">
                 ✕
             </button>
 
-            <!-- Título -->
             <h2 class="text-2xl font-semibold text-gray-800 mb-6">Nuevo Paciente</h2>
 
-            <!-- Formulario -->
             <form action="{{ route('pacientes.store') }}" method="POST" class="space-y-4">
                 @csrf
 
@@ -101,7 +98,6 @@
                     </div>
                 </div>
 
-                <!-- Botones -->
                 <div class="flex justify-end gap-3 pt-6">
                     <button type="button" @click="open = false"
                             class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">

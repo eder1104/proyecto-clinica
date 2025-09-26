@@ -133,7 +133,7 @@
 
                     <div class="mb-4">
                         <label class="block text-gray-700">Paciente</label>
-                        <select name="user_id" x-model="cita.user_id"
+                        <select name="clinica.pacientes_id" x-model="cita.user_id"
                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                             <template x-for="p in user" :key="p.id">
                                 <option :value="p.id" x-text="`${p.nombres} ${p.apellidos}`"></option>

@@ -9,17 +9,16 @@ return new class extends Migration {
         Schema::create('citas', function (Blueprint $table) {
             $table->id();
             
-            // Relación correcta con pacientes
-            $table->foreignId('paciente_id')
+            $table->foreignId('pacientes_id')
                   ->constrained('pacientes')
-                  ->cascadeOnDelete();
+                  ->restrictOnDelete();
             
             $table->dateTime('fecha_cita');
             $table->text('motivo')->nullable();
             
             $table->foreignId('created_by')
                   ->constrained('users')
-                  ->cascadeOnDelete();
+                  ->restrictOnDelete();
             
             $table->foreignId('updated_by')
                   ->nullable()

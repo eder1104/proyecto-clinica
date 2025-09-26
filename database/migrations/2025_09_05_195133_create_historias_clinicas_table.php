@@ -20,7 +20,7 @@ return new class extends Migration {
 
             $table->foreignId('created_by')
                   ->constrained('users')
-                  ->cascadeOnDelete();
+                  ->restrictOnDelete();
 
             $table->foreignId('updated_by')
                   ->nullable()
