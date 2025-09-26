@@ -60,8 +60,9 @@ class PacienteController extends Controller
         $validated['updated_by'] = Auth::id();
 
         $paciente->update($validated);
+return redirect()->route('pacientes.edit', $paciente)
+                 ->with('success', 'Paciente actualizado correctamente.');
 
-        return redirect()->route('pacientes.index')->with('success', 'Paciente actualizado correctamente.');
     }
 
     public function destroy(Paciente $paciente)
