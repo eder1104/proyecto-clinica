@@ -33,5 +33,5 @@ class Paciente extends Model
     public function actualizador()
     {
         return $this->belongsTo(\App\Models\User::class, 'updated_by');
-    }
+    } 
 }

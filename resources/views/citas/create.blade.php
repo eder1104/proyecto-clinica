@@ -220,9 +220,10 @@
                         <select name="paciente_id" x-model="citaSeleccionada.paciente_id"
                             class="mt-1 block w-full rounded-md shadow-sm">
                             <option value="">Seleccione un paciente</option>
-                            @foreach($pacientes as $paciente)
-                            <option value="{{ $paciente->id }}">{{ $paciente->nombres }} {{ $paciente->apellidos }}</option>
+                            @foreach($paciente as $pacientes)
+                            <option value="{{ $pacientes->id }}">{{ $pacientes->nombres }} {{ $pacientes->apellidos }}</option>
                             @endforeach
+                            <li>--selecciona un paciente--</li>
                         </select>
                     </div>
 

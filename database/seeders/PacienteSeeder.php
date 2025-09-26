@@ -10,9 +10,6 @@ class PacienteSeeder extends Seeder
     public function run(): void
     {
         $usuarios = [
-            ['nombres'=>'Administrador','apellidos'=>'Sistema','documento'=>'1000000001','telefono'=>'3000000001','direccion'=>'Cra 1 #1-1','email'=>'admin@example.com','fecha_nacimiento'=>'1980-01-01','sexo'=>'M'],
-            ['nombres'=>'Usuario','apellidos'=>'Admisiones','documento'=>'1000000002','telefono'=>'3000000002','direccion'=>'Cra 2 #2-2','email'=>'admisiones@example.com','fecha_nacimiento'=>'1985-02-02','sexo'=>'F'],
-            ['nombres'=>'Instructor','apellidos'=>'Formación','documento'=>'1000000003','telefono'=>'3000000003','direccion'=>'Cra 3 #3-3','email'=>'instructor@example.com','fecha_nacimiento'=>'1975-03-03','sexo'=>'M'],
             ['nombres'=>'Carlos','apellidos'=>'Pérez Gómez','documento'=>'1002003001','telefono'=>'3001234567','direccion'=>'Cra 10 #20-30','email'=>'carlos@example.com','fecha_nacimiento'=>'1990-05-14','sexo'=>'M'],
             ['nombres'=>'Ana','apellidos'=>'Rodríguez López','documento'=>'1002003002','telefono'=>'3109876543','direccion'=>'Cll 45 #12-34','email'=>'ana@example.com','fecha_nacimiento'=>'1992-07-20','sexo'=>'F'],
             ['nombres'=>'Julián','apellidos'=>'Martínez Torres','documento'=>'1002003003','telefono'=>'3201112233','direccion'=>'Av 30 #45-67','email'=>'julian@example.com','fecha_nacimiento'=>'1988-02-05','sexo'=>'M'],

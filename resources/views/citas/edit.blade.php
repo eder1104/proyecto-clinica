@@ -18,7 +18,9 @@
                         <input type="date" name="fecha" 
                                value="{{ old('fecha', $cita->fecha) }}"
                                class="w-full border-gray-300 rounded-md shadow-sm">
-                        @error('fecha') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                        @error('fecha') 
+                            <span class="text-red-600 text-sm">{{ $message }}</span> 
+                        @enderror
                     </div>
 
                     {{-- Hora inicio --}}
@@ -27,7 +29,9 @@
                         <input type="time" name="hora_inicio" 
                                value="{{ old('hora_inicio', $cita->hora_inicio) }}"
                                class="w-full border-gray-300 rounded-md shadow-sm">
-                        @error('hora_inicio') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                        @error('hora_inicio') 
+                            <span class="text-red-600 text-sm">{{ $message }}</span> 
+                        @enderror
                     </div>
 
                     {{-- Hora fin --}}
@@ -36,7 +40,9 @@
                         <input type="time" name="hora_fin" 
                                value="{{ old('hora_fin', $cita->hora_fin) }}"
                                class="w-full border-gray-300 rounded-md shadow-sm">
-                        @error('hora_fin') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                        @error('hora_fin') 
+                            <span class="text-red-600 text-sm">{{ $message }}</span> 
+                        @enderror
                     </div>
 
                     {{-- Paciente --}}
@@ -44,12 +50,15 @@
                         <label class="block font-medium">Paciente</label>
                         <select name="paciente_id" class="w-full border-gray-300 rounded-md shadow-sm">
                             @foreach($pacientes as $p)
-                                <option value="{{ $p->id }}" @selected($p->id == $cita->paciente_id)>
+                                <option value="{{ $p->id }}" 
+                                        @selected($p->id == $cita->paciente_id)>
                                     {{ $p->name ?? ($p->nombres . ' ' . $p->apellidos) }}
                                 </option>
                             @endforeach
                         </select>
-                        @error('paciente_id') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                        @error('paciente_id') 
+                            <span class="text-red-600 text-sm">{{ $message }}</span> 
+                        @enderror
                     </div>
 
                     {{-- Admisiones --}}
@@ -57,12 +66,15 @@
                         <label class="block font-medium">Admisiones</label>
                         <select name="admisiones_id" class="w-full border-gray-300 rounded-md shadow-sm">
                             @foreach($admisiones as $a)
-                                <option value="{{ $a->id }}" @selected($a->id == $cita->admisiones_id)>
+                                <option value="{{ $a->id }}" 
+                                        @selected($a->id == $cita->admisiones_id)>
                                     {{ $a->name ?? ($a->nombres . ' ' . $a->apellidos) }}
                                 </option>
                             @endforeach
                         </select>
-                        @error('admisiones_id') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                        @error('admisiones_id') 
+                            <span class="text-red-600 text-sm">{{ $message }}</span> 
+                        @enderror
                     </div>
 
                     {{-- Estado --}}
@@ -73,7 +85,9 @@
                             <option value="cancelada" @selected($cita->estado == 'cancelada')>Cancelada</option>
                             <option value="finalizada" @selected($cita->estado == 'finalizada')>Finalizada</option>
                         </select>
-                        @error('estado') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                        @error('estado') 
+                            <span class="text-red-600 text-sm">{{ $message }}</span> 
+                        @enderror
                     </div>
 
                     {{-- Botones --}}

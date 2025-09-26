@@ -18,6 +18,14 @@ class CitaController extends Controller
         return view('citas.index', compact('citas', 'pacientes', 'admisiones'));
     }
 
+    public function create()
+    {
+        $pacientes = User::role('paciente')->get();
+        $admisiones = User::role('admisiones')->get();
+
+        return view('citas.create', compact('pacientes', 'admisiones'));
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -34,6 +42,14 @@ class CitaController extends Controller
         ]));
 
         return redirect()->route('citas.index')->with('success', 'La cita fue creada correctamente.');
+    }
+
+    public function edit(Cita $cita)
+    {
+        $pacientes = User::role('paciente')->get();
+        $admisiones = User::role('admisiones')->get();
+
+        return view('citas.edit', compact('cita', 'pacientes', 'admisiones'));
     }
 
     public function update(Request $request, Cita $cita)
