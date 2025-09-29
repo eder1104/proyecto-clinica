@@ -55,35 +55,4 @@
             </form>
         </div>
     </div>
-
-    <x-app-layout>
-        <x-slot name="header">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Nueva Cita</h2>
-        </x-slot>
-
-        <div class="py-6 max-w-2xl mx-auto">
-            <form method="POST" action="{{ route('citas.store') }}" class="bg-white p-6 shadow rounded">
-                @csrf
-
-                <label>Paciente</label>
-                <select name="user_id" class="w-full border rounded p-2 mb-4">
-                    @foreach($usuarios as $usuario)
-                    <option value="{{ $usuario->id }}">{{ $usuario->name }}</option>
-                    @endforeach
-                </select>
-
-                <label>Fecha</label>
-                <input type="date" name="fecha" class="w-full border rounded p-2 mb-4">
-
-                <label>Hora</label>
-                <input type="time" name="hora" class="w-full border rounded p-2 mb-4">
-
-                <label>Motivo</label>
-                <input type="text" name="motivo" class="w-full border rounded p-2 mb-4">
-
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Guardar</button>
-            </form>
-        </div>
-    </x-app-layout>
-
 </div>

@@ -45,7 +45,7 @@
                                             <td class="border px-4 py-2">{{ $paciente->documento }}</td>
                                             <td class="border px-4 py-2">{{ $paciente->telefono }}</td>
                                             <td class="border px-4 py-2 text-center">
-                                                <a href="{{ route('historia.show', $paciente->id) }}" 
+                                                <a href="{{ route('historias.show', $paciente->id) }}" 
                                                    class="text-blue-600 hover:underline text-lg"
                                                    title="Ver Historia Clínica">
                                                     📄

@@ -10,7 +10,6 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     
-                    {{-- Mensaje Flash de Login --}}
                     @if (session('status'))
                         <div id="alert-login" class="flex items-center justify-between bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
                             <span>{{ session('status') }}</span>

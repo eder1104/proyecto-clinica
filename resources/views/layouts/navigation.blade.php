@@ -30,7 +30,7 @@
                 </div>
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('historia.index')" :active="request()->routeIs('historia.*')">
+                    <x-nav-link :href="route('historias.index')" :active="request()->routeIs('historia.*')">
                         {{ __('Historia Clínica') }}
                     </x-nav-link>
                 </div>
@@ -95,7 +95,7 @@
                 <x-responsive-nav-link :href="route('citas.index')" :active="request()->routeIs('citas.*')">
                     {{ __('Citas Médicas') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('historia.index')" :active="request()->routeIs('historia.*')">
+                <x-responsive-nav-link :href="route('historias.index')" :active="request()->routeIs('historia.*')">
                     {{ __('Historia Clínica') }}
                 </x-responsive-nav-link>
             </div>

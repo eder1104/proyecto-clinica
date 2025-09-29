@@ -1,11 +1,18 @@
-<div x-data="{ open: true }">
+<div x-data="{ open: false }" x-cloak>
+    <!-- Botón que abre el modal -->
+    <button @click="open = true"
+            class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition">
+        Editar
+    </button>
+
+    <!-- Modal -->
     <div x-show="open"
          x-transition.opacity
-         class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-         x-cloak>
-        
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 p-8 relative animate-fade-in">
-            
+         class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+
+        <div @click.away="open = false"
+             class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 p-8 relative">
+
             <button @click="open = false"
                     class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">
                 ✕

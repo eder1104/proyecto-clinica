@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HistoriaClinica;
+use app\views\historias\show;
 use App\Models\Paciente;
 use Illuminate\Http\Request;
 
@@ -11,7 +12,7 @@ class HistoriaClinicaController extends Controller
     public function index()
     {
         $pacientes = Paciente::all();
-        return view('historia_clinica', compact('pacientes'));
+        return view('historias.index', compact('pacientes'));
     }
 
 

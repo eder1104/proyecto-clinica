@@ -1,9 +1,17 @@
-<div x-data="{ open: true }" x-cloak>
+<div x-data="{ open: false }" x-cloak>
+    <!-- Botón que abre el modal -->
+    <button @click="open = true"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+        Nuevo Paciente
+    </button>
+
+    <!-- Modal -->
     <div x-show="open"
          x-transition.opacity
          class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
 
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 p-8 relative animate-fade-in">
+        <div @click.away="open = false"
+             class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 p-8 relative">
 
             <button @click="open = false"
                     aria-label="Cerrar"

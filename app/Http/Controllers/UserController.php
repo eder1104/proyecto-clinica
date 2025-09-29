@@ -10,7 +10,6 @@ class UserController extends Controller
 {
     public function index()
     {
-        // Solo mostramos admin, admisiones y callcenter (excluimos pacientes)
         $users = User::whereIn('role', ['admin', 'admisiones', 'callcenter'])->get();
         return view('users.index', compact('users'));
     }
