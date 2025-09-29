@@ -1,58 +1,83 @@
-<!-- Modal Crear Usuario -->
-<div class="modal fade" id="crearUsuarioModal" tabindex="-1" aria-labelledby="crearUsuarioModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content rounded-lg shadow-lg">
-            <div class="modal-header bg-blue-600 text-white">
-                <h5 class="modal-title" id="crearUsuarioModalLabel">Crear Usuario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800">
+            Crear Usuario
+        </h2>
+    </x-slot>
 
-            <form action="{{ route('usuarios.store') }}" method="POST">
-                @csrf
-                <div class="modal-body">
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8"
+        x-data="{ open: true }">
 
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Nombre</label>
-                        <input type="text" name="name" id="name"
-                            class="form-control @error('name') is-invalid @enderror"
-                            value="{{ old('name') }}" required>
-                        @error('name')
-                        <div class="invalid-feedback">{{ $message }}</div>
+        <div x-show="open" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div class="bg-white w-full max-w-md p-6 rounded-lg shadow">
+                <form action="{{ route('users.store') }}" method="POST">
+                    @csrf
+
+                    <div class="mb-4">
+                        <label for="nombres" class="block text-gray-700">Nombres</label>
+                        <input type="text" name="nombres" id="nombres"
+                            value="{{ old('nombres') }}"
+                            class="mt-1 block w-full rounded-md shadow-sm @error('nombres') border-red-500 @enderror" required>
+                        @error('nombres')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Correo Electrónico</label>
+                    <div class="mb-4">
+                        <label for="apellidos" class="block text-gray-700">Apellidos</label>
+                        <input type="text" name="apellidos" id="apellidos"
+                            value="{{ old('apellidos') }}"
+                            class="mt-1 block w-full rounded-md shadow-sm @error('apellidos') border-red-500 @enderror" required>
+                        @error('apellidos')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="email" class="block text-gray-700">Correo Electrónico</label>
                         <input type="email" name="email" id="email"
-                            class="form-control @error('email') is-invalid @enderror"
-                            value="{{ old('email') }}" required>
+                            value="{{ old('email') }}"
+                            class="mt-1 block w-full rounded-md shadow-sm @error('email') border-red-500 @enderror" required>
                         @error('email')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Contraseña</label>
+                    <div class="mb-4">
+                        <label for="password" class="block text-gray-700">Contraseña</label>
                         <input type="password" name="password" id="password"
-                            class="form-control @error('password') is-invalid @enderror"
-                            required>
+                            class="mt-1 block w-full rounded-md shadow-sm @error('password') border-red-500 @enderror" required>
                         @error('password')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div class="mb-3">
-                        <label for="password_confirmation" class="form-label">Confirmar Contraseña</label>
+                    <div class="mb-4">
+                        <label for="password_confirmation" class="block text-gray-700">Confirmar Contraseña</label>
                         <input type="password" name="password_confirmation" id="password_confirmation"
-                            class="form-control" required>
+                            class="mt-1 block w-full rounded-md shadow-sm" required>
                     </div>
 
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar Usuario</button>
-                </div>
-            </form>
+                    <div class="mb-4">
+                        <label for="role" class="block text-gray-700">Rol</label>
+                        <select name="role" id="role"
+                            class="mt-1 block w-full rounded-md shadow-sm @error('role') border-red-500 @enderror" required>
+                            <option value="">Seleccione un rol</option>
+                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                            <option value="admisiones" {{ old('role') == 'admisiones' ? 'selected' : '' }}>Admisiones</option>
+                            <option value="callcenter" {{ old('role') == 'callcenter' ? 'selected' : '' }}>Callcenter</option>
+                        </select>
+                        @error('role')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="flex justify-end space-x-2 mt-4">
+                        <a href="{{ route('users.index') }}" class="px-4 py-2 rounded hover:bg-gray-400">Cancelar</a>
+                        <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Guardar Usuario</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
+</x-app-layout>

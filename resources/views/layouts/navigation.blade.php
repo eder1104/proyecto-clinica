@@ -17,7 +17,7 @@
                     </button>
 
                     <div class="absolute left-0 mt-2 w-48 bg-white border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100 transition-all duration-200">
-                        <a href="{{ route('usuarios.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <a href="{{ route('users.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             {{ __('Usuarios') }}
                         </a>
                     </div>
@@ -89,7 +89,7 @@
                 <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('usuarios.index')" :active="request()->routeIs('usuarios.*')">
+                <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('usuarios.*')">
                     {{ __('Usuarios') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('citas.index')" :active="request()->routeIs('citas.*')">

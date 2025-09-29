@@ -26,20 +26,20 @@
 
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <div class="flex justify-end p-4 bg-gray-50 border-b">
-            <button type="button" onclick="openAddModal()"
-                class="inline-block px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <a href="{{ route('users.create') }}"
+               class="inline-block px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500">
                 ➕ Agregar Usuario
-            </button>
+            </a>
         </div>
 
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -48,35 +48,30 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {{ $user->nombres }} {{ $user->apellidos }}
                         </td>
-
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ $user->email }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <form action="{{ route('usuarios.toggle', $user->id) }}" method="POST">
+                            <form action="{{ route('users.toggle', $user->id) }}" method="POST">
                                 @csrf
                                 @method('PATCH')
                                 <button type="submit"
-                                    class="px-2 py-1 rounded {{ $user->status == 'activo' ? 'bg-green-200 text-green-800 hover:bg-green-300' : 'bg-red-200 text-red-800 hover:bg-red-300' }} transition">
+                                    class="px-2 py-1 rounded {{ $user->status == 'activo' ? 'bg-green-200 text-green-800 hover:bg-green-300' : 'bg-red-200 text-red-800 hover:bg-red-300' }}">
                                     {{ $user->status == 'activo' ? 'Activo' : 'Inactivo' }}
                                 </button>
                             </form>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
-                            <button type="button"
-                                data-id="{{ $user->id }}"
-                                data-nombres="{{ $user->nombres }}"
-                                data-apellidos="{{ $user->apellidos }}"
-                                data-email="{{ $user->email }}"
-                                data-role="{{ $user->role }}"
-                                onclick="openEditModal(this)"
-                                class="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-md shadow hover:bg-blue-700 focus:outline-none transition">
+                            <a href="{{ route('users.edit', $user->id) }}"
+                               class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-md shadow hover:bg-blue-700">
                                 ✎ Editar
-                            </button>
-                            <form action="{{ route('usuarios.destroy', $user->id) }}" method="POST" onsubmit="return confirm('¿Seguro que quieres eliminar este usuario?');">
+                            </a>
+                            <form action="{{ route('users.destroy', $user->id) }}" method="POST"
+                                  onsubmit="return confirm('¿Seguro que quieres eliminar este usuario?');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="inline-flex items-center px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md shadow hover:bg-red-700 focus:outline-none transition">
+                                <button type="submit"
+                                        class="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md shadow hover:bg-red-700">
                                     ❌ Eliminar
                                 </button>
                             </form>
@@ -88,175 +83,4 @@
         </div>
     </div>
 </div>
-
-<div id="addModal" class="fixed inset-0 hidden bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-md">
-        <form action="{{ route('usuarios.store') }}" method="POST">
-            @csrf
-            <div class="px-6 py-4 border-b">
-                <h2 class="text-lg font-semibold text-gray-800">Agregar Usuario</h2>
-            </div>
-            <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Nombres</label>
-                    <input type="text" name="nombres" value="{{ old('nombres') }}"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm @error('nombres') border-red-500 @enderror focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required>
-                    @error('nombres')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Apellidos</label>
-                    <input type="text" name="apellidos" value="{{ old('apellidos') }}"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm @error('apellidos') border-red-500 @enderror focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required>
-                    @error('apellidos')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" name="email" value="{{ old('email') }}"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm @error('email') border-red-500 @enderror focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required>
-                    @error('email')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Contraseña</label>
-                    <input type="password" name="password"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm @error('password') border-red-500 @enderror focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required>
-                    @error('password')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Confirmar contraseña</label>
-                    <input type="password" name="password_confirmation"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Rol</label>
-                    <select name="role"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
-                        <option value="admin">Admin</option>
-                        <option value="admisiones">Admisiones</option>
-                        <option value="callcenter">Callcenter</option>
-                        <option value="paciente">Paciente</option>
-                    </select>
-                    @error('role')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
-            <div class="px-6 py-4 border-t flex justify-end gap-2">
-                <button type="button" onclick="closeAddModal()"
-                    class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition">
-                    Cancelar
-                </button>
-                <button type="submit"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
-                    Guardar
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div id="editModal" class="fixed inset-0 hidden bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-md">
-        <form id="editForm" method="POST">
-            @csrf
-            @method('PUT')
-            <div class="px-6 py-4 border-b">
-                <h2 class="text-lg font-semibold text-gray-800">Editar Usuario</h2>
-            </div>
-            <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Nombres</label>
-                    <input type="text" id="editNombres" name="nombres"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required>
-                    @error('nombres')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Apellidos</label>
-                    <input type="text" id="editApellidos" name="apellidos"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required>
-                    @error('apellidos')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="editEmail" name="email"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required>
-                    @error('email')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Rol</label>
-                    <select id="editRole" name="role"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
-                        <option value="admin">Admin</option>
-                        <option value="admisiones">Admisiones</option>
-                        <option value="callcenter">Callcenter</option>
-                        <option value="paciente">Paciente</option>
-                    </select>
-                    @error('role')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
-            <div class="px-6 py-4 border-t flex justify-end gap-2">
-                <button type="button" onclick="closeEditModal()"
-                    class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition">
-                    Cancelar
-                </button>
-                <button type="submit"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
-                    Guardar
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-    function openEditModal(button) {
-        const id = button.getAttribute("data-id");
-        const nombres = button.getAttribute("data-nombres");
-        const apellidos = button.getAttribute("data-apellidos");
-        const email = button.getAttribute("data-email");
-        const role = button.getAttribute("data-role");
-
-        document.getElementById('editModal').classList.remove('hidden');
-        document.getElementById('editNombres').value = nombres;
-        document.getElementById('editApellidos').value = apellidos;
-        document.getElementById('editEmail').value = email;
-        document.getElementById('editRole').value = role;
-        document.getElementById('editForm').action = `/usuarios/${id}`;
-    }
-
-    function closeEditModal() {
-        document.getElementById('editModal').classList.add('hidden');
-    }
-
-    function openAddModal() {
-        document.getElementById('addModal').classList.remove('hidden');
-    }
-
-    function closeAddModal() {
-        document.getElementById('addModal').classList.add('hidden');
-    }
-</script>
 @endsection

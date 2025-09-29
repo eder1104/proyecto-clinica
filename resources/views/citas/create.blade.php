@@ -98,7 +98,7 @@
             </div>
         </div>
 
-        {{-- MODAL Buscar Paciente --}}
+        {{-- buscar paciente --}}
         <div x-show="openPaciente" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div class="bg-white w-full max-w-lg p-6 rounded-lg shadow">
                 <h3 class="text-lg font-semibold mb-4">Buscar Paciente</h3>
@@ -135,50 +135,7 @@
             </div>
         </div>
 
-        {{-- MODAL Nuevo Paciente --}}
-        <div x-show="openNuevoPaciente" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div class="bg-white w-full max-w-md p-6 rounded-lg shadow">
-                <h3 class="text-lg font-semibold mb-4">Agregar Paciente</h3>
-                <form action="{{ route('pacientes.store') }}" method="POST">
-                    @csrf
-                    <div class="mb-4">
-                        <label class="block text-gray-700">Nombres</label>
-                        <input type="text" name="nombres" value="{{ old('nombres') }}"
-                            class="mt-1 block w-full rounded-md shadow-sm @error('nombres') border-red-500 @enderror" required>
-                        @error('nombres') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700">Apellidos</label>
-                        <input type="text" name="apellidos" value="{{ old('apellidos') }}"
-                            class="mt-1 block w-full rounded-md shadow-sm @error('apellidos') border-red-500 @enderror" required>
-                        @error('apellidos') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700">Correo</label>
-                        <input type="email" name="email" value="{{ old('email') }}"
-                            class="mt-1 block w-full rounded-md shadow-sm @error('email') border-red-500 @enderror" required>
-                        @error('email') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700">Contraseña</label>
-                        <input type="password" name="password"
-                            class="mt-1 block w-full rounded-md shadow-sm @error('password') border-red-500 @enderror" required>
-                        @error('password') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700">Confirmar Contraseña</label>
-                        <input type="password" name="password_confirmation"
-                            class="mt-1 block w-full rounded-md shadow-sm" required>
-                    </div>
-                    <div class="flex justify-end space-x-2 mt-4">
-                        <button type="button" @click="openNuevoPaciente = false" class="px-4 py-2 rou hover:bg-gray-400">Cancelar</button>
-                        <button type="submit" class="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">Guardar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        {{-- MODAL Editar Cita --}}
+        {{-- editar cita --}}
         <div x-show="openEditar" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div class="bg-white w-full max-w-md p-6 rounded-lg shadow">
                 <h3 class="text-lg font-semibold mb-4">Editar Cita</h3>
@@ -220,10 +177,10 @@
                         <select name="paciente_id" x-model="citaSeleccionada.paciente_id"
                             class="mt-1 block w-full rounded-md shadow-sm">
                             <option value="">Seleccione un paciente</option>
-                            @foreach($paciente as $pacientes)
-                            <option value="{{ $pacientes->id }}">{{ $pacientes->nombres }} {{ $pacientes->apellidos }}</option>
+                            @foreach($pacientes as $paciente)
+                            <option value="{{ $paciente->id }}">{{ $paciente->nombres }} {{ $paciente->apellidos }}</option>
                             @endforeach
-                            <li>--selecciona un paciente--</li>
+                            <li>-- Seleccione un paciente --</li>
                         </select>
                     </div>
 

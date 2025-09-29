@@ -34,6 +34,18 @@ class CitaController extends Controller
             'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
             'paciente_id' => 'required|exists:users,id',
             'admisiones_id' => 'required|exists:users,id',
+        ], [
+            'fecha.required' => 'La fecha es obligatoria.',
+            'fecha.date' => 'La fecha no tiene un formato válido.',
+            'hora_inicio.required' => 'La hora de inicio es obligatoria.',
+            'hora_inicio.date_format' => 'La hora de inicio no tiene un formato válido (HH:MM).',
+            'hora_fin.required' => 'La hora de fin es obligatoria.',
+            'hora_fin.date_format' => 'La hora de fin no tiene un formato válido (HH:MM).',
+            'hora_fin.after' => 'La hora de fin debe ser posterior a la hora de inicio.',
+            'paciente_id.required' => 'Debe seleccionar un paciente.',
+            'paciente_id.exists' => 'El paciente seleccionado no existe.',
+            'admisiones_id.required' => 'Debe seleccionar un usuario de admisiones.',
+            'admisiones_id.exists' => 'El usuario de admisiones seleccionado no existe.',
         ]);
 
         Cita::create(array_merge($validated, [
@@ -61,6 +73,19 @@ class CitaController extends Controller
             'paciente_id' => 'required|exists:users,id',
             'admisiones_id' => 'required|exists:users,id',
             'estado' => 'sometimes|in:programada,cancelada,finalizada',
+        ], [
+            'fecha.required' => 'La fecha es obligatoria.',
+            'fecha.date' => 'La fecha no tiene un formato válido.',
+            'hora_inicio.required' => 'La hora de inicio es obligatoria.',
+            'hora_inicio.date_format' => 'La hora de inicio no tiene un formato válido (HH:MM).',
+            'hora_fin.required' => 'La hora de fin es obligatoria.',
+            'hora_fin.date_format' => 'La hora de fin no tiene un formato válido (HH:MM).',
+            'hora_fin.after' => 'La hora de fin debe ser posterior a la hora de inicio.',
+            'paciente_id.required' => 'Debe seleccionar un paciente.',
+            'paciente_id.exists' => 'El paciente seleccionado no existe.',
+            'admisiones_id.required' => 'Debe seleccionar un usuario de admisiones.',
+            'admisiones_id.exists' => 'El usuario de admisiones seleccionado no existe.',
+            'estado.in' => 'El estado de la cita no es válido.',
         ]);
 
         $cita->update(array_merge($validated, [

@@ -9,7 +9,7 @@ class PacienteSeeder extends Seeder
 {
     public function run(): void
     {
-        $usuarios = [
+        $pacientes = [
             ['nombres'=>'Carlos','apellidos'=>'Pérez Gómez','documento'=>'1002003001','telefono'=>'3001234567','direccion'=>'Cra 10 #20-30','email'=>'carlos@example.com','fecha_nacimiento'=>'1990-05-14','sexo'=>'M'],
             ['nombres'=>'Ana','apellidos'=>'Rodríguez López','documento'=>'1002003002','telefono'=>'3109876543','direccion'=>'Cll 45 #12-34','email'=>'ana@example.com','fecha_nacimiento'=>'1992-07-20','sexo'=>'F'],
             ['nombres'=>'Julián','apellidos'=>'Martínez Torres','documento'=>'1002003003','telefono'=>'3201112233','direccion'=>'Av 30 #45-67','email'=>'julian@example.com','fecha_nacimiento'=>'1988-02-05','sexo'=>'M'],
@@ -22,7 +22,7 @@ class PacienteSeeder extends Seeder
             ['nombres'=>'Camila','apellidos'=>'Rojas Cárdenas','documento'=>'1002003010','telefono'=>'3205556666','direccion'=>'Av 68 #45-12','email'=>'camila@example.com','fecha_nacimiento'=>'1997-09-03','sexo'=>'F'],
         ];
 
-        foreach ($usuarios as $data) {
+        foreach ($pacientes as $data) {
             Paciente::updateOrCreate(
                 ['email' => $data['email']],
                 $data

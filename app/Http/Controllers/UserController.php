@@ -38,13 +38,13 @@ class UserController extends Controller
             'role'      => $request->role,
         ]);
 
-        return redirect()->route('usuarios.index')
+        return redirect()->route('users.index')
             ->with('success', 'Usuario creado correctamente.');
     }
 
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
+        return view('users.index', compact('user'));
     }
 
     public function update(Request $request, $id)
@@ -65,7 +65,7 @@ class UserController extends Controller
             'role'      => $request->role,
         ]);
 
-        return redirect()->route('usuarios.index')
+        return redirect()->route('users.index')
             ->with('success', 'Usuario actualizado correctamente.');
     }
 
@@ -73,7 +73,7 @@ class UserController extends Controller
     {
         $user->delete();
 
-        return redirect()->route('usuarios.index')
+        return redirect()->route('users.index')
             ->with('success', 'Usuario eliminado correctamente.');
     }
 
@@ -82,7 +82,7 @@ class UserController extends Controller
         $user->status = $user->status === 'activo' ? 'inactivo' : 'activo';
         $user->save();
 
-        return redirect()->route('usuarios.index')
+        return redirect()->route('users.index')
             ->with('success', 'Estado actualizado correctamente.');
     }
 }

@@ -18,7 +18,7 @@ class Cita extends Model
         'mensaje',
         'estado',
         'paciente_id',
-        'admisiones_id',   // 👈 importante que esté acá
+        'admisiones_id',
         'created_by',
         'updated_by',
         'cancelled_by',
@@ -33,7 +33,7 @@ class Cita extends Model
 
     public function admisiones()
     {
-        return $this->belongsTo(User::class, 'admisiones_id'); // 👈 restaurada
+        return $this->belongsTo(User::class, 'admisiones_id'); 
     }
 
     public function createdBy()
