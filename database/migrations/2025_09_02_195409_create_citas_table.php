@@ -8,12 +8,22 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('citas', function (Blueprint $table) {
             $table->id();
-            $table->string('numero_fuente')->nullable();
             $table->date('fecha');
             $table->time('hora_inicio');
             $table->time('hora_fin');
-            $table->text('mensaje')->nullable();
             $table->text('motivo_consulta')->nullable();
+
+            // 🔹 Campos clínicos
+            $table->string('tension_arterial')->nullable();
+            $table->string('frecuencia_cardiaca')->nullable();
+            $table->string('frecuencia_respiratoria')->nullable();
+            $table->string('temperatura')->nullable();
+            $table->string('saturacion')->nullable();
+            $table->string('peso')->nullable();
+            $table->text('examen_fisico')->nullable();
+            $table->text('diagnostico')->nullable();
+            $table->text('plan')->nullable();
+
             $table->string('estado')->default('programada');
             $table->foreignId('paciente_id')->constrained('pacientes')->restrictOnDelete();
             $table->foreignId('admisiones_id')->constrained('users')->restrictOnDelete();

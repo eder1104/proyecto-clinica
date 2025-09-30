@@ -14,7 +14,13 @@
                 </div>
 
                 <div class="card-body">
-                    <form action="{{ route('citas.update', $cita) }}" method="POST">
+                    @if(session('success'))
+                        <div class="bg-green-500 text-white p-3 rounded mb-4">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
+                    <form id="form-cita" action="{{ route('citas.update', $cita) }}" method="POST">
                         @csrf
                         @method('PUT')
 
@@ -42,7 +48,7 @@
 
                         <div>
                             <h2 class="section-title">Motivo de Consulta</h2>
-                            <textarea name="motivo_consulta" class="input-text">{{ old('motivo_consulta', $cita->motivo_consulta) }}</textarea>
+                            <textarea name="motivo_consulta" class="input-text" {{ $cita->estado === 'finalizada' ? 'disabled' : '' }}>{{ old('motivo_consulta', $cita->motivo_consulta) }}</textarea>
                         </div>
 
                         <div>
@@ -55,34 +61,63 @@
                         <div>
                             <h2 class="section-title">Signos Vitales</h2>
                             <div class="section-content grid-3">
-                                <p><span class="font-medium">Tensión arterial:</span> <input type="text" name="tension_arterial" class="input-field"></p>
-                                <p><span class="font-medium">Frecuencia cardiaca:</span> <input type="text" name="frecuencia_cardiaca" class="input-field"></p>
-                                <p><span class="font-medium">Frecuencia respiratoria:</span> <input type="text" name="frecuencia_respiratoria" class="input-field"></p>
-                                <p><span class="font-medium">Temperatura:</span> <input type="text" name="temperatura" class="input-field"></p>
-                                <p><span class="font-medium">Saturación O₂:</span> <input type="text" name="saturacion" class="input-field"></p>
-                                <p><span class="font-medium">Peso:</span> <input type="text" name="peso" class="input-field"></p>
+                                <p><span class="font-medium">Tensión arterial:</span>
+                                    <input type="text" name="tension_arterial" value="{{ old('tension_arterial', $cita->tension_arterial) }}" class="input-field" {{ $cita->estado === 'finalizada' ? 'disabled' : '' }}>
+                                </p>
+                                <p><span class="font-medium">Frecuencia cardiaca:</span>
+                                    <input type="text" name="frecuencia_cardiaca" value="{{ old('frecuencia_cardiaca', $cita->frecuencia_cardiaca) }}" class="input-field" {{ $cita->estado === 'finalizada' ? 'disabled' : '' }}>
+                                </p>
+                                <p><span class="font-medium">Frecuencia respiratoria:</span>
+                                    <input type="text" name="frecuencia_respiratoria" value="{{ old('frecuencia_respiratoria', $cita->frecuencia_respiratoria) }}" class="input-field" {{ $cita->estado === 'finalizada' ? 'disabled' : '' }}>
+                                </p>
+                                <p><span class="font-medium">Temperatura:</span>
+                                    <input type="text" name="temperatura" value="{{ old('temperatura', $cita->temperatura) }}" class="input-field" {{ $cita->estado === 'finalizada' ? 'disabled' : '' }}>
+                                </p>
+                                <p><span class="font-medium">Saturación O₂:</span>
+                                    <input type="text" name="saturacion" value="{{ old('saturacion', $cita->saturacion) }}" class="input-field" {{ $cita->estado === 'finalizada' ? 'disabled' : '' }}>
+                                </p>
+                                <p><span class="font-medium">Peso:</span>
+                                    <input type="text" name="peso" value="{{ old('peso', $cita->peso) }}" class="input-field" {{ $cita->estado === 'finalizada' ? 'disabled' : '' }}>
+                                </p>
                             </div>
                         </div>
 
                         <div>
                             <h2 class="section-title">Examen Físico</h2>
-                            <textarea name="examen_fisico" class="input-text">{{ old('examen_fisico', $cita->paciente->examen_fisico ?? '') }}</textarea>
+                            <textarea name="examen_fisico" class="input-text" {{ $cita->estado === 'finalizada' ? 'disabled' : '' }}>{{ old('examen_fisico', $cita->examen_fisico) }}</textarea>
                         </div>
 
                         <div>
                             <h2 class="section-title">Diagnóstico</h2>
-                            <textarea name="diagnostico" class="input-text">{{ old('diagnostico', $cita->paciente->diagnostico ?? '') }}</textarea>
+                            <textarea name="diagnostico" class="input-text" {{ $cita->estado === 'finalizada' ? 'disabled' : '' }}>{{ old('diagnostico', $cita->diagnostico) }}</textarea>
                         </div>
 
                         <div>
                             <h2 class="section-title">Conducta / Plan</h2>
-                            <textarea name="plan" class="input-text">{{ old('plan', $cita->paciente->plan ?? '') }}</textarea>
-                        </div>
-
-                        <div class="form-footer">
-                            <button type="submit" class="btn-submit">Guardar Cita Completa</button>
+                            <textarea name="plan" class="input-text" {{ $cita->estado === 'finalizada' ? 'disabled' : '' }}>{{ old('plan', $cita->plan) }}</textarea>
                         </div>
                     </form>
+
+                    <div class="form-footer" style="display: flex; gap: 10px;">
+                        @if($cita->estado !== 'finalizada')
+                            <button type="submit" form="form-cita" class="btn-submit">Guardar Cita Completa</button>
+
+                            <form action="{{ route('citas.finalizar', $cita) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas finalizar la consulta?');" style="display:inline;">
+                                @csrf
+                                <button type="submit" class="btn-submit bg-yellow-600">Finalizar Consulta</button>
+                            </form>
+
+                            <form action="{{ route('citas.destroy', $cita) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas cancelar esta cita?');" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn-submit bg-red-600">Cancelar/Borrar Cita</button>
+                            </form>
+                        @endif
+
+                        <a href="{{ route('citas.pdf', $cita) }}" target="_blank" class="btn-submit bg-green-600">
+                            Generar PDF
+                        </a>
+                    </div>
 
                     <div class="registro-footer">
                         <p>Fecha de registro: {{ \Carbon\Carbon::parse($cita->created_at)->format('d/m/Y - h:i A') }}</p>
@@ -102,6 +137,7 @@
         color: #1f2937;
         line-height: 1.5rem;
     }
+
     .card-container {
         background: #fff;
         border: 1px solid #e5e7eb;
@@ -109,21 +145,26 @@
         overflow: hidden;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
+
     .card-header {
         padding: 1.5rem 2rem;
         background: linear-gradient(to right, #2563eb, #3b82f6);
         color: #fff;
     }
+
     .card-title {
         font-size: 1.5rem;
         font-weight: 700;
     }
+
     .card-subtitle {
         font-size: 0.875rem;
     }
+
     .card-body {
         padding: 2rem;
     }
+
     .section-title {
         font-size: 1.125rem;
         font-weight: 600;
@@ -132,25 +173,30 @@
         padding-bottom: 0.5rem;
         margin-bottom: 1rem;
     }
+
     .section-content {
         font-size: 0.875rem;
         color: #4b5563;
         margin-top: 0.5rem;
     }
+
     .grid-2 {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 1.5rem;
     }
+
     .grid-3 {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 1.5rem;
     }
+
     .list {
         list-style-type: disc;
         padding-left: 1.5rem;
     }
+
     .input-text {
         font-size: 0.875rem;
         color: #374151;
@@ -162,6 +208,7 @@
         resize: vertical;
         margin-top: 0.5rem;
     }
+
     .input-field {
         width: 100%;
         padding: 0.25rem 0.5rem;
@@ -169,7 +216,9 @@
         border-radius: 0.375rem;
         font-size: 0.875rem;
         color: #374151;
+        margin-top: 0.25rem;
     }
+
     .btn-submit {
         padding: 0.75rem 1.5rem;
         background: #2563eb;
@@ -177,7 +226,13 @@
         border-radius: 0.5rem;
         font-size: 0.875rem;
         font-weight: 600;
+        transition: background 0.3s ease;
     }
+
+    .btn-submit:hover {
+        background: #1d4ed8;
+    }
+
     .form-footer {
         display: flex;
         justify-content: flex-end;
@@ -185,11 +240,13 @@
         border-top: 1px solid #e5e7eb;
         padding-top: 1.5rem;
     }
+
     .registro-footer {
         margin-top: 2rem;
         font-size: 0.875rem;
         color: #6b7280;
     }
+
     .registro-footer .firma {
         margin: 1rem 0;
         font-weight: 500;

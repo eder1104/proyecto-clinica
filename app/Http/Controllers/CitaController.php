@@ -39,15 +39,22 @@ class CitaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'numero_fuente'   => 'nullable|string|max:255',
-            'fecha'           => 'required|date',
-            'hora_inicio'     => 'required|date_format:H:i',
-            'hora_fin'        => 'required|date_format:H:i|after:hora_inicio',
-            'mensaje'         => 'nullable|string',
-            'estado'          => 'required|string',
-            'paciente_id'     => 'required|exists:pacientes,id',
-            'admisiones_id'   => 'required|exists:users,id',
-            'motivo_consulta' => 'nullable|string|max:1000',
+            'fecha'                   => 'required|date',
+            'hora_inicio'             => 'required|date_format:H:i',
+            'hora_fin'                => 'required|date_format:H:i|after:hora_inicio',
+            'estado'                  => 'required|string',
+            'paciente_id'             => 'required|exists:pacientes,id',
+            'admisiones_id'           => 'required|exists:users,id',
+            'motivo_consulta'         => 'nullable|string|max:1000',
+            'tension_arterial'        => 'nullable|string|max:20',
+            'frecuencia_cardiaca'     => 'nullable|string|max:20',
+            'frecuencia_respiratoria' => 'nullable|string|max:20',
+            'temperatura'             => 'nullable|string|max:20',
+            'saturacion'              => 'nullable|string|max:20',
+            'peso'                    => 'nullable|string|max:20',
+            'examen_fisico'           => 'nullable|string',
+            'diagnostico'             => 'nullable|string|max:2000',
+            'plan'                    => 'nullable|string|max:2000',
         ]);
 
         $validated['created_by'] = Auth::id();
@@ -68,16 +75,27 @@ class CitaController extends Controller
 
     public function update(Request $request, Cita $cita)
     {
+        if ($cita->estado === 'finalizada') {
+            return redirect()->route('citas.index')->with('error', 'La cita ya fue finalizada y no se puede modificar.');
+        }
+
         $validated = $request->validate([
-            'numero_fuente'   => 'nullable|string|max:255',
-            'fecha'           => 'required|date',
-            'hora_inicio'     => 'sometimes|required',
-            'hora_fin'        => 'sometimes|required|after:hora_inicio',
-            'mensaje'         => 'nullable|string',
-            'estado'          => 'required|string',
-            'paciente_id'     => 'required|exists:pacientes,id',
-            'admisiones_id'   => 'required|exists:users,id',
-            'motivo_consulta' => 'nullable|string|max:1000',
+            'fecha'                   => 'required|date',
+            'hora_inicio'             => 'required|date_format:H:i',
+            'hora_fin'                => 'required|date_format:H:i|after:hora_inicio',
+            'estado'                  => 'required|string|in:programada,cancelada,finalizada',
+            'paciente_id'             => 'required|exists:pacientes,id',
+            'admisiones_id'           => 'required|exists:users,id',
+            'motivo_consulta'         => 'nullable|string|max:1000',
+            'tension_arterial'        => 'nullable|string|max:20',
+            'frecuencia_cardiaca'     => 'nullable|string|max:20',
+            'frecuencia_respiratoria' => 'nullable|string|max:20',
+            'temperatura'             => 'nullable|string|max:20',
+            'saturacion'              => 'nullable|string|max:20',
+            'peso'                    => 'nullable|string|max:20',
+            'examen_fisico'           => 'nullable|string',
+            'diagnostico'             => 'nullable|string|max:2000',
+            'plan'                    => 'nullable|string|max:2000',
         ]);
 
         $validated['updated_by'] = Auth::id();
@@ -89,8 +107,13 @@ class CitaController extends Controller
         return redirect()->route('citas.index')->with('success', 'Cita actualizada correctamente.');
     }
 
+
     public function updateMotivo(Request $request, Cita $cita)
     {
+        if ($cita->estado === 'finalizada') {
+            return back()->with('error', 'La cita ya fue finalizada y no se puede modificar.');
+        }
+
         $validated = $request->validate([
             'motivo_consulta' => 'nullable|string|max:1000',
         ]);
@@ -104,16 +127,11 @@ class CitaController extends Controller
         return back()->with('success', 'Motivo de consulta guardado correctamente.');
     }
 
-    public function destroy(Request $request, Cita $cita)
+    public function destroy(Cita $cita)
     {
-        $request->validate([
-            'delete_reason' => 'required|string|max:500',
-        ]);
-
         $cita->update([
-            'estado'        => 'cancelada',
-            'cancel_reason' => $request->delete_reason,
-            'cancelled_by'  => Auth::id(),
+            'estado'       => 'cancelada',
+            'cancelled_by' => Auth::id(),
         ]);
 
         $this->generarPDF($cita);
@@ -121,16 +139,11 @@ class CitaController extends Controller
         return redirect()->route('citas.index')->with('success', 'Cita cancelada correctamente.');
     }
 
-    public function cancelar(Request $request, Cita $cita)
+    public function cancelar(Cita $cita)
     {
-        $validated = $request->validate([
-            'cancel_reason' => 'required|string|max:500',
-        ]);
-
         $cita->update([
-            'estado'        => 'cancelada',
-            'cancel_reason' => $validated['cancel_reason'],
-            'cancelled_by'  => Auth::id(),
+            'estado'       => 'cancelada',
+            'cancelled_by' => Auth::id(),
         ]);
 
         $this->generarPDF($cita);
@@ -144,15 +157,26 @@ class CitaController extends Controller
         return view('citas.cita', compact('cita'));
     }
 
-    private function generarPDF(Cita $cita)
+    public function pdf(Cita $cita)
     {
+        if ($cita->pdf_path && Storage::disk('public')->exists($cita->pdf_path)) {
+            return response()->file(storage_path('app/public/' . $cita->pdf_path));
+        }
+
         $pdf = Pdf::loadView('citas.pdf', compact('cita'));
-        $fileName = 'citas/cita_' . $cita->id . '.pdf';
+        return $pdf->stream('cita_' . $cita->id . '.pdf');
+    }
 
-        Storage::disk('public')->put($fileName, $pdf->output());
 
+    public function finalizar(Cita $cita)
+    {
         $cita->update([
-            'pdf_path' => $fileName
+            'estado'     => 'finalizada',
+            'updated_by' => Auth::id(),
         ]);
+
+        $this->generarPDF($cita);
+
+        return redirect()->route('citas.index')->with('success', 'Cita finalizada correctamente.');
     }
 }
