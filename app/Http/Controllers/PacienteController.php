@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Paciente;
+use App\Models\Cita;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,14 +23,14 @@ class PacienteController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombres' => 'required|string|max:255',
-            'apellidos' => 'required|string|max:255',
-            'documento' => 'required|string|max:50|unique:pacientes',
-            'telefono' => 'required|string|max:20',
-            'direccion' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:pacientes',
+            'nombres'          => 'required|string|max:255',
+            'apellidos'        => 'required|string|max:255',
+            'documento'        => 'required|string|max:50|unique:pacientes',
+            'telefono'         => 'required|string|max:20',
+            'direccion'        => 'required|string|max:255',
+            'email'            => 'nullable|email|unique:pacientes',
             'fecha_nacimiento' => 'nullable|date',
-            'sexo' => 'nullable|in:M,F',
+            'sexo'             => 'nullable|in:M,F',
         ]);
 
         $validated['created_by'] = Auth::id();
@@ -47,22 +48,23 @@ class PacienteController extends Controller
     public function update(Request $request, Paciente $paciente)
     {
         $validated = $request->validate([
-            'nombres' => 'required|string|max:255',
-            'apellidos' => 'required|string|max:255',
-            'documento' => 'required|string|max:50|unique:pacientes,documento,' . $paciente->id,
-            'telefono' => 'required|string|max:20',
-            'direccion' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:pacientes,email,' . $paciente->id,
+            'nombres'          => 'required|string|max:255',
+            'apellidos'        => 'required|string|max:255',
+            'documento'        => 'required|string|max:50|unique:pacientes,documento,' . $paciente->id,
+            'telefono'         => 'required|string|max:20',
+            'direccion'        => 'required|string|max:255',
+            'email'            => 'nullable|email|unique:pacientes,email,' . $paciente->id,
             'fecha_nacimiento' => 'nullable|date',
-            'sexo' => 'nullable|in:M,F',
+            'sexo'             => 'nullable|in:M,F',
         ]);
 
         $validated['updated_by'] = Auth::id();
 
         $paciente->update($validated);
-return redirect()->route('pacientes.edit', $paciente)
-                 ->with('success', 'Paciente actualizado correctamente.');
 
+        return redirect()
+            ->route('pacientes.edit', $paciente)
+            ->with('success', 'Paciente actualizado correctamente.');
     }
 
     public function destroy(Paciente $paciente)
@@ -70,5 +72,16 @@ return redirect()->route('pacientes.edit', $paciente)
         $paciente->delete();
 
         return redirect()->route('pacientes.index')->with('success', 'Paciente eliminado correctamente.');
+    }
+
+    public function show($id)
+    {
+        $paciente = Paciente::findOrFail($id);
+
+        $historias = Cita::where('paciente_id', $id)
+            ->where('estado', 'finalizada')
+            ->get();
+
+        return view('pacientes.show', compact('paciente', 'historias'));
     }
 }

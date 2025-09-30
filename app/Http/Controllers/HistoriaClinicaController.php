@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\HistoriaClinica;
-use app\views\historias\show;
 use App\Models\Paciente;
+use App\Models\Cita;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 class HistoriaClinicaController extends Controller
 {
@@ -14,7 +16,6 @@ class HistoriaClinicaController extends Controller
         $pacientes = Paciente::all();
         return view('historias.index', compact('pacientes'));
     }
-
 
     public function create(Paciente $paciente)
     {
@@ -47,9 +48,17 @@ class HistoriaClinicaController extends Controller
     public function show($paciente_id)
     {
         $paciente = Paciente::findOrFail($paciente_id);
+
+        // Historias manuales
         $historias = HistoriaClinica::where('paciente_id', $paciente_id)->get();
 
-        return view('historias.show', compact('paciente', 'historias'));
+        // Citas con PDFs
+        $pdfs = Cita::where('paciente_id', $paciente_id)
+            ->whereNotNull('pdf_path')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('historias.show', compact('paciente', 'historias', 'pdfs'));
     }
 
     public function edit(HistoriaClinica $historia)
@@ -87,5 +96,25 @@ class HistoriaClinicaController extends Controller
 
         return redirect()->route('historias.show', $paciente_id)
             ->with('success', 'Historia clínica eliminada.');
+    }
+
+    // 🔹 Ver el PDF de una cita
+    public function verPdf(Cita $cita)
+    {
+        if ($cita->pdf_path && Storage::disk('public')->exists($cita->pdf_path)) {
+            return response()->file(storage_path('app/public/' . $cita->pdf_path));
+        }
+
+        return back()->with('error', 'El PDF no existe o no fue generado.');
+    }
+
+    // 🔹 Descargar el PDF de una cita
+    public function descargarPdf(Cita $cita)
+    {
+        if ($cita->pdf_path && Storage::disk('public')->exists($cita->pdf_path)) {
+            return response()->download(storage_path('app/public/' . $cita->pdf_path));
+        }
+
+        return back()->with('error', 'El PDF no existe o no fue generado.');
     }
 }

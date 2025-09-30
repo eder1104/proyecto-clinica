@@ -58,6 +58,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/pacientes', [PacienteController::class, 'store'])->name('pacientes.store');
     Route::get('/pacientes/{paciente}/edit', [PacienteController::class, 'edit'])->name('pacientes.edit');
     Route::delete('/pacientes/{paciente}', [PacienteController::class, 'destroy'])->name('pacientes.destroy');
+
+    Route::get('/pacientes/{id}/historia/pdf', [CitaController::class, 'descargarHistoriaPdf'])
+        ->name('pacientes.historia.pdf');
 });
 
 require __DIR__ . '/auth.php';

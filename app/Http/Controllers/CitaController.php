@@ -107,7 +107,6 @@ class CitaController extends Controller
         return redirect()->route('citas.index')->with('success', 'Cita actualizada correctamente.');
     }
 
-
     public function updateMotivo(Request $request, Cita $cita)
     {
         if ($cita->estado === 'finalizada') {
@@ -160,13 +159,25 @@ class CitaController extends Controller
     public function pdf(Cita $cita)
     {
         if ($cita->pdf_path && Storage::disk('public')->exists($cita->pdf_path)) {
-            return response()->file(storage_path('app/public/' . $cita->pdf_path));
+            return response()->download(storage_path('app/public/' . $cita->pdf_path));
         }
 
         $pdf = Pdf::loadView('citas.pdf', compact('cita'));
-        return $pdf->stream('cita_' . $cita->id . '.pdf');
+        return $pdf->download('cita_' . $cita->id . '.pdf');
     }
 
+
+    private function generarPDF(Cita $cita)
+    {
+        $pdf = Pdf::loadView('citas.pdf', compact('cita'));
+
+        $path = 'pdfs/citas/cita_' . $cita->id . '.pdf';
+        Storage::disk('public')->put($path, $pdf->output());
+
+        $cita->update([
+            'pdf_path' => $path
+        ]);
+    }
 
     public function finalizar(Cita $cita)
     {
@@ -178,5 +189,23 @@ class CitaController extends Controller
         $this->generarPDF($cita);
 
         return redirect()->route('citas.index')->with('success', 'Cita finalizada correctamente.');
+    }
+
+
+    public function descargarHistoriaPdf($id)
+    {
+        $paciente = Paciente::findOrFail($id);
+
+        $historias = Cita::where('paciente_id', $id)
+            ->where('estado', 'finalizada')
+            ->get();
+
+        if ($historias->isEmpty()) {
+            return redirect()->back()->with('error', 'El paciente no tiene historias clínicas registradas.');
+        }
+
+        $pdf = Pdf::loadView('pdf.historia_paciente', compact('paciente', 'historias'));
+
+        return $pdf->download('historia_clinica_' . $paciente->nombres . '_' . $paciente->apellidos . '.pdf');
     }
 }

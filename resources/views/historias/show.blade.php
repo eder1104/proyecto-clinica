@@ -8,29 +8,30 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <h3 class="text-lg font-bold mb-4">Detalles de la Historia Clínica</h3>
+                <h3 class="text-lg font-bold mb-4">Historial de PDFs de la Historia Clínica</h3>
 
-                @if($historias->isEmpty())
-                    <p class="text-gray-600">Este paciente no tiene historia clínica registrada.</p>
+                @if($pdfs->isEmpty())
+                    <p class="text-gray-600">Este paciente no tiene PDFs generados aún.</p>
                 @else
                     <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th class="px-4 py-2">Motivo de consulta</th>
-                                <th class="px-4 py-2">Antecedentes</th>
-                                <th class="px-4 py-2">Signos Vitales</th>
-                                <th class="px-4 py-2">Diagnóstico</th>
-                                <th class="px-4 py-2">Conducta</th>
+                                <th class="px-4 py-2">Nombre del archivo</th>
+                                <th class="px-4 py-2">Fecha de creación</th>
+                                <th class="px-4 py-2">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
-                            @foreach($historias as $historia)
+                            @foreach($pdfs as $pdf)
                                 <tr>
-                                    <td class="px-4 py-2">{{ $historia->motivo_consulta }}</td>
-                                    <td class="px-4 py-2">{{ $historia->antecedentes }}</td>
-                                    <td class="px-4 py-2">{{ $historia->signos_vitales }}</td>
-                                    <td class="px-4 py-2">{{ $historia->diagnostico }}</td>
-                                    <td class="px-4 py-2">{{ $historia->conducta }}</td>
+                                    <td class="px-4 py-2">{{ basename($pdf->pdf_path) }}</td>
+                                    <td class="px-4 py-2">{{ $pdf->created_at->format('d/m/Y H:i') }}</td>
+                                    <td class="px-4 py-2">
+                                        <a href="{{ route('citas.pdf', $pdf->id) }}"
+                                           class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700">
+                                            Descargar
+                                        </a>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
