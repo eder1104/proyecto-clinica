@@ -11,10 +11,10 @@
                 <div class="p-6 text-gray-900">
 
                     @if (session('success'))
-                        <div class="mb-4 p-3 bg-green-100 text-green-700 rounded">{{ session('success') }}</div>
+                    <div class="mb-4 p-3 bg-green-100 text-green-700 rounded">{{ session('success') }}</div>
                     @endif
                     @if (session('error'))
-                        <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">{{ session('error') }}</div>
+                    <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">{{ session('error') }}</div>
                     @endif
 
                     <a href="{{ route('citas.create') }}" class="btn">
@@ -51,57 +51,66 @@
                                 <th>Estado</th>
                                 <th>Observación</th>
                                 <th>Acciones</th>
-                                <th>Tomar Atencion</th>
+                                <th>Tomar Atención</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($citas as $c)
-                                <tr>
-                                    <td>{{ $c->id }}</td>
-                                    <td>{{ date('d/m/Y', strtotime($c->fecha)) }}</td>
-                                    <td>{{ $c->hora_inicio }} - {{ $c->hora_fin }}</td>
-                                    <td>
-                                        {{ optional($c->paciente)->nombres ?? 'N/A' }}
-                                        {{ optional($c->paciente)->apellidos ?? '' }}
-                                    </td>
-                                    <td>
-                                        {{ optional($c->admisiones)->nombres ?? 'N/A' }}
-                                        {{ optional($c->admisiones)->apellidos ?? '' }}
-                                    </td>
-                                    <td>
-                                        @if($c->estado === 'cancelada')
-                                            <span class="estado-cancelada">Cancelada</span>
-                                        @else
-                                            {{ ucfirst($c->estado) }}
-                                        @endif
-                                    </td>
-                                    <td>
-                                        {{ $c->mensaje ?? $c->cancel_reason ?? '—' }}
-                                    </td>
-                                    <td>
-                                        @if ($c->estado !== 'cancelada')
-                                            <a href="{{ route('citas.edit', $c) }}" class="btn-link">
-                                                Editar
-                                            </a>
-                                            <form action="{{ route('citas.destroy', $c) }}" method="POST"
-                                                  onsubmit="return pedirRazon(this);">
-                                                @csrf
-                                                @method('DELETE')
-                                                <input type="hidden" name="delete_reason">
-                                                <button type="submit" class="btn-danger">Cancelar</button>
-                                            </form>
-                                        @else
-                                            <span class="btn-disabled">Sin acciones</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <button class="btn">Tomar Atencion</button>
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td>{{ $c->id }}</td>
+                                <td>{{ date('d/m/Y', strtotime($c->fecha)) }}</td>
+                                <td>{{ $c->hora_inicio }} - {{ $c->hora_fin }}</td>
+                                <td>
+                                    {{ optional($c->paciente)->nombres ?? 'N/A' }}
+                                    {{ optional($c->paciente)->apellidos ?? '' }}
+                                </td>
+                                <td>
+                                    {{ optional($c->admisiones)->nombres ?? 'N/A' }}
+                                    {{ optional($c->admisiones)->apellidos ?? '' }}
+                                </td>
+                                <td>
+                                    @if($c->estado === 'cancelada')
+                                    <span class="estado-cancelada">Cancelada</span>
+                                    @else
+                                    {{ ucfirst($c->estado) }}
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($c->estado === 'cancelada')
+                                    {{ $c->cancel_reason ?? 'Sin motivo registrado' }}
+                                    @else
+                                    {{ $c->mensaje ?? '—' }}
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($c->estado !== 'cancelada')
+                                    <a href="{{ route('citas.edit', $c) }}" class="btn-link">
+                                        Editar
+                                    </a>
+                                    <form action="{{ route('citas.destroy', $c) }}" method="POST"
+                                        onsubmit="return pedirRazon(this);">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="hidden" name="delete_reason">
+                                        <button type="submit" class="btn-danger">Cancelar</button>
+                                    </form>
+                                    @else
+                                    <span class="btn-disabled">Sin acciones</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($c->estado !== 'cancelada')
+                                    <a href="{{ route('citas.atencion', $c->id) }}" class="btn">Tomar Atención</a>
+                                    @else
+                                    <span class="btn-disabled">No disponible</span>
+                                    @endif
+                                </td>
+
+                            </tr>
                             @empty
-                                <tr>
-                                    <td colspan="9" class="text-center text-gray-500">No hay citas</td>
-                                </tr>
+                            <tr>
+                                <td colspan="9" class="text-center text-gray-500">No hay citas</td>
+                            </tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -131,6 +140,8 @@
         border-radius: 6px;
         border: none;
         cursor: pointer;
+        display: inline-block;
+        text-decoration: none;
     }
 
     .btn:hover {
@@ -144,6 +155,8 @@
         border-radius: 6px;
         border: none;
         cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
     }
 
     .btn-gray:hover {

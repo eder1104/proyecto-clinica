@@ -19,13 +19,15 @@ class Cita extends Model
         'estado',
         'paciente_id',
         'admisiones_id',
+        'motivo_consulta',
         'created_by',
         'updated_by',
         'cancelled_by',
         'cancel_reason',
     ];
 
-    // Relaciones
+    protected $with = ['paciente', 'admisiones'];
+
     public function paciente()
     {
         return $this->belongsTo(Paciente::class, 'paciente_id');
@@ -33,7 +35,7 @@ class Cita extends Model
 
     public function admisiones()
     {
-        return $this->belongsTo(User::class, 'admisiones_id'); 
+        return $this->belongsTo(User::class, 'admisiones_id');
     }
 
     public function createdBy()

@@ -37,14 +37,15 @@ class CitaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'numero_fuente' => 'nullable|string|max:255',
-            'fecha' => 'required|date',
-            'hora_inicio' => 'required|date_format:H:i',
-            'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
-            'mensaje' => 'nullable|string',
-            'estado' => 'required|string',
-            'paciente_id' => 'required|exists:pacientes,id',
-            'admisiones_id' => 'required|exists:users,id',
+            'numero_fuente'   => 'nullable|string|max:255',
+            'fecha'           => 'required|date',
+            'hora_inicio'     => 'required|date_format:H:i',
+            'hora_fin'        => 'required|date_format:H:i|after:hora_inicio',
+            'mensaje'         => 'nullable|string',
+            'estado'          => 'required|string',
+            'paciente_id'     => 'required|exists:pacientes,id',
+            'admisiones_id'   => 'required|exists:users,id',
+            'motivo_consulta' => 'nullable|string|max:1000',
         ]);
 
         $validated['created_by'] = Auth::id();
@@ -64,21 +65,35 @@ class CitaController extends Controller
     public function update(Request $request, Cita $cita)
     {
         $validated = $request->validate([
-            'numero_fuente' => 'nullable|string|max:255',
-            'fecha' => 'required|date',
-            'hora_inicio' => 'sometimes|required',
-            'hora_fin' => 'sometimes|required|after:hora_inicio',
-            'mensaje' => 'nullable|string',
-            'estado' => 'required|string',
-            'paciente_id' => 'required|exists:pacientes,id',
-            'admisiones_id' => 'required|exists:users,id',
+            'numero_fuente'   => 'nullable|string|max:255',
+            'fecha'           => 'required|date',
+            'hora_inicio'     => 'sometimes|required',
+            'hora_fin'        => 'sometimes|required|after:hora_inicio',
+            'mensaje'         => 'nullable|string',
+            'estado'          => 'required|string',
+            'paciente_id'     => 'required|exists:pacientes,id',
+            'admisiones_id'   => 'required|exists:users,id',
+            'motivo_consulta' => 'nullable|string|max:1000',
         ]);
 
         $validated['updated_by'] = Auth::id();
 
         $cita->update($validated);
 
-        return redirect()->route('citas.index', $cita)->with('success', 'Cita actualizada correctamente.');
+        return redirect()->route('citas.index')->with('success', 'Cita actualizada correctamente.');
+    }
+
+    public function updateMotivo(Request $request, Cita $cita)
+    {
+        $validated = $request->validate([
+            'motivo_consulta' => 'nullable|string|max:1000',
+        ]);
+
+        $validated['updated_by'] = Auth::id();
+
+        $cita->update($validated);
+
+        return back()->with('success', 'Motivo de consulta guardado correctamente.');
     }
 
     public function destroy(Request $request, Cita $cita)
@@ -88,9 +103,9 @@ class CitaController extends Controller
         ]);
 
         $cita->update([
-            'estado' => 'cancelada',
+            'estado'        => 'cancelada',
             'cancel_reason' => $request->delete_reason,
-            'cancelled_by' => Auth::id(),
+            'cancelled_by'  => Auth::id(),
         ]);
 
         return redirect()->route('citas.index')->with('success', 'Cita cancelada correctamente.');
@@ -103,11 +118,17 @@ class CitaController extends Controller
         ]);
 
         $cita->update([
-            'estado' => 'cancelada',
+            'estado'        => 'cancelada',
             'cancel_reason' => $validated['cancel_reason'],
-            'cancelled_by' => Auth::id(),
+            'cancelled_by'  => Auth::id(),
         ]);
 
         return redirect()->route('citas.index')->with('success', 'Cita cancelada correctamente.');
+    }
+
+    public function atencion(Cita $cita)
+    {
+        $cita->load(['paciente', 'admisiones']);
+        return view('citas.cita', compact('cita'));
     }
 }

@@ -1,103 +1,159 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="header-title">
             Detalle de Cita Médica
         </h2>
     </x-slot>
 
     <div class="py-10">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
-                <div class="px-8 py-6 bg-gradient-to-r from-blue-600 to-blue-500 text-white">
+        <div class="max-w-5xl mx-auto">
+            <div class="card-container">
+                <div class="card-header">
                     <h1 class="text-2xl font-bold">Cita Médica General</h1>
                     <p class="text-sm">Registro detallado de atención médica</p>
                 </div>
 
                 <div class="p-8 space-y-8">
-                    
+
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Datos del Paciente</h2>
-                        <div class="grid grid-cols-2 gap-6 mt-4 text-sm text-gray-600">
-                            <p><span class="font-medium">Nombre:</span> Juan Pérez Gómez</p>
-                            <p><span class="font-medium">Documento:</span> 1023456789</p>
-                            <p><span class="font-medium">Edad:</span> 32 años</p>
-                            <p><span class="font-medium">Sexo:</span> Masculino</p>
-                            <p><span class="font-medium">Teléfono:</span> 3204567890</p>
-                            <p><span class="font-medium">Dirección:</span> Calle 123 #45-67</p>
+                        <h2 class="section-title">Datos del Paciente</h2>
+                        <div class="grid grid-cols-2 gap-6 section-content">
+                            <p><span class="font-medium">Nombre:</span> {{ $cita->paciente->nombres }} {{ $cita->paciente->apellidos }}</p>
+                            <p><span class="font-medium">Documento:</span> {{ $cita->paciente->documento }}</p>
+                            <p><span class="font-medium">Edad:</span> {{ $cita->paciente->edad }}</p>
+                            <p><span class="font-medium">Sexo:</span> {{ $cita->paciente->sexo }}</p>
+                            <p><span class="font-medium">Teléfono:</span> {{ $cita->paciente->telefono }}</p>
+                            <p><span class="font-medium">Dirección:</span> {{ $cita->paciente->direccion }}</p>
                         </div>
                     </div>
 
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Datos de la Cita</h2>
-                        <div class="grid grid-cols-2 gap-6 mt-4 text-sm text-gray-600">
-                            <p><span class="font-medium">Fecha:</span> 29/09/2025</p>
-                            <p><span class="font-medium">Hora:</span> 10:30 AM</p>
-                            <p><span class="font-medium">Estado:</span> Asistida</p>
-                            <p><span class="font-medium">Atendido por:</span> Dr. Carlos Ramírez – Médico General</p>
+                        <h2 class="section-title">Datos de la Cita</h2>
+                        <div class="grid grid-cols-2 gap-6 section-content">
+                            <p><span class="font-medium">Fecha:</span> {{ \Carbon\Carbon::parse($cita->fecha)->format('d/m/Y') }}</p>
+                            <p><span class="font-medium">Hora:</span> {{ \Carbon\Carbon::parse($cita->hora_inicio)->format('h:i A') }}</p>
+                            <p><span class="font-medium">Estado:</span> {{ $cita->estado }}</p>
+                            <p><span class="font-medium">Atendido por:</span> {{ $cita->admisiones->nombres }} {{ $cita->admisiones->apellidos }}</p>
                         </div>
                     </div>
 
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Motivo de Consulta</h2>
-                        <p class="mt-3 text-sm text-gray-700 leading-relaxed">
-                            Paciente refiere malestar general desde hace 3 días, acompañado de fiebre intermitente, cefalea leve y sensación de cansancio. Manifiesta preocupación por posible infección respiratoria.
-                        </p>
+                        <h2 class="section-title">Motivo de Consulta</h2>
+                        <form action="{{ route('citas.updateMotivo', $cita) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            <p>
+                                <textarea
+                                    name="motivo_consulta"
+                                    class="input-text">{{ old('motivo_consulta', $cita->motivo_consulta) }}</textarea>
+                            </p>
+                            <button type="submit" class="btn-submit">Guardar Motivo</button>
+                        </form>
+
                     </div>
 
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Antecedentes</h2>
-                        <ul class="list-disc pl-6 mt-3 text-sm text-gray-700 space-y-1">
-                            <li>No antecedentes patológicos de importancia.</li>
-                            <li>No alergias medicamentosas conocidas.</li>
-                            <li>Vacunación completa según esquema nacional.</li>
-                            <li>Sin cirugías previas.</li>
+                        <h2 class="section-title">Antecedentes</h2>
+                        <ul class="list-disc pl-6 section-content">
+                            <li>{{ $cita->paciente->antecedentes ?? 'No registra antecedentes.' }}</li>
                         </ul>
                     </div>
 
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Signos Vitales</h2>
-                        <div class="grid grid-cols-3 gap-6 mt-4 text-sm text-gray-600">
-                            <p><span class="font-medium">Tensión arterial:</span> 120/80 mmHg</p>
-                            <p><span class="font-medium">Frecuencia cardiaca:</span> 78 lpm</p>
-                            <p><span class="font-medium">Frecuencia respiratoria:</span> 18 rpm</p>
-                            <p><span class="font-medium">Temperatura:</span> 37.8 °C</p>
-                            <p><span class="font-medium">Saturación O₂:</span> 97%</p>
-                            <p><span class="font-medium">Peso:</span> 72 kg</p>
+                        <h2 class="section-title">Signos Vitales</h2>
+                        <div class="grid grid-cols-3 gap-6 section-content">
+                            <p><span class="font-medium">Tensión arterial:</span> {{ $cita->paciente->tension_arterial ?? '---' }}</p>
+                            <p><span class="font-medium">Frecuencia cardiaca:</span> {{ $cita->paciente->frecuencia_cardiaca ?? '---' }}</p>
+                            <p><span class="font-medium">Frecuencia respiratoria:</span> {{ $cita->paciente->frecuencia_respiratoria ?? '---' }}</p>
+                            <p><span class="font-medium">Temperatura:</span> {{ $cita->paciente->temperatura ?? '---' }}</p>
+                            <p><span class="font-medium">Saturación O₂:</span> {{ $cita->paciente->saturacion ?? '---' }}</p>
+                            <p><span class="font-medium">Peso:</span> {{ $cita->paciente->peso ?? '---' }}</p>
                         </div>
                     </div>
 
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Examen Físico</h2>
-                        <p class="mt-3 text-sm text-gray-700 leading-relaxed">
-                            Paciente consciente, orientado en las tres esferas, facies levemente febril. Aparato respiratorio con murmullo vesicular conservado, sin ruidos agregados. Abdomen blando, depresible, sin dolor a la palpación. Extremidades sin edemas ni alteraciones visibles.
+                        <h2 class="section-title">Examen Físico</h2>
+                        <p class="section-content">
+                            {{ $cita->paciente->examen_fisico ?? 'No registra examen físico.' }}
                         </p>
                     </div>
 
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Diagnóstico</h2>
-                        <p class="mt-3 text-sm text-gray-700 leading-relaxed">
-                            Cuadro sugestivo de infección respiratoria de vías altas (IRVA) de probable origen viral.
+                        <h2 class="section-title">Diagnóstico</h2>
+                        <p class="section-content">
+                            {{ $cita->paciente->diagnostico ?? 'No registra diagnóstico.' }}
                         </p>
                     </div>
 
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Conducta / Plan</h2>
-                        <ul class="list-disc pl-6 mt-3 text-sm text-gray-700 space-y-1">
-                            <li>Reposo relativo por 3 días.</li>
-                            <li>Hidratación abundante (mínimo 2 litros de agua diarios).</li>
-                            <li>Acetaminofén 500 mg VO cada 8 horas por 3 días en caso de fiebre o dolor.</li>
-                            <li>Revisión médica en 5 días o antes si presenta dificultad respiratoria.</li>
-                            <li>Se explican signos de alarma y cuidados generales en casa.</li>
+                        <h2 class="section-title">Conducta / Plan</h2>
+                        <ul class="list-disc pl-6 section-content">
+                            <li>{{ $cita->paciente->plan ?? 'No registra plan de tratamiento.' }}</li>
                         </ul>
                     </div>
 
                     <div class="pt-8 border-t">
-                        <p class="text-sm text-gray-500">Fecha de registro: 29/09/2025 – 11:15 AM</p>
+                        <p class="text-sm text-gray-500">Fecha de registro: {{ \Carbon\Carbon::parse($cita->created_at)->format('d/m/Y - h:i A') }}</p>
                         <p class="mt-6 font-medium text-gray-700">_____________________________</p>
-                        <p class="text-sm text-gray-600">Dr. Carlos Ramírez <br>Médico General</p>
+                        <p class="text-sm text-gray-600">{{ $cita->admisiones->name }} <br>Médico General</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </x-app-layout>
+
+<style>
+    .header-title {
+        font-weight: 600;
+        font-size: 1.25rem;
+        color: #1f2937;
+        line-height: 1.5rem;
+    }
+
+    .card-container {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        padding: 1.5rem 2rem;
+        background: linear-gradient(to right, #2563eb, #3b82f6);
+        color: #fff;
+    }
+
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #374151;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 0.5rem;
+    }
+
+    .section-content {
+        margin-top: 1rem;
+        font-size: 0.875rem;
+        color: #4b5563;
+    }
+
+    .input-text {
+        font-size: 0.875rem;
+        color: #374151;
+        width: 100%;
+        height: 300px;
+        padding: 1rem;
+        text-align: left;
+        resize: vertical;
+    }
+
+    .btn-submit {
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        background: #2563eb;
+        color: #fff;
+        border-radius: 0.5rem;
+    }
+</style>

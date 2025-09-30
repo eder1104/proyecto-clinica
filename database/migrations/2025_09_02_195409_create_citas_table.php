@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->time('hora_inicio');
             $table->time('hora_fin');
             $table->text('mensaje')->nullable();
+            $table->text('motivo_consulta')->nullable();
             $table->string('estado')->default('programada');
             $table->foreignId('paciente_id')->constrained('pacientes')->restrictOnDelete();
             $table->foreignId('admisiones_id')->constrained('users')->restrictOnDelete();
