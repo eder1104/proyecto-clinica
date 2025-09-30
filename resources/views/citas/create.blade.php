@@ -62,6 +62,17 @@
                     </div>
 
                     <div class="mb-4">
+                        <label class="block text-gray-700">Estado</label>
+                        <select name="estado" class="mt-1 block w-full rounded-md shadow-sm">
+                            <option value="">Seleccione un estado</option>
+                            <option value="pendiente" {{ old('estado') == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
+                            <option value="confirmada" {{ old('estado') == 'confirmada' ? 'selected' : '' }}>Confirmada</option>
+                            <option value="finalizada" {{ old('estado') == 'finalizada' ? 'selected' : '' }}>Finalizada</option>
+                            <option value="cancelada" {{ old('estado') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
                         <label class="block text-gray-700">Admisiones</label>
                         <select name="admisiones_id" class="mt-1 block w-full rounded-md shadow-sm">
                             <option value="">Seleccione un usuario de admisiones</option>
@@ -80,7 +91,7 @@
                                 class="mt-1 block w-full rounded-md shadow-sm">
                                 <option value="">Seleccione un paciente</option>
                                 @foreach($pacientes as $paciente)
-                                <option value="{{ $paciente->id }}" {{ old(key: 'paciente_id') == $paciente->id ? 'selected' : '' }}>
+                                <option value="{{ $paciente->id }}" {{ old('paciente_id') == $paciente->id ? 'selected' : '' }}>
                                     {{ $paciente->nombres }} {{ $paciente->apellidos }}
                                 </option>
                                 @endforeach
@@ -95,43 +106,6 @@
                         <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Guardar</button>
                     </div>
                 </form>
-            </div>
-        </div>
-
-        {{-- buscar paciente --}}
-        <div x-show="openPaciente" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div class="bg-white w-full max-w-lg p-6 rounded-lg shadow">
-                <h3 class="text-lg font-semibold mb-4">Buscar Paciente</h3>
-                <input type="text" x-model="search" placeholder="Buscar por nombre..." class="mb-4 w-full rounded-md shadow-sm">
-                <div class="max-h-60 overflow-y-auto">
-                    <table class="w-full border">
-                        <thead>
-                            <tr class="bg-gray-100">
-                                <th class="p-2 border">ID</th>
-                                <th class="p-2 border">Nombre</th>
-                                <th class="p-2 border">Seleccionar</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($pacientes as $paciente)
-                            <tr x-show="'{{ strtolower($paciente->nombres . ' ' . $paciente->apellidos) }}'.includes(search.toLowerCase())">
-                                <td class="p-2 border">{{ $paciente->id }}</td>
-                                <td class="p-2 border">{{ $paciente->nombres }} {{ $paciente->apellidos }}</td>
-                                <td class="p-2 border text-center">
-                                    <button type="button"
-                                        class="bg-green-500 text-white px-2 py-1 rounded"
-                                        @click="document.getElementById('pacienteSelect').value = '{{ $paciente->id }}'; openPaciente = false;">
-                                        ✔
-                                    </button>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                <div class="flex justify-end mt-4">
-                    <button type="button" @click="openPaciente = false" class="px-4 py-2 rou hover:bg-gray-400">Cerrar</button>
-                </div>
             </div>
         </div>
 
@@ -162,6 +136,18 @@
                     </div>
 
                     <div class="mb-4">
+                        <label class="block text-gray-700">Estado</label>
+                        <select name="estado" x-model="citaSeleccionada.estado"
+                            class="mt-1 block w-full rounded-md shadow-sm">
+                            <option value="">Seleccione un estado</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="confirmada">Confirmada</option>
+                            <option value="finalizada">Finalizada</option>
+                            <option value="cancelada">Cancelada</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
                         <label class="block text-gray-700">Admisiones</label>
                         <select name="admisiones_id" x-model="citaSeleccionada.admisiones_id"
                             class="mt-1 block w-full rounded-md shadow-sm">
@@ -180,7 +166,6 @@
                             @foreach($pacientes as $paciente)
                             <option value="{{ $paciente->id }}">{{ $paciente->nombres }} {{ $paciente->apellidos }}</option>
                             @endforeach
-                            <li>-- Seleccione un paciente --</li>
                         </select>
                     </div>
 

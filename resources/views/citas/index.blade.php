@@ -17,52 +17,90 @@
                         <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">{{ session('error') }}</div>
                     @endif
 
-                    <a href="{{ route('citas.create') }}"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow-md">
+                    <a href="{{ route('citas.create') }}" class="btn">
                         Nueva Cita
                     </a>
 
-                    <table class="mt-6 w-full border-collapse border border-gray-300 text-sm">
+                    <form method="GET" action="{{ route('citas.index') }}" class="mt-6 mb-4 flex space-x-4">
+                        <select name="estado" class="border rounded px-6 py-3">
+                            <option value=""> Estado </option>
+                            <option value="pendiente" {{ request('estado') == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
+                            <option value="confirmada" {{ request('estado') == 'confirmada' ? 'selected' : '' }}>Confirmada</option>
+                            <option value="cancelada" {{ request('estado') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
+                        </select>
+
+                        <input type="date" name="fecha" value="{{ request('fecha') }}" class="border rounded px-2 py-1">
+
+                        <button type="submit" class="btn">
+                            Buscar
+                        </button>
+
+                        <a href="{{ route('citas.index') }}" class="btn-gray">
+                            Limpiar
+                        </a>
+                    </form>
+
+                    <table class="table">
                         <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border px-4 py-2">ID</th>
-                                <th class="border px-4 py-2">Fecha</th>
-                                <th class="border px-4 py-2">Hora</th>
-                                <th class="border px-4 py-2">Paciente</th>
-                                <th class="border px-4 py-2">Atendido por</th>
-                                <th class="border px-4 py-2">Acciones</th>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Paciente</th>
+                                <th>Atendido por</th>
+                                <th>Estado</th>
+                                <th>Observación</th>
+                                <th>Acciones</th>
+                                <th>Tomar Atencion</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($citas as $c)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="border px-4 py-2">{{ $c->id }}</td>
-                                    <td class="border px-4 py-2">{{ \Carbon\Carbon::parse($c->fecha)->format('d/m/Y') }}</td>
-                                    <td class="border px-4 py-2">{{ $c->hora_inicio }} - {{ $c->hora_fin }}</td>
-                                    <td class="border px-4 py-2">
+                                <tr>
+                                    <td>{{ $c->id }}</td>
+                                    <td>{{ date('d/m/Y', strtotime($c->fecha)) }}</td>
+                                    <td>{{ $c->hora_inicio }} - {{ $c->hora_fin }}</td>
+                                    <td>
                                         {{ optional($c->paciente)->nombres ?? 'N/A' }}
                                         {{ optional($c->paciente)->apellidos ?? '' }}
                                     </td>
-                                    <td class="border px-4 py-2">
+                                    <td>
                                         {{ optional($c->admisiones)->nombres ?? 'N/A' }}
                                         {{ optional($c->admisiones)->apellidos ?? '' }}
                                     </td>
-                                    <td class="border px-4 py-2 flex space-x-2">
-                                        <a href="{{ route('citas.edit', $c) }}" class="text-blue-600 hover:underline">
-                                            Editar
-                                        </a>
-
-                                        <form action="{{ route('citas.destroy', $c) }}" method="POST"
-                                            onsubmit="return confirm('¿Seguro que quieres eliminar esta cita?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:underline">Eliminar</button>
-                                        </form>
+                                    <td>
+                                        @if($c->estado === 'cancelada')
+                                            <span class="estado-cancelada">Cancelada</span>
+                                        @else
+                                            {{ ucfirst($c->estado) }}
+                                        @endif
+                                    </td>
+                                    <td>
+                                        {{ $c->mensaje ?? $c->cancel_reason ?? '—' }}
+                                    </td>
+                                    <td>
+                                        @if ($c->estado !== 'cancelada')
+                                            <a href="{{ route('citas.edit', $c) }}" class="btn-link">
+                                                Editar
+                                            </a>
+                                            <form action="{{ route('citas.destroy', $c) }}" method="POST"
+                                                  onsubmit="return pedirRazon(this);">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input type="hidden" name="delete_reason">
+                                                <button type="submit" class="btn-danger">Cancelar</button>
+                                            </form>
+                                        @else
+                                            <span class="btn-disabled">Sin acciones</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <button class="btn">Tomar Atencion</button>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="border px-4 py-2 text-center text-gray-500">No hay citas</td>
+                                    <td colspan="9" class="text-center text-gray-500">No hay citas</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -72,3 +110,97 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+    function pedirRazon(form) {
+        const razon = prompt("Por favor ingresa la razón de cancelación:");
+        if (!razon) {
+            alert("Debes ingresar una razón para cancelar la cita.");
+            return false;
+        }
+        form.querySelector('input[name="delete_reason"]').value = razon;
+        return true;
+    }
+</script>
+
+<style>
+    .btn {
+        background-color: #2563eb;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background-color: #1d4ed8;
+    }
+
+    .btn-gray {
+        background-color: #9ca3af;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-gray:hover {
+        background-color: #6b7280;
+    }
+
+    .btn-link {
+        color: #2563eb;
+        cursor: pointer;
+    }
+
+    .btn-link:hover {
+        text-decoration: underline;
+    }
+
+    .btn-danger {
+        color: #dc2626;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .btn-danger:hover {
+        text-decoration: underline;
+    }
+
+    .btn-disabled {
+        color: #9ca3af;
+        font-style: italic;
+        cursor: not-allowed;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .table th,
+    .table td {
+        border: 1px solid #d1d5db;
+        padding: 8px 12px;
+        text-align: left;
+    }
+
+    .table th {
+        background-color: #f3f4f6;
+    }
+
+    .table tr:hover {
+        background-color: #f9fafb;
+    }
+
+    .estado-cancelada {
+        color: #dc2626;
+        font-weight: bold;
+    }
+</style>
