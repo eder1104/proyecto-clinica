@@ -7,6 +7,8 @@ use App\Models\Paciente;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 class CitaController extends Controller
 {
@@ -50,7 +52,9 @@ class CitaController extends Controller
 
         $validated['created_by'] = Auth::id();
 
-        Cita::create($validated);
+        $cita = Cita::create($validated);
+
+        $this->generarPDF($cita);
 
         return redirect()->route('citas.index')->with('success', 'Cita creada correctamente.');
     }
@@ -80,6 +84,8 @@ class CitaController extends Controller
 
         $cita->update($validated);
 
+        $this->generarPDF($cita);
+
         return redirect()->route('citas.index')->with('success', 'Cita actualizada correctamente.');
     }
 
@@ -92,6 +98,8 @@ class CitaController extends Controller
         $validated['updated_by'] = Auth::id();
 
         $cita->update($validated);
+
+        $this->generarPDF($cita);
 
         return back()->with('success', 'Motivo de consulta guardado correctamente.');
     }
@@ -108,6 +116,8 @@ class CitaController extends Controller
             'cancelled_by'  => Auth::id(),
         ]);
 
+        $this->generarPDF($cita);
+
         return redirect()->route('citas.index')->with('success', 'Cita cancelada correctamente.');
     }
 
@@ -123,6 +133,8 @@ class CitaController extends Controller
             'cancelled_by'  => Auth::id(),
         ]);
 
+        $this->generarPDF($cita);
+
         return redirect()->route('citas.index')->with('success', 'Cita cancelada correctamente.');
     }
 
@@ -130,5 +142,17 @@ class CitaController extends Controller
     {
         $cita->load(['paciente', 'admisiones']);
         return view('citas.cita', compact('cita'));
+    }
+
+    private function generarPDF(Cita $cita)
+    {
+        $pdf = Pdf::loadView('citas.pdf', compact('cita'));
+        $fileName = 'citas/cita_' . $cita->id . '.pdf';
+
+        Storage::disk('public')->put($fileName, $pdf->output());
+
+        $cita->update([
+            'pdf_path' => $fileName
+        ]);
     }
 }

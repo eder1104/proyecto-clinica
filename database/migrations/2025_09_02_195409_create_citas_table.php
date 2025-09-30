@@ -21,6 +21,7 @@ return new class extends Migration {
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('cancelled_by')->nullable()->constrained('users')->nullOnDelete();
             $table->text('cancel_reason')->nullable();
+            $table->string('pdf_path')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

@@ -24,6 +24,7 @@ class Cita extends Model
         'updated_by',
         'cancelled_by',
         'cancel_reason',
+        'pdf_path',
     ];
 
     protected $with = ['paciente', 'admisiones'];
