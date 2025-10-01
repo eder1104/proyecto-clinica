@@ -63,7 +63,7 @@ class PacienteController extends Controller
         $paciente->update($validated);
 
         return redirect()
-            ->route('pacientes.edit', $paciente)
+            ->route('pacientes.index', $paciente)
             ->with('success', 'Paciente actualizado correctamente.');
     }
 

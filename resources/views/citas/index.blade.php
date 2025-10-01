@@ -26,6 +26,7 @@
                             <option value=""> Estado </option>
                             <option value="pendiente" {{ request('estado') == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
                             <option value="confirmada" {{ request('estado') == 'confirmada' ? 'selected' : '' }}>Confirmada</option>
+                            <option value="finalizada" {{ request('estado') == 'finalizada' ? 'selected' : '' }}>finalizada</option>
                             <option value="cancelada" {{ request('estado') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
                         </select>
 

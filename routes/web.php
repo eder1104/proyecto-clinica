@@ -47,7 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/citas/{cita}', [CitaController::class, 'update'])->name('citas.update');
     Route::delete('/citas/{cita}', [CitaController::class, 'destroy'])->name('citas.destroy');
 
-    Route::get('/citas/{cita}/atencion', [CitaController::class, 'atencion'])->name('citas.atencion');
+    Route::get('/citas/{cita}/atencion', action: [CitaController::class, 'atencion'])->name('citas.atencion');
     Route::patch('/citas/{cita}/motivo', [CitaController::class, 'updateMotivo'])->name('citas.updateMotivo');
     Route::get('/citas/{cita}/pdf', [CitaController::class, 'pdf'])->name('citas.pdf');
     Route::post('/citas/{cita}/finalizar', [CitaController::class, 'finalizar'])->name('citas.finalizar');
@@ -58,6 +58,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/pacientes', [PacienteController::class, 'store'])->name('pacientes.store');
     Route::get('/pacientes/{paciente}/edit', [PacienteController::class, 'edit'])->name('pacientes.edit');
     Route::delete('/pacientes/{paciente}', [PacienteController::class, 'destroy'])->name('pacientes.destroy');
+    Route::put('/pacientes/{paciente}', [PacienteController::class, 'update'])->name('pacientes.update');
 
     Route::get('/pacientes/{id}/historia/pdf', [CitaController::class, 'descargarHistoriaPdf'])
         ->name('pacientes.historia.pdf');

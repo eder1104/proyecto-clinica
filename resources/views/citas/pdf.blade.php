@@ -3,34 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Cita #{{ $cita->id }}</title>
-    <style>
-        body {
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 12px;
-            margin: 20px;
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .section {
-            margin-bottom: 15px;
-        }
-        .section h3 {
-            background: #f2f2f2;
-            padding: 5px;
-            font-size: 14px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 5px;
-        }
-        table td {
-            padding: 6px;
-            border: 1px solid #ddd;
-        }
-    </style>
 </head>
 <body>
     <h2>Detalle de la Cita</h2>
@@ -94,3 +66,32 @@
     </p>
 </body>
 </html>
+
+<style>
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 12px;
+            margin: 20px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 15px;
+        }
+        .section h3 {
+            background: #f2f2f2;
+            padding: 5px;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+        table td {
+            padding: 6px;
+            border: 1px solid #ddd;
+        }
+    </style>

@@ -1,122 +1,149 @@
-<div x-data="{ open: false }" x-cloak>
-    <!-- Botón que abre el modal -->
-    <button @click="open = true"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-        Nuevo Paciente
-    </button>
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800">Nuevo Paciente</h2>
+    </x-slot>
 
-    <!-- Modal -->
-    <div x-show="open"
-         x-transition.opacity
-         class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8"
+        x-data="{ open: true }">
 
-        <div @click.away="open = false"
-             class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 p-8 relative">
+        <!-- fondo oscuro -->
+        <div x-show="open" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <!-- modal -->
+            <div class="modal-container">
+                <form action="{{ route('pacientes.store') }}" method="POST">
+                    @csrf
+                    <h2 class="modal-title">Nuevo Paciente</h2>
 
-            <button @click="open = false"
-                    aria-label="Cerrar"
-                    class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">
-                ✕
-            </button>
-
-            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Nuevo Paciente</h2>
-
-            <form action="{{ route('pacientes.store') }}" method="POST" class="space-y-4">
-                @csrf
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Nombres</label>
-                        <input type="text" name="nombres" value="{{ old('nombres') }}" required
-                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        @error('nombres')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+                    <div class="form-group">
+                        <label for="nombres">Nombres</label>
+                        <input type="text" name="nombres" id="nombres" class="input-field" value="{{ old('nombres') }}" required>
+                        @error('nombres') <p class="error-msg">{{ $message }}</p> @enderror
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Apellidos</label>
-                        <input type="text" name="apellidos" value="{{ old('apellidos') }}" required
-                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        @error('apellidos')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Documento</label>
-                        <input type="text" name="documento" value="{{ old('documento') }}" required
-                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        @error('documento')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+                    <div class="form-group">
+                        <label for="apellidos">Apellidos</label>
+                        <input type="text" name="apellidos" id="apellidos" class="input-field" value="{{ old('apellidos') }}" required>
+                        @error('apellidos') <p class="error-msg">{{ $message }}</p> @enderror
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Teléfono</label>
-                        <input type="text" name="telefono" value="{{ old('telefono') }}"
-                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        @error('telefono')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" name="email" value="{{ old('email') }}"
-                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    @error('email')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Dirección</label>
-                    <input type="text" name="direccion" value="{{ old('direccion') }}"
-                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    @error('direccion')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Fecha de nacimiento</label>
-                        <input type="date" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}"
-                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        @error('fecha_nacimiento')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+                    <div class="form-group">
+                        <label for="documento">Documento</label>
+                        <input type="text" name="documento" id="documento" class="input-field" value="{{ old('documento') }}" required>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Sexo</label>
-                        <select name="sexo"
-                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <div class="form-group">
+                        <label for="telefono">Teléfono</label>
+                        <input type="text" name="telefono" id="telefono" class="input-field" value="{{ old('telefono') }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Correo</label>
+                        <input type="email" name="email" id="email" class="input-field" value="{{ old('email') }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="direccion">Dirección</label>
+                        <input type="text" name="direccion" id="direccion" class="input-field" value="{{ old('direccion') }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+                        <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="input-field" value="{{ old('fecha_nacimiento') }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sexo">Sexo</label>
+                        <select name="sexo" id="sexo" class="input-field">
                             <option value="">Seleccione...</option>
-                            <option value="M" {{ old('sexo') === 'M' ? 'selected' : '' }}>Masculino</option>
-                            <option value="F" {{ old('sexo') === 'F' ? 'selected' : '' }}>Femenino</option>
+                            <option value="M" {{ old('sexo') == 'M' ? 'selected' : '' }}>Masculino</option>
+                            <option value="F" {{ old('sexo') == 'F' ? 'selected' : '' }}>Femenino</option>
                         </select>
-                        @error('sexo')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
                     </div>
-                </div>
 
-                <div class="flex justify-end gap-3 pt-6">
-                    <button type="button" @click="open = false"
-                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
-                        Cancelar
-                    </button>
-                    <button type="submit"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                        Guardar
-                    </button>
-                </div>
-            </form>
+                    <div class="flex justify-end space-x-2 mt-4">
+                        <a href="{{ route('pacientes.index') }}" class="btn-cancel">Cancelar</a>
+                        <button type="submit" class="btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
+</x-app-layout>
+
+<style>
+    .modal-container {
+        background: #fff;
+        width: 100%;
+        max-width: 600px;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 16px;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #444;
+    }
+
+    .input-field {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 0.95rem;
+    }
+
+    .input-field:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 4px rgba(37, 99, 235, 0.5);
+    }
+
+    .error-msg {
+        color: #dc2626;
+        font-size: 0.85rem;
+        margin-top: 4px;
+    }
+
+    .btn-primary {
+        background: #2563eb;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover {
+        background: #1e40af;
+    }
+
+    .btn-cancel {
+        background: #e5e7eb;
+        color: #333;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-cancel:hover {
+        background: #d1d5db;
+    }
+</style>
+
