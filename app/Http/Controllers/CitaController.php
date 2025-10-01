@@ -208,4 +208,9 @@ class CitaController extends Controller
 
         return $pdf->download('historia_clinica_' . $paciente->nombres . '_' . $paciente->apellidos . '.pdf');
     }
+
+    public function ModalPaciente()
+    {
+        return view('citas.ModalPaciente');
+    }
 }

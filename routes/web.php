@@ -36,7 +36,7 @@ Route::middleware(['auth', 'checkrole:admin'])->group(function () {
     Route::get('/usuarios/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::put('/usuarios/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/usuarios/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-    Route::patch('/usuarios/{user}/toggle', [UserController::class, 'toggleStatus'])->name('users.toggle');
+    Route::patch('/usuarios/{user}', [UserController::class, 'toggleStatus'])->name('users.toggle');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -47,11 +47,12 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/citas/{cita}', [CitaController::class, 'update'])->name('citas.update');
     Route::delete('/citas/{cita}', [CitaController::class, 'destroy'])->name('citas.destroy');
 
-    Route::get('/citas/{cita}/atencion', action: [CitaController::class, 'atencion'])->name('citas.atencion');
+    Route::get('/citas/{cita}/atencion', [CitaController::class, 'atencion'])->name('citas.atencion');
     Route::patch('/citas/{cita}/motivo', [CitaController::class, 'updateMotivo'])->name('citas.updateMotivo');
     Route::get('/citas/{cita}/pdf', [CitaController::class, 'pdf'])->name('citas.pdf');
     Route::post('/citas/{cita}/finalizar', [CitaController::class, 'finalizar'])->name('citas.finalizar');
     Route::post('/citas/{cita}/cancelar', [CitaController::class, 'cancelar'])->name('citas.cancelar');
+    Route::get('/citas/ModalPaciente', [CitaController::class, 'ModalPaciente'])->name('citas.ModalPaciente');
 
     Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
     Route::get('/pacientes/create', [PacienteController::class, 'create'])->name('pacientes.create');
@@ -59,9 +60,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pacientes/{paciente}/edit', [PacienteController::class, 'edit'])->name('pacientes.edit');
     Route::delete('/pacientes/{paciente}', [PacienteController::class, 'destroy'])->name('pacientes.destroy');
     Route::put('/pacientes/{paciente}', [PacienteController::class, 'update'])->name('pacientes.update');
-
-    Route::get('/pacientes/{id}/historia/pdf', [CitaController::class, 'descargarHistoriaPdf'])
-        ->name('pacientes.historia.pdf');
+    Route::get('/pacientes/{id}/historia/pdf', [CitaController::class, 'descargarHistoriaPdf'])->name('pacientes.historia.pdf');
 });
 
 require __DIR__ . '/auth.php';
