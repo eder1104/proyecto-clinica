@@ -14,6 +14,9 @@ return new class extends Migration
             $table->string('apellidos');
             $table->string('documento')->unique();
             $table->string('telefono');
+            $table->string('estado');
+            $table->string('profesion');
+            $table->string('ciudad');
             $table->string('direccion');
             $table->string('email')->unique();
             $table->date('fecha_nacimiento');

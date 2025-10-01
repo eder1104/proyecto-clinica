@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="py-10">
-        <div class="max-w-5xl mx-auto">
+        <div class="max-w-5xl mx-auto contenedor">
             <div class="card-container">
                 <div class="card-header">
                     <h1 class="card-title">Cita De Optometria</h1>
@@ -11,15 +11,28 @@
             <div class="Box-Paciente">
                 <button id="open">🔽</button>
                 <div class="nombres">{{ $cita->paciente->nombres }} {{ $cita->paciente->apellidos }}</div>
-                <div>{{ \Carbon\Carbon::parse($cita->paciente->fecha_nacimiento)->age }}</div>
+                <div>{{ \Carbon\Carbon::parse($cita->paciente->fecha_nacimiento)->age }} Años</div>
                 <div>{{ $cita->paciente->direccion }}</div>
                 <div>{{ $cita->paciente->telefono }}</div>
                 <div>{{ $cita->paciente->email }}</div>
             </div>
+
+            <div id="datosPaciente" class="extra-info hidden">
+                <p><strong>Estado Civil:</strong> {{ $cita->paciente->estado ?? '-' }}</p>
+                <p><strong>Profesión:</strong> {{ $cita->paciente->profesion ?? '-' }}</p>
+                <p><strong>Género:</strong> {{ $cita->paciente->sexo == 'M' ? 'Masculino' : 'Femenino' }}</p>
+                <p><strong>Ciudad:</strong> {{ $cita->paciente->ciudad ?? '-' }}</p>
+
+                <hr class="my-4">
+
+                <p><strong>Presión arterial:</strong> {{ $cita->tension_arterial ?? '-' }}</p>
+                <p><strong>Pulso:</strong> {{ $cita->frecuencia_cardiaca ?? '-' }}</p>
+                <p><strong>Fecha cita:</strong> {{ $cita->fecha }} {{ $cita->hora_inicio }}</p>
+                <p><strong>Motivo de la consulta:</strong> {{ $cita->motivo_consulta ?? '-' }}</p>
+            </div>
         </div>
     </div>
 
-    @include('ModalPaciente')
 </x-app-layout>
 
 <style>
@@ -71,11 +84,42 @@
         font-size: 1.5rem;
         font-weight: 700;
     }
+
+    .contenedor {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        padding: 1.5rem 2rem;
+        background: linear-gradient(to right, #2563eb, #3b82f6);
+        color: #fff;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .extra-info {
+        background: #f9fafb;
+        padding: 1rem;
+        margin-top: 1rem;
+        border-left: 4px solid #2563eb;
+    }
+
 </style>
+
 
 <script>
     const btn = document.getElementById('open');
+    const datos = document.getElementById('datosPaciente');
+
     btn.addEventListener('click', () => {
-        document.getElementById('modalPaciente').classList.remove('hidden');
+        datos.classList.toggle('hidden');
+        btn.textContent = datos.classList.contains('hidden') ? '🔽' : '🔼';
     });
 </script>

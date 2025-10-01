@@ -23,6 +23,10 @@
                                 <th class="border px-4 py-2">Apellidos</th>
                                 <th class="border px-4 py-2">Documento</th>
                                 <th class="border px-4 py-2">Teléfono</th>
+                                <th class="border px-4 py-2">estado civil</th>
+                                <th class="border px-4 py-2">profesion</th>
+                                <th class="border px-4 py-2">ciudad</th>
+                                <th class="border px-4 py-2">observaciones</th>
                                 <th class="border px-4 py-2">Dirección</th>
                                 <th class="border px-4 py-2">Email</th>
                                 <th class="border px-4 py-2">Fecha Nacimiento</th>
@@ -38,6 +42,10 @@
                                     <td class="border px-4 py-2">{{ $paciente->apellidos }}</td>
                                     <td class="border px-4 py-2">{{ $paciente->documento }}</td>
                                     <td class="border px-4 py-2">{{ $paciente->telefono }}</td>
+                                    <td class="border px-4 py-2">{{ $paciente->estado }}</td>
+                                    <td class="border px-4 py-2">{{ $paciente->profesion }}</td>
+                                    <td class="border px-4 py-2">{{ $paciente->ciudad }}</td>
+                                    <td class="border px-4 py-2">{{ $paciente->observaciones }}</td>
                                     <td class="border px-4 py-2">{{ $paciente->direccion }}</td>
                                     <td class="border px-4 py-2">{{ $paciente->email }}</td>
                                     <td class="border px-4 py-2">{{ $paciente->fecha_nacimiento }}</td>

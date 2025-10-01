@@ -89,6 +89,7 @@ class CitaController extends Controller
             'motivo_consulta'         => 'nullable|string|max:1000',
             'tension_arterial'        => 'nullable|string|max:20',
             'frecuencia_cardiaca'     => 'nullable|string|max:20',
+            'observaciones'           => 'nullable|string|max:2000',
             'frecuencia_respiratoria' => 'nullable|string|max:20',
             'temperatura'             => 'nullable|string|max:20',
             'saturacion'              => 'nullable|string|max:20',

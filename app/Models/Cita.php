@@ -25,6 +25,7 @@ class Cita extends Model
         'frecuencia_respiratoria',
         'temperatura',
         'saturacion',
+        'observaciones',
         'peso',
         'examen_fisico',
         'diagnostico',

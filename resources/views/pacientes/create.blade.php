@@ -6,58 +6,78 @@
     <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8"
         x-data="{ open: true }">
 
-        <!-- fondo oscuro -->
         <div x-show="open" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <!-- modal -->
             <div class="modal-container">
                 <form action="{{ route('pacientes.store') }}" method="POST">
                     @csrf
                     <h2 class="modal-title">Nuevo Paciente</h2>
 
-                    <div class="form-group">
-                        <label for="nombres">Nombres</label>
-                        <input type="text" name="nombres" id="nombres" class="input-field" value="{{ old('nombres') }}" required>
-                        @error('nombres') <p class="error-msg">{{ $message }}</p> @enderror
-                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="nombres">Nombres</label>
+                            <input type="text" name="nombres" id="nombres" class="input-field" value="{{ old('nombres') }}" required>
+                            @error('nombres') <p class="error-msg">{{ $message }}</p> @enderror
+                        </div>
 
-                    <div class="form-group">
-                        <label for="apellidos">Apellidos</label>
-                        <input type="text" name="apellidos" id="apellidos" class="input-field" value="{{ old('apellidos') }}" required>
-                        @error('apellidos') <p class="error-msg">{{ $message }}</p> @enderror
-                    </div>
+                        <div class="form-group">
+                            <label for="apellidos">Apellidos</label>
+                            <input type="text" name="apellidos" id="apellidos" class="input-field" value="{{ old('apellidos') }}" required>
+                            @error('apellidos') <p class="error-msg">{{ $message }}</p> @enderror
+                        </div>
 
-                    <div class="form-group">
-                        <label for="documento">Documento</label>
-                        <input type="text" name="documento" id="documento" class="input-field" value="{{ old('documento') }}" required>
-                    </div>
+                        <div class="form-group">
+                            <label for="documento">Documento</label>
+                            <input type="text" name="documento" id="documento" class="input-field" value="{{ old('documento') }}" required>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="telefono">Teléfono</label>
-                        <input type="text" name="telefono" id="telefono" class="input-field" value="{{ old('telefono') }}">
-                    </div>
+                        <div class="form-group">
+                            <label for="telefono">Teléfono</label>
+                            <input type="text" name="telefono" id="telefono" class="input-field" value="{{ old('telefono') }}">
+                        </div>
 
-                    <div class="form-group">
-                        <label for="email">Correo</label>
-                        <input type="email" name="email" id="email" class="input-field" value="{{ old('email') }}">
-                    </div>
+                        <div class="form-group">
+                            <label for="email">Correo</label>
+                            <input type="email" name="email" id="email" class="input-field" value="{{ old('email') }}">
+                        </div>
 
-                    <div class="form-group">
-                        <label for="direccion">Dirección</label>
-                        <input type="text" name="direccion" id="direccion" class="input-field" value="{{ old('direccion') }}">
-                    </div>
+                        <div class="form-group">
+                            <label for="estado">Estado civil</label>
+                            <input type="text" name="estado" id="estado" class="input-field" value="{{ old('estado') }}">
+                        </div>
 
-                    <div class="form-group">
-                        <label for="fecha_nacimiento">Fecha de Nacimiento</label>
-                        <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="input-field" value="{{ old('fecha_nacimiento') }}">
-                    </div>
+                        <div class="form-group">
+                            <label for="observaciones">Observaciones</label>
+                            <input type="text" name="observaciones" id="observaciones" class="input-field" value="{{ old('observaciones') }}">
+                        </div>
 
-                    <div class="form-group">
-                        <label for="sexo">Sexo</label>
-                        <select name="sexo" id="sexo" class="input-field">
-                            <option value="">Seleccione...</option>
-                            <option value="M" {{ old('sexo') == 'M' ? 'selected' : '' }}>Masculino</option>
-                            <option value="F" {{ old('sexo') == 'F' ? 'selected' : '' }}>Femenino</option>
-                        </select>
+                        <div class="form-group">
+                            <label for="ciudad">Ciudad</label>
+                            <input type="text" name="ciudad" id="ciudad" class="input-field" value="{{ old('ciudad') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profesion">Profesión</label>
+                            <input type="text" name="profesion" id="profesion" class="input-field" value="{{ old('profesion') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="direccion">Dirección</label>
+                            <input type="text" name="direccion" id="direccion" class="input-field" value="{{ old('direccion') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+                            <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="input-field" value="{{ old('fecha_nacimiento') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sexo">Sexo</label>
+                            <select name="sexo" id="sexo" class="input-field">
+                                <option value="">Seleccione...</option>
+                                <option value="M" {{ old('sexo') == 'M' ? 'selected' : '' }}>Masculino</option>
+                                <option value="F" {{ old('sexo') == 'F' ? 'selected' : '' }}>Femenino</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="flex justify-end space-x-2 mt-4">
@@ -74,7 +94,7 @@
     .modal-container {
         background: #fff;
         width: 100%;
-        max-width: 600px;
+        max-width: 900px;
         padding: 20px;
         border-radius: 8px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -85,10 +105,6 @@
         font-weight: bold;
         margin-bottom: 16px;
         color: #333;
-    }
-
-    .form-group {
-        margin-bottom: 16px;
     }
 
     .form-group label {
@@ -146,4 +162,3 @@
         background: #d1d5db;
     }
 </style>
-

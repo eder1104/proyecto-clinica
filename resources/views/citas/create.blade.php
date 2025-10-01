@@ -72,6 +72,12 @@
                         </select>
                     </div>
 
+                    <div>
+                        <label class="block text-gray-700">motivo_consulta</label>
+                        <input type="text" name="motivo_consulta" value="{{ old('observaciones') }}"
+                            class="mt-1 block w-full rounded-md shadow-sm">
+                    </div>
+
                     <div class="mb-4">
                         <label class="block text-gray-700">Admisiones</label>
                         <select name="admisiones_id" class="mt-1 block w-full rounded-md shadow-sm">
@@ -108,77 +114,6 @@
                 </form>
             </div>
         </div>
-
-        {{-- editar cita --}}
-        <div x-show="openEditar" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div class="bg-white w-full max-w-md p-6 rounded-lg shadow">
-                <h3 class="text-lg font-semibold mb-4">Editar Cita</h3>
-                <form :action="'/citas/' + citaSeleccionada.id" method="POST">
-                    @csrf
-                    @method('PUT')
-
-                    <div class="mb-4">
-                        <label class="block text-gray-700">Fecha</label>
-                        <input type="date" name="fecha" x-model="citaSeleccionada.fecha"
-                            class="mt-1 block w-full rounded-md shadow-sm">
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-gray-700">Hora de inicio</label>
-                        <input type="time" name="hora_inicio" x-model="citaSeleccionada.hora_inicio"
-                            class="mt-1 block w-full rounded-md shadow-sm">
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-gray-700">Hora de fin</label>
-                        <input type="time" name="hora_fin" x-model="citaSeleccionada.hora_fin"
-                            class="mt-1 block w-full rounded-md shadow-sm">
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-gray-700">Estado</label>
-                        <select name="estado" x-model="citaSeleccionada.estado"
-                            class="mt-1 block w-full rounded-md shadow-sm">
-                            <option value="">Seleccione un estado</option>
-                            <option value="pendiente">Pendiente</option>
-                            <option value="confirmada">Confirmada</option>
-                            <option value="finalizada">Finalizada</option>
-                            <option value="cancelada">Cancelada</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-gray-700">Admisiones</label>
-                        <select name="admisiones_id" x-model="citaSeleccionada.admisiones_id"
-                            class="mt-1 block w-full rounded-md shadow-sm">
-                            <option value="">Seleccione un usuario de admisiones</option>
-                            @foreach($admisiones as $adm)
-                            <option value="{{ $adm->id }}">{{ $adm->nombres }} {{ $adm->apellidos }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-gray-700">Paciente</label>
-                        <select name="paciente_id" x-model="citaSeleccionada.paciente_id"
-                            class="mt-1 block w-full rounded-md shadow-sm">
-                            <option value="">Seleccione un paciente</option>
-                            @foreach($pacientes as $paciente)
-                            <option value="{{ $paciente->id }}">{{ $paciente->nombres }} {{ $paciente->apellidos }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="flex justify-end space-x-2 mt-4">
-                        <button type="button" @click="openEditar = false"
-                            class="px-4 py-2 rou hover:bg-gray-400">Cancelar</button>
-                        <button type="submit"
-                            class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Actualizar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
     </div>
 </x-app-layout>
 
@@ -187,6 +122,7 @@
         display: flex;
         flex-direction: row;
     }
+
     .agregar button {
         margin-left: 0.5rem;
         padding: 0.5rem 1rem;
