@@ -25,10 +25,23 @@
 
                 <hr class="my-4">
 
-                <p><strong>Presión arterial:</strong> {{ $cita->tension_arterial ?? '-' }}</p>
-                <p><strong>Pulso:</strong> {{ $cita->frecuencia_cardiaca ?? '-' }}</p>
-                <p><strong>Fecha cita:</strong> {{ $cita->fecha }} {{ $cita->hora_inicio }}</p>
+                <p><strong>Fecha cita:</strong> {{ $cita->fecha }} {{ $cita->hora_inicio }} - {{ $cita->hora_fin }}</p>
                 <p><strong>Motivo de la consulta:</strong> {{ $cita->motivo_consulta ?? '-' }}</p>
+
+                <p><strong>Presión arterial:</strong> {{ $cita->tension_arterial ?? '-' }}</p>
+                <p><strong>Pulso (frecuencia cardiaca):</strong> {{ $cita->frecuencia_cardiaca ?? '-' }}</p>
+                <p><strong>Frecuencia respiratoria:</strong> {{ $cita->frecuencia_respiratoria ?? '-' }}</p>
+                <p><strong>Temperatura:</strong> {{ $cita->temperatura ?? '-' }}</p>
+                <p><strong>Saturación O₂:</strong> {{ $cita->saturacion ?? '-' }}</p>
+                <p><strong>Peso:</strong> {{ $cita->peso ?? '-' }}</p>
+
+                <p><strong>Observaciones:</strong> {{ $cita->observaciones ?? '-' }}</p>
+                <p><strong>Examen físico:</strong> {{ $cita->examen_fisico ?? '-' }}</p>
+                <p><strong>Diagnóstico:</strong> {{ $cita->diagnostico ?? '-' }}</p>
+                <p><strong>Plan de tratamiento:</strong> {{ $cita->plan ?? '-' }}</p>
+
+                <p><strong>Estado de la cita:</strong> {{ $cita->estado ?? '-' }}</p>
+
             </div>
         </div>
     </div>
@@ -110,7 +123,6 @@
         margin-top: 1rem;
         border-left: 4px solid #2563eb;
     }
-
 </style>
 
 

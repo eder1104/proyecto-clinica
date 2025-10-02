@@ -19,11 +19,9 @@ return new class extends Migration {
             $table->string('frecuencia_respiratoria')->nullable();
             $table->string('temperatura')->nullable();
             $table->string('saturacion')->nullable();
-            $table->text('observaciones')->nullable();
             $table->string('peso')->nullable();
             $table->text('examen_fisico')->nullable();
             $table->text('diagnostico')->nullable();
-            $table->text('plan')->nullable();
 
             $table->string('estado')->default('programada');
             $table->foreignId('paciente_id')->constrained('pacientes')->restrictOnDelete();

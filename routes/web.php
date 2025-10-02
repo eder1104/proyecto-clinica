@@ -47,12 +47,20 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/citas/{cita}', [CitaController::class, 'update'])->name('citas.update');
     Route::delete('/citas/{cita}', [CitaController::class, 'destroy'])->name('citas.destroy');
 
+
     Route::get('/citas/{cita}/atencion', [CitaController::class, 'atencion'])->name('citas.atencion');
     Route::patch('/citas/{cita}/motivo', [CitaController::class, 'updateMotivo'])->name('citas.updateMotivo');
     Route::get('/citas/{cita}/pdf', [CitaController::class, 'pdf'])->name('citas.pdf');
     Route::post('/citas/{cita}/finalizar', [CitaController::class, 'finalizar'])->name('citas.finalizar');
     Route::post('/citas/{cita}/cancelar', [CitaController::class, 'cancelar'])->name('citas.cancelar');
     Route::get('/citas/ModalPaciente', [CitaController::class, 'ModalPaciente'])->name('citas.ModalPaciente');
+    Route::get('/citas/{cita}/examen', [CitaController::class, 'examen'])->name('citas.examen');
+    Route::post('/citas/{cita}/guardar-examen', [CitaController::class, 'guardarExamen'])->name('citas.guardarExamen');
+
+
+    Route::resource('citas', CitaController::class);
+    Route::middleware(['auth'])->group(function () {});
+
 
     Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
     Route::get('/pacientes/create', [PacienteController::class, 'create'])->name('pacientes.create');

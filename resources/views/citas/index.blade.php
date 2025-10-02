@@ -101,7 +101,7 @@
                                 </td>
                                 <td>
                                     @if($c->estado !== 'cancelada')
-                                    <a href="{{ route('citas.atencion', $c->id) }}" class="btn">Tomar Atención</a>
+                                    <a href="{{ route('citas.examen', $c->id) }}" class="btn">Tomar Atención</a>
                                     @else
                                     <span class="btn-disabled">No disponible</span>
                                     @endif

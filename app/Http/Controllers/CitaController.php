@@ -54,7 +54,6 @@ class CitaController extends Controller
             'peso'                    => 'nullable|string|max:20',
             'examen_fisico'           => 'nullable|string',
             'diagnostico'             => 'nullable|string|max:2000',
-            'plan'                    => 'nullable|string|max:2000',
         ]);
 
         $validated['created_by'] = Auth::id();
@@ -96,7 +95,6 @@ class CitaController extends Controller
             'peso'                    => 'nullable|string|max:20',
             'examen_fisico'           => 'nullable|string',
             'diagnostico'             => 'nullable|string|max:2000',
-            'plan'                    => 'nullable|string|max:2000',
         ]);
 
         $validated['updated_by'] = Auth::id();
@@ -213,5 +211,30 @@ class CitaController extends Controller
     public function ModalPaciente()
     {
         return view('citas.ModalPaciente');
+    }
+
+    public function guardarExamen(Request $request, $id)
+    {
+        $cita = Cita::findOrFail($id);
+
+        $cita->tension_arterial        = $request->tension_arterial;
+        $cita->frecuencia_cardiaca     = $request->frecuencia_cardiaca;
+        $cita->frecuencia_respiratoria = $request->frecuencia_respiratoria;
+        $cita->temperatura             = $request->temperatura;
+        $cita->saturacion              = $request->saturacion;
+        $cita->peso                    = $request->peso;
+        $cita->examen_fisico           = $request->examen_fisico;
+        $cita->diagnostico             = $request->diagnostico;
+        $cita->save();
+
+        return redirect()->route('citas.atencion', ['cita' => $cita->id])
+            ->with('success', 'Examen guardado correctamente.');
+    }
+
+
+    public function examen($cita_id)
+    {
+        $cita = Cita::findOrFail($cita_id);
+        return view('citas.examen', compact('cita'));
     }
 }
