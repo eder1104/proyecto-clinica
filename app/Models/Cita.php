@@ -61,4 +61,9 @@ class Cita extends Model
     {
         return $this->belongsTo(User::class, 'cancelled_by');
     }
+
+    public function TipoCita()
+    {
+        return $this->belongsTo(TipoCita::class, 'tipo_cita_id');
+    }
 }

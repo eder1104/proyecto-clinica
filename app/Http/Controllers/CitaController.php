@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cita;
 use App\Models\Paciente;
 use App\Models\User;
+use App\Models\Plantilla_Optometria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -14,7 +15,7 @@ class CitaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Cita::with(['paciente', 'admisiones', 'createdBy', 'updatedBy', 'cancelledBy']);
+        $query = Cita::with(['paciente', 'admisiones', 'createdBy', 'updatedBy', 'cancelledBy', 'plantilla']);
 
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
@@ -33,12 +34,16 @@ class CitaController extends Controller
     {
         $pacientes = Paciente::all();
         $admisiones = User::all();
-        return view('citas.create', compact('pacientes', 'admisiones'));
+        $optometria = Plantilla_Optometria::all();
+        return view('citas.create', compact('pacientes', 'admisiones', 'optometria'));
     }
+
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $consultaCompleta = $request->input('consulta_completa', 0);
+
+        $rules = [
             'fecha'                   => 'required|date',
             'hora_inicio'             => 'required|date_format:H:i',
             'hora_fin'                => 'required|date_format:H:i|after:hora_inicio',
@@ -54,8 +59,12 @@ class CitaController extends Controller
             'peso'                    => 'nullable|string|max:20',
             'examen_fisico'           => 'nullable|string',
             'diagnostico'             => 'nullable|string|max:2000',
-        ]);
+            'plantilla_id'            => 'nullable|exists:plantilla_optometria,id',
+        ];
 
+        $validated = $consultaCompleta ? $request->all() : $request->validate($rules);
+
+        $validated['consulta_completa'] = $consultaCompleta ? 1 : 0;
         $validated['created_by'] = Auth::id();
 
         $cita = Cita::create($validated);
@@ -69,7 +78,8 @@ class CitaController extends Controller
     {
         $pacientes = Paciente::all();
         $admisiones = User::all();
-        return view('citas.edit', compact('cita', 'pacientes', 'admisiones'));
+        $optometria = Plantilla_Optometria::all(); // <-- también se carga para editar
+        return view('citas.edit', compact('cita', 'pacientes', 'admisiones', 'optometria'));
     }
 
     public function update(Request $request, Cita $cita)
@@ -78,7 +88,9 @@ class CitaController extends Controller
             return redirect()->route('citas.index')->with('error', 'La cita ya fue finalizada y no se puede modificar.');
         }
 
-        $validated = $request->validate([
+        $consultaCompleta = $request->input('consulta_completa', 0);
+
+        $rules = [
             'fecha'                   => 'required|date',
             'hora_inicio'             => 'required|date_format:H:i',
             'hora_fin'                => 'required|date_format:H:i|after:hora_inicio',
@@ -95,8 +107,12 @@ class CitaController extends Controller
             'peso'                    => 'nullable|string|max:20',
             'examen_fisico'           => 'nullable|string',
             'diagnostico'             => 'nullable|string|max:2000',
-        ]);
+            'plantilla_id'            => 'nullable|exists:plantilla_optometria,id',
+        ];
 
+        $validated = $consultaCompleta ? $request->all() : $request->validate($rules);
+
+        $validated['consulta_completa'] = $consultaCompleta ? 1 : 0;
         $validated['updated_by'] = Auth::id();
 
         $cita->update($validated);
@@ -151,7 +167,7 @@ class CitaController extends Controller
 
     public function atencion(Cita $cita)
     {
-        $cita->load(['paciente', 'admisiones']);
+        $cita->load(['paciente', 'admisiones', 'plantilla']);
         return view('citas.cita', compact('cita'));
     }
 
@@ -164,7 +180,6 @@ class CitaController extends Controller
         $pdf = Pdf::loadView('citas.pdf', compact('cita'));
         return $pdf->download('cita_' . $cita->id . '.pdf');
     }
-
 
     private function generarPDF(Cita $cita)
     {
@@ -189,7 +204,6 @@ class CitaController extends Controller
 
         return redirect()->route('citas.index')->with('success', 'Cita finalizada correctamente.');
     }
-
 
     public function descargarHistoriaPdf($id)
     {
@@ -231,10 +245,9 @@ class CitaController extends Controller
             ->with('success', 'Examen guardado correctamente.');
     }
 
-
-    public function examen($cita_id)
+    public function examen($id)
     {
-        $cita = Cita::findOrFail($cita_id);
+        $cita = Cita::findOrFail($id);
         return view('citas.examen', compact('cita'));
     }
 }

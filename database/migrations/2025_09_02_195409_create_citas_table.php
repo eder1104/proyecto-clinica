@@ -11,9 +11,9 @@ return new class extends Migration {
             $table->date('fecha');
             $table->time('hora_inicio');
             $table->time('hora_fin');
+            $table->string('tipo_cita')->nullable();
             $table->text('motivo_consulta')->nullable();
 
-            // 🔹 Campos clínicos
             $table->string('tension_arterial')->nullable();
             $table->string('frecuencia_cardiaca')->nullable();
             $table->string('frecuencia_respiratoria')->nullable();

@@ -17,6 +17,7 @@
 
         <div x-show="open" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div class="bg-white w-full max-w-md p-6 rounded-lg shadow">
+
                 @if ($errors->any())
                 <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
                     <strong>Errores encontrados:</strong>
@@ -46,24 +47,24 @@
                     <div class="mb-4">
                         <label class="block text-gray-700">Fecha</label>
                         <input type="date" name="fecha" value="{{ old('fecha') }}"
-                            class="mt-1 block w-full rounded-md shadow-sm">
+                            class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                     </div>
 
                     <div class="mb-4">
                         <label class="block text-gray-700">Hora de inicio</label>
                         <input type="time" name="hora_inicio" value="{{ old('hora_inicio') }}"
-                            class="mt-1 block w-full rounded-md shadow-sm">
+                            class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                     </div>
 
                     <div class="mb-4">
                         <label class="block text-gray-700">Hora de fin</label>
                         <input type="time" name="hora_fin" value="{{ old('hora_fin') }}"
-                            class="mt-1 block w-full rounded-md shadow-sm">
+                            class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                     </div>
 
                     <div class="mb-4">
                         <label class="block text-gray-700">Estado</label>
-                        <select name="estado" class="mt-1 block w-full rounded-md shadow-sm">
+                        <select name="estado" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                             <option value="">Seleccione un estado</option>
                             <option value="pendiente" {{ old('estado') == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
                             <option value="confirmada" {{ old('estado') == 'confirmada' ? 'selected' : '' }}>Confirmada</option>
@@ -72,15 +73,25 @@
                         </select>
                     </div>
 
-                    <div>
-                        <label class="block text-gray-700">motivo_consulta</label>
-                        <input type="text" name="motivo_consulta" value="{{ old('observaciones') }}"
-                            class="mt-1 block w-full rounded-md shadow-sm">
+                    <div class="mb-4">
+                        <label class="block text-gray-700">Tipo de Cita</label>
+                        <select name="tipo_cita_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                            <option value="">Seleccione un tipo de cita</option>
+                            @foreach($optometria as $plantilla)
+                            <option value="{{ $plantilla->id }}">{{ $plantilla->nombre_plantilla }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700">Motivo de consulta</label>
+                        <input type="text" name="motivo_consulta" value="{{ old('motivo_consulta') }}"
+                            class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                     </div>
 
                     <div class="mb-4">
                         <label class="block text-gray-700">Admisiones</label>
-                        <select name="admisiones_id" class="mt-1 block w-full rounded-md shadow-sm">
+                        <select name="admisiones_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                             <option value="">Seleccione un usuario de admisiones</option>
                             @foreach($admisiones as $adm)
                             <option value="{{ $adm->id }}" {{ old('admisiones_id') == $adm->id ? 'selected' : '' }}>
@@ -94,7 +105,7 @@
                         <label class="block text-gray-700">Paciente</label>
                         <div class="agregar">
                             <select id="pacienteSelect" name="paciente_id"
-                                class="mt-1 block w-full rounded-md shadow-sm">
+                                class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                                 <option value="">Seleccione un paciente</option>
                                 @foreach($pacientes as $paciente)
                                 <option value="{{ $paciente->id }}" {{ old('paciente_id') == $paciente->id ? 'selected' : '' }}>
@@ -102,13 +113,13 @@
                                 </option>
                                 @endforeach
                             </select>
-                            <button type="button" @click="openPaciente = true" class="bg-blue-600 rounded text-white">🔎</button>
-                            <button type="button" @click="openNuevoPaciente = true" class="bg-green-600 rounded text-white">➕</button>
+                            <button type="button" @click="openPaciente = true" class="bg-blue-600 text-white rounded px-3">🔎</button>
+                            <button type="button" @click="openNuevoPaciente = true" class="bg-green-600 text-white rounded px-3">➕</button>
                         </div>
                     </div>
 
                     <div class="flex justify-end space-x-2 mt-4">
-                        <a href="{{ route('citas.index') }}" class="px-4 py-2 rou hover:bg-gray-400">Cancelar</a>
+                        <a href="{{ route('citas.index') }}" class="px-4 py-2 rounded bg-gray-400 text-white hover:bg-gray-500">Cancelar</a>
                         <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Guardar</button>
                     </div>
                 </form>
@@ -120,25 +131,26 @@
 <style>
     .agregar {
         display: flex;
-        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .agregar button {
-        margin-left: 0.5rem;
-        padding: 0.5rem 1rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
     }
 </style>
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        const desc = document.getElementById('descripcion')
+        const desc = document.getElementById('descripcion');
         if (desc) {
             desc.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    e.preventDefault()
-                    document.getElementById('form-cita').submit()
+                    e.preventDefault();
+                    document.getElementById('form-cita').submit();
                 }
-            })
+            });
         }
-    })
+    });
 </script>
