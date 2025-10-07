@@ -35,12 +35,14 @@
                 <p><strong>Saturación O₂:</strong> {{ $cita->saturacion ?? '-' }}</p>
                 <p><strong>Peso:</strong> {{ $cita->peso ?? '-' }}</p>
 
-                <p><strong>Observaciones:</strong> {{ $cita->observaciones ?? '-' }}</p>
                 <p><strong>Examen físico:</strong> {{ $cita->examen_fisico ?? '-' }}</p>
                 <p><strong>Diagnóstico:</strong> {{ $cita->diagnostico ?? '-' }}</p>
-                <p><strong>Plan de tratamiento:</strong> {{ $cita->plan ?? '-' }}</p>
 
                 <p><strong>Estado de la cita:</strong> {{ $cita->estado ?? '-' }}</p>
+
+                <p><strong>hora_inicio</strong> {{ $cita->hora_inicio ?? '-' }}</p>
+                <p><strong>hora_fin</strong> {{ $cita->hora_fin ?? '-' }}</p>
+                <p><strong>estado</strong> {{ $cita->estado ?? '-' }}</p>
 
             </div>
         </div>

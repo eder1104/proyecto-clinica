@@ -75,14 +75,13 @@
 
                     <div class="mb-4">
                         <label class="block text-gray-700">Tipo de Cita</label>
-                        <select name="tipo_cita_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                        <select name="tipo_cita_id" id="tipo_cita" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                             <option value="">Seleccione un tipo de cita</option>
-                            @foreach($optometria as $plantilla)
-                            <option value="{{ $plantilla->id }}">{{ $plantilla->nombre_plantilla }}</option>
-                            @endforeach
+                            <option value="1" {{ old('tipo_cita_id') == '1' ? 'selected' : '' }}>Optometría</option>
+                            <option value="2" {{ old('tipo_cita_id') == '2' ? 'selected' : '' }}>Exámenes</option>
                         </select>
                     </div>
-                    
+
                     <div class="mb-4">
                         <label class="block text-gray-700">Motivo de consulta</label>
                         <input type="text" name="motivo_consulta" value="{{ old('motivo_consulta') }}"
@@ -120,7 +119,7 @@
 
                     <div class="flex justify-end space-x-2 mt-4">
                         <a href="{{ route('citas.index') }}" class="px-4 py-2 rounded bg-gray-400 text-white hover:bg-gray-500">Cancelar</a>
-                        <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Guardar</button>
+                        <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700" id="Save">Guardar</button>
                     </div>
                 </form>
             </div>
@@ -152,5 +151,15 @@
                 }
             });
         }
+    });
+
+
+    document.getElementById('Save').addEventListener('click', function() {
+        document.getElementById('tipo_cita').addEventListener('change', function() {
+            const value = this.value;
+            if (value === '1') {
+                window.location.href = "{{ route('plantillas.optometria') }}";
+            }
+        });
     });
 </script>

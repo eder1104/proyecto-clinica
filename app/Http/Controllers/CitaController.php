@@ -6,6 +6,7 @@ use App\Models\Cita;
 use App\Models\Paciente;
 use App\Models\User;
 use App\Models\Plantilla_Optometria;
+use App\Models\TipoCita;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -15,7 +16,7 @@ class CitaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Cita::with(['paciente', 'admisiones', 'createdBy', 'updatedBy', 'cancelledBy', 'plantilla']);
+        $query = Cita::with(['paciente', 'admisiones', 'createdBy', 'updatedBy', 'cancelledBy', 'tipoCita']);
 
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
@@ -35,9 +36,9 @@ class CitaController extends Controller
         $pacientes = Paciente::all();
         $admisiones = User::all();
         $optometria = Plantilla_Optometria::all();
-        return view('citas.create', compact('pacientes', 'admisiones', 'optometria'));
+        $tiposCitas = TipoCita::all();
+        return view('citas.create', compact('pacientes', 'admisiones', 'optometria', 'tiposCitas'));
     }
-
 
     public function store(Request $request)
     {
@@ -60,6 +61,7 @@ class CitaController extends Controller
             'examen_fisico'           => 'nullable|string',
             'diagnostico'             => 'nullable|string|max:2000',
             'plantilla_id'            => 'nullable|exists:plantilla_optometria,id',
+            'tipo_cita_id'            => 'nullable|exists:tipos_citas,id',
         ];
 
         $validated = $consultaCompleta ? $request->all() : $request->validate($rules);
@@ -68,6 +70,13 @@ class CitaController extends Controller
         $validated['created_by'] = Auth::id();
 
         $cita = Cita::create($validated);
+
+        if ($cita->tipo_cita_id == 1) {
+            Plantilla_Optometria::create([
+                'cita_id' => $cita->id,
+                'optometra' => Auth::user()->name ?? 'Desconocido',
+            ]);
+        }
 
         $this->generarPDF($cita);
 
@@ -78,8 +87,9 @@ class CitaController extends Controller
     {
         $pacientes = Paciente::all();
         $admisiones = User::all();
-        $optometria = Plantilla_Optometria::all(); // <-- también se carga para editar
-        return view('citas.edit', compact('cita', 'pacientes', 'admisiones', 'optometria'));
+        $optometria = Plantilla_Optometria::all();
+        $tiposCitas = TipoCita::all();
+        return view('citas.edit', compact('cita', 'pacientes', 'admisiones', 'optometria', 'tiposCitas'));
     }
 
     public function update(Request $request, Cita $cita)
@@ -108,6 +118,7 @@ class CitaController extends Controller
             'examen_fisico'           => 'nullable|string',
             'diagnostico'             => 'nullable|string|max:2000',
             'plantilla_id'            => 'nullable|exists:plantilla_optometria,id',
+            'tipo_cita_id'            => 'nullable|exists:tipos_citas,id',
         ];
 
         $validated = $consultaCompleta ? $request->all() : $request->validate($rules);
@@ -167,7 +178,7 @@ class CitaController extends Controller
 
     public function atencion(Cita $cita)
     {
-        $cita->load(['paciente', 'admisiones', 'plantilla']);
+        $cita->load(['paciente', 'admisiones', 'tipoCita']);
         return view('citas.cita', compact('cita'));
     }
 

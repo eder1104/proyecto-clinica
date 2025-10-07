@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -10,16 +11,29 @@ return new class extends Migration
     {
         Schema::create('tipos_citas', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre'); 
-            $table->text('descripcion')->nullable(); 
+            $table->string('nombre');
+            $table->text('descripcion')->nullable();
             $table->timestamps();
         });
 
+        DB::table('tipos_citas')->insert([
+            [
+                'nombre' => 'Optometría',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'nombre' => 'Exámenes',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
         Schema::table('citas', function (Blueprint $table) {
             $table->foreignId('tipo_cita_id')
-                  ->nullable()
-                  ->constrained('tipos_citas')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('tipos_citas')
+                ->nullOnDelete();
         });
     }
 

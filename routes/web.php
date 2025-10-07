@@ -1,12 +1,13 @@
 <?php
 
+use App\Http\Controllers\PlantillaControllerOptometria;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CitaController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\HistoriaClinicaController;
-use App\Http\Controllers\PlantillaController;
+use App\Http\Controllers\PlantillaControllerExamenes;
 
 Route::get('/', function () {
     return view('welcome');
@@ -47,7 +48,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/citas/{cita}/edit', [CitaController::class, 'edit'])->name('citas.edit');
     Route::put('/citas/{cita}', [CitaController::class, 'update'])->name('citas.update');
     Route::delete('/citas/{cita}', [CitaController::class, 'destroy'])->name('citas.destroy');
-
     Route::get('/citas/{cita}/atencion', [CitaController::class, 'atencion'])->name('citas.atencion');
     Route::patch('/citas/{cita}/motivo', [CitaController::class, 'updateMotivo'])->name('citas.updateMotivo');
     Route::get('/citas/{cita}/pdf', [CitaController::class, 'pdf'])->name('citas.pdf');
@@ -56,7 +56,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/citas/ModalPaciente', [CitaController::class, 'ModalPaciente'])->name('citas.ModalPaciente');
     Route::get('/citas/{cita}/examen', [CitaController::class, 'examen'])->name('citas.examen');
     Route::post('/citas/{cita}/guardar-examen', [CitaController::class, 'guardarExamen'])->name('citas.guardarExamen');
-
     Route::resource('citas', CitaController::class);
 
     Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
@@ -67,10 +66,12 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/pacientes/{paciente}', [PacienteController::class, 'update'])->name('pacientes.update');
     Route::get('/pacientes/{id}/historia/pdf', [CitaController::class, 'descargarHistoriaPdf'])->name('pacientes.historia.pdf');
 
-    Route::get('/optometria', [PlantillaController::class, 'index'])->name('optometria.index');
-    Route::get('/optometria/{cita_id}', [PlantillaController::class, 'show'])->name('optometria.show');
-    Route::post('/optometria', [PlantillaController::class, 'store'])->name('plantilla.store');
-    Route::put('/optometria/{id}', [PlantillaController::class, 'update'])->name('plantilla.update');
+    Route::get('/plantillas/optometria', [PlantillaControllerOptometria::class, 'index'])->name('plantillas.optometria');
+    Route::get('/plantillas/examenes', [PlantillaControllerOptometria::class, 'index'])->name('plantillas.examenes');
+    /*   Route::get('/plantillas/examenes', [PlantillaExamenesController::class, 'index'])->name('plantillas.examenes'); */
+    Route::get('/optometria/{cita_id}', [PlantillaControllerOptometria::class, 'show'])->name('optometria.show');
+    Route::post('/optometria', [PlantillaControllerOptometria::class, 'store'])->name('plantilla.store');
+    Route::put('/optometria/{id}', [PlantillaControllerOptometria::class, 'update'])->name('plantilla.update');
 });
 
 require __DIR__ . '/auth.php';
