@@ -49,10 +49,8 @@ class HistoriaClinicaController extends Controller
     {
         $paciente = Paciente::findOrFail($paciente_id);
 
-        // Historias manuales
         $historias = HistoriaClinica::where('paciente_id', $paciente_id)->get();
 
-        // Citas con PDFs
         $pdfs = Cita::where('paciente_id', $paciente_id)
             ->whereNotNull('pdf_path')
             ->orderBy('created_at', 'desc')
@@ -98,7 +96,6 @@ class HistoriaClinicaController extends Controller
             ->with('success', 'Historia clínica eliminada.');
     }
 
-    // 🔹 Ver el PDF de una cita
     public function verPdf(Cita $cita)
     {
         if ($cita->pdf_path && Storage::disk('public')->exists($cita->pdf_path)) {
@@ -108,9 +105,9 @@ class HistoriaClinicaController extends Controller
         return back()->with('error', 'El PDF no existe o no fue generado.');
     }
 
-    // 🔹 Descargar el PDF de una cita
     public function descargarPdf(Cita $cita)
     {
+        //al fin sirve este desgraciado
         if ($cita->pdf_path && Storage::disk('public')->exists($cita->pdf_path)) {
             return response()->download(storage_path('app/public/' . $cita->pdf_path));
         }

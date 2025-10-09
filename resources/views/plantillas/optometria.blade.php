@@ -1,24 +1,34 @@
-
 @section('content')
 <div class="container">
     <h2 class="titulo">Plantilla de Consulta de Optometría</h2>
 
-    <form action="{{ isset($plantilla) ? route('plantilla.update', $plantilla->id) : route('plantilla.store') }}" method="POST">
+    <form action="{{ isset($plantilla) ? route('plantilla.update', $plantilla->id) : route('plantilla.store', ['cita' => $cita->id]) }}" method="POST">
         @csrf
         @if(isset($plantilla))
+        @method('PUT')
         @endif
 
         <input type="hidden" name="id" value="{{ $plantilla->id ?? $id ?? '' }}">
 
-
         <div class="form-row">
             <div class="form-group small-input">
                 <label>Optómetra</label>
-                <input type="text" name="optometra" value="{{ old('optometra', $plantilla->optometra ?? '') }}">
+                <select name="optometra" class="form-control">
+                    <option value="">-- Doctor a cargo de la consulta --</option>
+                    @forelse ($users as $user)
+                    <option value="{{ $user->id }}"
+                        {{ old('optometra', $plantilla->optometra ?? '') == $user->id ? 'selected' : '' }}>
+                        {{ $user->nombres }} {{ $user->apellidos }}
+                    </option>
+                    @empty
+                    <option value="">No hay optometras disponibles</option>
+                    @endforelse
+                </select>
                 @error('optometra')
                 <div class="invalid-feedback alerta">{{ $message }}</div>
                 @enderror
             </div>
+
             <div class="form-group checkbox-right">
                 <label for="consulta_completa">Consulta Completa</label>
                 <div>

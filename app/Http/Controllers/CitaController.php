@@ -132,7 +132,9 @@ class CitaController extends Controller
         $validated['consulta_completa'] = $consultaCompleta ? 1 : 0;
         $validated['updated_by'] = Auth::id();
 
-        $cita->update($validated);
+        $cita->update([
+            'estado'        => 'finalizada'
+        ]);
 
         $this->generarPDF($cita);
 
@@ -181,9 +183,9 @@ class CitaController extends Controller
     {
         $cita->load(['paciente', 'admisiones', 'TipoCita']);
         $plantillaView = $this->obtenerPlantillaPorTipo($cita->tipo_cita_id);
-        return view('citas.cita', compact('cita', 'plantillaView'));
+        $users = User::all();
+        return view('citas.cita', compact('cita', 'plantillaView', 'users'));
     }
-
 
     public function pdf(Cita $cita)
     {
@@ -242,27 +244,27 @@ class CitaController extends Controller
     }
 
     public function guardarExamen(Request $request, $id)
-{
-    $cita = Cita::findOrFail($id);
+    {
+        $cita = Cita::findOrFail($id);
 
-    $cita->tension_arterial        = $request->tension_arterial;
-    $cita->frecuencia_cardiaca     = $request->frecuencia_cardiaca;
-    $cita->frecuencia_respiratoria = $request->frecuencia_respiratoria;
-    $cita->temperatura             = $request->temperatura;
-    $cita->saturacion              = $request->saturacion;
-    $cita->peso                    = $request->peso;
-    $cita->examen_fisico           = $request->examen_fisico;
-    $cita->diagnostico             = $request->diagnostico;
+        $cita->tension_arterial        = $request->tension_arterial;
+        $cita->frecuencia_cardiaca     = $request->frecuencia_cardiaca;
+        $cita->frecuencia_respiratoria = $request->frecuencia_respiratoria;
+        $cita->temperatura             = $request->temperatura;
+        $cita->saturacion              = $request->saturacion;
+        $cita->peso                    = $request->peso;
+        $cita->examen_fisico           = $request->examen_fisico;
+        $cita->diagnostico             = $request->diagnostico;
 
-    if ($request->filled('tipo_cita_id')) {
-        $cita->tipo_cita_id = $request->tipo_cita_id;
+        if ($request->filled('tipo_cita_id')) {
+            $cita->tipo_cita_id = $request->tipo_cita_id;
+        }
+
+        $cita->save();
+
+        return redirect()->route('citas.atencion', ['cita' => $cita->id])
+            ->with('success', 'Examen guardado correctamente.');
     }
-
-    $cita->save();
-
-    return redirect()->route('citas.atencion', ['cita' => $cita->id])
-        ->with('success', 'Examen guardado correctamente.');
-}
 
 
     public function examen($id)

@@ -27,7 +27,7 @@ class UserController extends Controller
             'apellidos' => 'required|string|max:255',
             'email'     => 'required|string|email|max:255|unique:users',
             'password'  => 'required|string|min:8|confirmed',
-            'role'      => 'required|in:admin,admisiones,callcenter,paciente',
+            'role'      => 'required|in:admin,admisiones,callcenter',
         ]);
 
         User::create([
@@ -35,15 +35,16 @@ class UserController extends Controller
             'apellidos'  => $request->apellidos,
             'email'      => $request->email,
             'password'   => Hash::make($request->password),
-            'status'     => 'activo',
             'role'       => $request->role,
-            'created_by' => Auth::id(),
-            'updated_by' => Auth::id(),
+            'status'     => 'activo',
+            'created_by' => Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema',
+            'updated_by' => Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema',
         ]);
 
         return redirect()->route('users.index')
             ->with('success', 'Usuario creado correctamente.');
     }
+
 
     public function edit(User $user)
     {
@@ -58,31 +59,41 @@ class UserController extends Controller
             'nombres'   => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
             'email'     => 'required|email|unique:users,email,' . $id,
-            'role'      => 'required|in:admin,admisiones,callcenter,paciente',
+            'role'      => 'required|in:admin,admisiones,callcenter',
+            'password'  => 'nullable|string|min:8|confirmed',
         ]);
 
-        $user->update([
+        $data = [
             'nombres'    => $request->nombres,
             'apellidos'  => $request->apellidos,
             'email'      => $request->email,
             'role'       => $request->role,
-            'updated_by' => Auth::id(),
-        ]);
+            'created_by' => Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema',
+            'updated_by' => Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema',
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
 
         return redirect()->route('users.index')
             ->with('success', 'Usuario actualizado correctamente.');
     }
 
+
     public function destroy(User $user)
     {
         $user->update([
-            'status'       => 'cancelado',
+            'status'       => 'inactivo',
             'cancelled_by' => Auth::id(),
         ]);
 
         return redirect()->route('users.index')
-            ->with('success', 'Usuario cancelado correctamente.');
+            ->with('success', 'Usuario se inactivo correctamente.');
     }
+
 
     public function toggleStatus(User $user)
     {
@@ -91,7 +102,7 @@ class UserController extends Controller
         $user->save();
 
         return redirect()->route('users.index')
-            ->with('success', 'Estado actualizado correctamente.');
+            ->with('success', 'Actualizado correctamente.');
     }
     public function register(Request $request)
     {
@@ -109,8 +120,8 @@ class UserController extends Controller
             'password'   => Hash::make($request->password),
             'role'       => 'paciente',
             'status'     => 'activo',
-            'created_by' => null,
-            'updated_by' => null,
+            'created_by' => Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema',
+            'updated_by' => Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema',
         ]);
 
         Auth::login($user);

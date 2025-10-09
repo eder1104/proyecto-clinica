@@ -11,6 +11,7 @@ class Cita extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'cita_id',
         'numero_fuente',
         'fecha',
         'hora_inicio',

@@ -39,8 +39,8 @@ class UserSeeder extends Seeder
                 'password'   => Hash::make('password123'),
                 'role'       => 'admin',
                 'status'     => 'activo',
-                'created_by' => 1,
-                'updated_by' => 1,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
             ]
         );
         $admin->syncRoles([$adminRole]);
@@ -53,8 +53,8 @@ class UserSeeder extends Seeder
                 'password'   => Hash::make('password123'),
                 'role'       => 'callcenter',
                 'status'     => 'activo',
-                'created_by' => 1,
-                'updated_by' => 1,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
             ]
         );
         $callcenter->syncRoles([$callcenterRole]);
@@ -67,8 +67,8 @@ class UserSeeder extends Seeder
                 'password'   => Hash::make('password123'),
                 'role'       => 'admisiones',
                 'status'     => 'activo',
-                'created_by' => 1,
-                'updated_by' => 1,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
             ]
         );
         $admisiones->syncRoles([$admisionesRole]);
