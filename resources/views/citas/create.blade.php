@@ -74,15 +74,6 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-gray-700">Tipo de Cita</label>
-                        <select name="tipo_cita_id" id="tipo_cita" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
-                            <option value="">Seleccione un tipo de cita</option>
-                            <option value="1" {{ old('tipo_cita_id') == '1' ? 'selected' : '' }}>Optometría</option>
-                            <option value="2" {{ old('tipo_cita_id') == '2' ? 'selected' : '' }}>Exámenes</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-4">
                         <label class="block text-gray-700">Motivo de consulta</label>
                         <input type="text" name="motivo_consulta" value="{{ old('motivo_consulta') }}"
                             class="mt-1 block w-full rounded-md shadow-sm border-gray-300">

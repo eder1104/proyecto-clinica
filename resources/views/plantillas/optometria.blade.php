@@ -1,4 +1,3 @@
-@extends('layouts.app')
 
 @section('content')
 <div class="container">
@@ -7,7 +6,6 @@
     <form action="{{ isset($plantilla) ? route('plantilla.update', $plantilla->id) : route('plantilla.store') }}" method="POST">
         @csrf
         @if(isset($plantilla))
-        @method('PUT')
         @endif
 
         <input type="hidden" name="id" value="{{ $plantilla->id ?? $id ?? '' }}">

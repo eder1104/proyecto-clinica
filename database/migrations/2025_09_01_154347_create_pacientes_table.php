@@ -10,6 +10,10 @@ return new class extends Migration
     {
         Schema::create('pacientes', function (Blueprint $table) {
             $table->id();
+
+            $table->unsignedBigInteger('user_id')->nullable()->after('id');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
             $table->string('nombres');
             $table->string('apellidos');
             $table->string('documento')->unique();
@@ -20,9 +24,11 @@ return new class extends Migration
             $table->string('direccion');
             $table->string('email')->unique();
             $table->date('fecha_nacimiento');
-            $table->enum('sexo', ['M','F']);
+            $table->enum('sexo', ['M', 'F']);
+
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
         });
@@ -30,6 +36,11 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::table('pacientes', function (Blueprint $table) {
+            // Primero eliminamos la clave foránea antes de borrar la tabla
+            $table->dropForeign(['user_id']);
+        });
+
         Schema::dropIfExists('pacientes');
     }
 };

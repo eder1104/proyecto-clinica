@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\Auth;
 
 class UserSeeder extends Seeder
 {
@@ -33,11 +34,13 @@ class UserSeeder extends Seeder
         $admin = User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'nombres' => 'Administrador',
-                'apellidos' => 'Sistema',
-                'password' => Hash::make('password123'),
-                'role' => 'admin',
-                'status' => 'activo',
+                'nombres'    => 'Administrador',
+                'apellidos'  => 'Sistema',
+                'password'   => Hash::make('password123'),
+                'role'       => 'admin',
+                'status'     => 'activo',
+                'created_by' => 1,
+                'updated_by' => 1,
             ]
         );
         $admin->syncRoles([$adminRole]);
@@ -45,11 +48,13 @@ class UserSeeder extends Seeder
         $callcenter = User::updateOrCreate(
             ['email' => 'callcenter@example.com'],
             [
-                'nombres' => 'Agente',
-                'apellidos' => 'Callcenter',
-                'password' => Hash::make('password123'),
-                'role' => 'callcenter',
-                'status' => 'activo',
+                'nombres'    => 'Agente',
+                'apellidos'  => 'Callcenter',
+                'password'   => Hash::make('password123'),
+                'role'       => 'callcenter',
+                'status'     => 'activo',
+                'created_by' => 1,
+                'updated_by' => 1,
             ]
         );
         $callcenter->syncRoles([$callcenterRole]);
@@ -57,11 +62,13 @@ class UserSeeder extends Seeder
         $admisiones = User::updateOrCreate(
             ['email' => 'admisiones@example.com'],
             [
-                'nombres' => 'Agente',
-                'apellidos' => 'Admisiones',
-                'password' => Hash::make('password123'),
-                'role' => 'admisiones',
-                'status' => 'activo',
+                'nombres'    => 'Agente',
+                'apellidos'  => 'Admisiones',
+                'password'   => Hash::make('password123'),
+                'role'       => 'admisiones',
+                'status'     => 'activo',
+                'created_by' => 1,
+                'updated_by' => 1,
             ]
         );
         $admisiones->syncRoles([$admisionesRole]);

@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,7 +10,6 @@ return new class extends Migration {
             $table->date('fecha');
             $table->time('hora_inicio');
             $table->time('hora_fin');
-            $table->string('tipo_cita')->nullable();
             $table->text('motivo_consulta')->nullable();
 
             $table->string('tension_arterial')->nullable();

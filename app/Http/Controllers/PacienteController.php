@@ -35,7 +35,11 @@ class PacienteController extends Controller
 
         $validated['created_by'] = Auth::id();
 
-        Paciente::create($validated);
+        Paciente::create([
+            'created_by' => Auth::id(),
+            'updated_by' => Auth::id(),
+        ]);
+
 
         return redirect()->route('pacientes.index')->with('success', 'Paciente creado correctamente.');
     }

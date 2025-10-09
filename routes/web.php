@@ -67,11 +67,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pacientes/{id}/historia/pdf', [CitaController::class, 'descargarHistoriaPdf'])->name('pacientes.historia.pdf');
 
     Route::get('/plantillas/optometria', [PlantillaControllerOptometria::class, 'index'])->name('plantillas.optometria');
-    Route::get('/plantillas/examenes', [PlantillaControllerOptometria::class, 'index'])->name('plantillas.examenes');
-    /*   Route::get('/plantillas/examenes', [PlantillaExamenesController::class, 'index'])->name('plantillas.examenes'); */
     Route::get('/optometria/{cita_id}', [PlantillaControllerOptometria::class, 'show'])->name('optometria.show');
     Route::post('/optometria', [PlantillaControllerOptometria::class, 'store'])->name('plantilla.store');
     Route::put('/optometria/{id}', [PlantillaControllerOptometria::class, 'update'])->name('plantilla.update');
+
+    Route::get('/plantillas/examenes', [PlantillaControllerExamenes::class, 'index'])->name('plantillas.examenes');
 });
 
 require __DIR__ . '/auth.php';

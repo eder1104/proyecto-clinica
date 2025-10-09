@@ -3,8 +3,8 @@
         <div class="max-w-5xl mx-auto contenedor">
             <div class="card-container">
                 <div class="card-header">
-                    <h1 class="card-title">Cita De Optometria</h1>
-                    <p class="card-subtitle">Registro de atencion unico por paciente</p>
+                    <h1 class="card-title">Cita De Optometría</h1>
+                    <p class="card-subtitle">Registro de atención único por paciente</p>
                 </div>
             </div>
 
@@ -39,15 +39,19 @@
                 <p><strong>Diagnóstico:</strong> {{ $cita->diagnostico ?? '-' }}</p>
 
                 <p><strong>Estado de la cita:</strong> {{ $cita->estado ?? '-' }}</p>
-
-                <p><strong>hora_inicio</strong> {{ $cita->hora_inicio ?? '-' }}</p>
-                <p><strong>hora_fin</strong> {{ $cita->hora_fin ?? '-' }}</p>
-                <p><strong>estado</strong> {{ $cita->estado ?? '-' }}</p>
-
             </div>
+            
+            @if ($plantillaView)
+            @includeIf($plantillaView)
+            @else
+            <p class="text-gray-500 text-center mt-10">
+                No se ha seleccionado ninguna plantilla para esta cita.
+            </p>
+            @endif
+
+
         </div>
     </div>
-
 </x-app-layout>
 
 <style>
@@ -108,17 +112,6 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    .card-header {
-        padding: 1.5rem 2rem;
-        background: linear-gradient(to right, #2563eb, #3b82f6);
-        color: #fff;
-    }
-
-    .card-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-    }
-
     .extra-info {
         background: #f9fafb;
         padding: 1rem;
@@ -126,7 +119,6 @@
         border-left: 4px solid #2563eb;
     }
 </style>
-
 
 <script>
     const btn = document.getElementById('open');

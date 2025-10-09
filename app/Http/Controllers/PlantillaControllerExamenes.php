@@ -10,7 +10,8 @@ class PlantillaControllerExamenes extends Controller
     public function index()
     {
         $examenes = Plantilla_Examenes::all();
-        return response()->json($examenes);
+        return view('plantillas.examenes', /* compact('id', 'plantilla', 'citas') */);
+
     }
 
     public function store(Request $request)

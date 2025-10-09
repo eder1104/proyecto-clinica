@@ -16,7 +16,7 @@ class CitaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Cita::with(['paciente', 'admisiones', 'createdBy', 'updatedBy', 'cancelledBy', 'tipoCita']);
+        $query = Cita::with(['paciente', 'admisiones', 'createdBy', 'updatedBy', 'cancelledBy', 'TipoCita']);
 
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
@@ -80,6 +80,12 @@ class CitaController extends Controller
 
         $this->generarPDF($cita);
 
+        if ($cita->tipo_cita_id == 1) {
+            return redirect()->route('optometria.show', ['cita_id' => $cita->id]);
+        } elseif ($cita->tipo_cita_id == 2) {
+            return redirect()->route('citas.examen', ['cita' => $cita->id]);
+        }
+
         return redirect()->route('citas.index')->with('success', 'Cita creada correctamente.');
     }
 
@@ -130,39 +136,34 @@ class CitaController extends Controller
 
         $this->generarPDF($cita);
 
-        return redirect()->route('citas.index')->with('success', 'Cita actualizada correctamente.');
-    }
-
-    public function updateMotivo(Request $request, Cita $cita)
-    {
-        if ($cita->estado === 'finalizada') {
-            return back()->with('error', 'La cita ya fue finalizada y no se puede modificar.');
+        if ($cita->tipo_cita_id == 1) {
+            return redirect()->route('optometria.show', ['cita_id' => $cita->id]);
+        } elseif ($cita->tipo_cita_id == 2) {
+            return redirect()->route('citas.examen', ['cita' => $cita->id]);
         }
 
-        $validated = $request->validate([
-            'motivo_consulta' => 'nullable|string|max:1000',
-        ]);
-
-        $validated['updated_by'] = Auth::id();
-
-        $cita->update($validated);
-
-        $this->generarPDF($cita);
-
-        return back()->with('success', 'Motivo de consulta guardado correctamente.');
+        return redirect()->route('citas.index')->with('success', 'Cita creada correctamente.');
     }
 
-    public function destroy(Cita $cita)
+    public function destroy(Cita $cita, Request $request)
     {
+        $motivo = $request->input('delete_reason');
+
+        if (!$motivo) {
+            return redirect()->route('citas.index')->with('error', 'Debe ingresar una razón para cancelar la cita.');
+        }
+
         $cita->update([
-            'estado'       => 'cancelada',
-            'cancelled_by' => Auth::id(),
+            'estado'        => 'cancelada',
+            'cancelled_by'  => Auth::id(),
+            'cancel_reason' => $motivo,
         ]);
 
         $this->generarPDF($cita);
 
         return redirect()->route('citas.index')->with('success', 'Cita cancelada correctamente.');
     }
+
 
     public function cancelar(Cita $cita)
     {
@@ -178,9 +179,11 @@ class CitaController extends Controller
 
     public function atencion(Cita $cita)
     {
-        $cita->load(['paciente', 'admisiones', 'tipoCita']);
-        return view('citas.cita', compact('cita'));
+        $cita->load(['paciente', 'admisiones', 'TipoCita']);
+        $plantillaView = $this->obtenerPlantillaPorTipo($cita->tipo_cita_id);
+        return view('citas.cita', compact('cita', 'plantillaView'));
     }
+
 
     public function pdf(Cita $cita)
     {
@@ -239,26 +242,44 @@ class CitaController extends Controller
     }
 
     public function guardarExamen(Request $request, $id)
-    {
-        $cita = Cita::findOrFail($id);
+{
+    $cita = Cita::findOrFail($id);
 
-        $cita->tension_arterial        = $request->tension_arterial;
-        $cita->frecuencia_cardiaca     = $request->frecuencia_cardiaca;
-        $cita->frecuencia_respiratoria = $request->frecuencia_respiratoria;
-        $cita->temperatura             = $request->temperatura;
-        $cita->saturacion              = $request->saturacion;
-        $cita->peso                    = $request->peso;
-        $cita->examen_fisico           = $request->examen_fisico;
-        $cita->diagnostico             = $request->diagnostico;
-        $cita->save();
+    $cita->tension_arterial        = $request->tension_arterial;
+    $cita->frecuencia_cardiaca     = $request->frecuencia_cardiaca;
+    $cita->frecuencia_respiratoria = $request->frecuencia_respiratoria;
+    $cita->temperatura             = $request->temperatura;
+    $cita->saturacion              = $request->saturacion;
+    $cita->peso                    = $request->peso;
+    $cita->examen_fisico           = $request->examen_fisico;
+    $cita->diagnostico             = $request->diagnostico;
 
-        return redirect()->route('citas.atencion', ['cita' => $cita->id])
-            ->with('success', 'Examen guardado correctamente.');
+    if ($request->filled('tipo_cita_id')) {
+        $cita->tipo_cita_id = $request->tipo_cita_id;
     }
+
+    $cita->save();
+
+    return redirect()->route('citas.atencion', ['cita' => $cita->id])
+        ->with('success', 'Examen guardado correctamente.');
+}
+
 
     public function examen($id)
     {
         $cita = Cita::findOrFail($id);
         return view('citas.examen', compact('cita'));
+    }
+
+    public function obtenerPlantillaPorTipo($tipo_cita_id)
+    {
+        switch ($tipo_cita_id) {
+            case 1:
+                return 'plantillas.optometria';
+            case 2:
+                return 'plantillas.examenes';
+            default:
+                return null;
+        }
     }
 }

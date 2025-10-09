@@ -8,7 +8,7 @@
     <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8" x-data="{ open: true }">
         <div x-show="open" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div class="bg-white w-full max-w-3xl p-6 rounded-lg shadow-lg">
-                
+
                 <form action="{{ route('citas.guardarExamen', $cita->id) }}" method="POST">
                     @csrf
 
@@ -53,6 +53,15 @@
                         <div class="col-span-2">
                             <label class="block text-gray-700">Diagnóstico</label>
                             <textarea name="diagnostico" class="w-full border rounded-md p-2">{{ old('diagnostico', $cita->diagnostico) }}</textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700">Tipo de Cita</label>
+                            <select name="tipo_cita_id" id="TipoCita" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                                <option value="">Seleccione un tipo de cita</option>
+                                <option value="1" {{ old('tipo_cita_id') == '1' ? 'selected' : '' }}>Optometría</option>
+                                <option value="2" {{ old('tipo_cita_id') == '2' ? 'selected' : '' }}>Exámenes</option>
+                            </select>
                         </div>
                     </div>
 
