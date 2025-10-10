@@ -7,6 +7,7 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('citas', function (Blueprint $table) {
             $table->id();
+            $table->string('numero_fuente')->nullable();
             $table->date('fecha');
             $table->time('hora_inicio');
             $table->time('hora_fin');
@@ -23,6 +24,7 @@ return new class extends Migration {
 
             $table->string('estado')->default('programada');
             $table->foreignId('paciente_id')->constrained('pacientes')->restrictOnDelete();
+            
             $table->foreignId('admisiones_id')->constrained('users')->restrictOnDelete();
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
@@ -31,6 +33,7 @@ return new class extends Migration {
             $table->string('pdf_path')->nullable();
             $table->softDeletes();
             $table->timestamps();
+            
         });
     }
 

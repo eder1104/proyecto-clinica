@@ -1,4 +1,3 @@
-
 @section('content')
 
 <div class="contenedor-principal">
@@ -7,12 +6,12 @@
             <button type="button" class="tab active" data-tab="examenes">Exámenes</button>
             <button type="button" class="tab" data-tab="diagnosticos">Diagnósticos</button>
         </div>
-
         <form action="{{ isset($plantilla) ? route('plantilla.update', $plantilla->id) : route('plantilla.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @if(isset($plantilla))
             @method('PUT')
             @endif
+
 
             <div id="examenes" class="tab-content active">
                 <div class="campo">

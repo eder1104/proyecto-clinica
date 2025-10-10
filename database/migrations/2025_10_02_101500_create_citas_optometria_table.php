@@ -11,6 +11,9 @@ return new class extends Migration
         Schema::create('optometria', function (Blueprint $table) {
             $table->id();
 
+            $table->unsignedBigInteger('cita_id');
+            $table->unsignedBigInteger('paciente_id')->nullable();
+
             $table->string('optometra')->nullable();
             $table->boolean('consulta_completa')->default(false);
 
@@ -43,11 +46,14 @@ return new class extends Migration
             $table->string('causa_motivo_atencion')->nullable();
 
             $table->timestamps();
+
+            $table->foreign('cita_id')->references('id')->on('citas')->onDelete('cascade');
+            $table->foreign('paciente_id')->references('id')->on('pacientes')->onDelete('set null');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('citas_optometria');
+        Schema::dropIfExists('optometria');
     }
 };

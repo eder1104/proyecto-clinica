@@ -23,10 +23,9 @@ class PlantillaControllerOptometria extends Controller
         return view('plantillas.optometria', compact('plantilla', 'cita', 'id'));
     }
 
-    public function store(Request $request)
+     public function store(Request $request, $cita)
     {
         $request->validate([
-            'cita_id' => 'required|exists:citas,id',
             'optometra' => 'required|string|max:255',
             'consulta_completa' => 'nullable|boolean',
             'anamnesis' => 'nullable|string',
@@ -55,7 +54,11 @@ class PlantillaControllerOptometria extends Controller
             'causa_motivo_atencion' => 'nullable|string|max:255',
         ]);
 
+        $citaRegistro = Cita::findOrFail($cita);
+
         $data = $request->all();
+        $data['cita_id'] = $citaRegistro->id;
+        $data['paciente_id'] = $citaRegistro->paciente_id;
         $data['consulta_completa'] = $request->has('consulta_completa') ? 1 : 0;
 
         Plantilla_Optometria::updateOrCreate(
@@ -63,14 +66,12 @@ class PlantillaControllerOptometria extends Controller
             $data
         );
 
-        $cita = Cita::findOrFail($data['cita_id']);
-        $cita->estado = 'finalizada';
-        $cita->save();
+        $citaRegistro->estado = 'finalizada';
+        $citaRegistro->save();
 
-        return redirect()->route('citas.index')
-            ->with('success', 'Cita y plantilla guardadas correctamente.');
+        return redirect()->route('citas.index')->with('success', 'Cita y plantilla guardadas correctamente.');
     }
-
+    
     public function update(Request $request, Plantilla_Optometria $plantilla)
     {
         $request->validate([
@@ -88,7 +89,6 @@ class PlantillaControllerOptometria extends Controller
             'av_cerca_oi' => 'nullable|string|max:20',
             'observaciones_internas' => 'nullable|string',
             'observaciones_optometria' => 'nullable|string',
-            'observaciones_formula' => 'nullable|string',
             'tipo_lente' => 'nullable|string|max:50',
             'especificaciones_lente' => 'nullable|string',
             'vigencia_formula' => 'nullable|string|max:50',

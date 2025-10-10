@@ -65,10 +65,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/optometria/{cita}/crear', [PlantillaControllerOptometria::class, 'create'])->name('optometria.create');
     Route::get('/optometria/{plantilla}/editar', [PlantillaControllerOptometria::class, 'edit'])->name('plantilla.edit');
     Route::post('/optometria/{cita}', [PlantillaControllerOptometria::class, 'store'])->name('plantilla.store');
-    Route::put('/optometria/{plantilla}', [PlantillaControllerOptometria::class, 'update'])->name('plantilla.update');
+    Route::put('/optometria/{plantilla_optometria}', [PlantillaControllerOptometria::class, 'update'])->name('plantilla.update');
 
 
     Route::get('/plantillas/examenes', [PlantillaControllerExamenes::class, 'index'])->name('plantillas.examenes');
+    Route::get('/plantillas/{cita}', [PlantillaControllerExamenes::class, 'store'])->name('plantillas.examenes');
+
+
 
     Route::post('/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'store'])->name('register.store');
 });

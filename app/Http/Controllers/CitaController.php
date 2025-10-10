@@ -42,9 +42,14 @@ class CitaController extends Controller
 
     public function store(Request $request)
     {
+        if (in_array($request->estado, ['finalizada', 'cancelada'])) {
+            return redirect()->route('citas.index')->with('error', 'No se puede crear una cita con estado ' . $request->estado . '.');
+        }
+
         $consultaCompleta = $request->input('consulta_completa', 0);
 
         $rules = [
+            'numero_fuente'          => 'nullable|string|max:100',
             'fecha'                   => 'required|date',
             'hora_inicio'             => 'required|date_format:H:i',
             'hora_fin'                => 'required|date_format:H:i|after:hora_inicio',
@@ -88,6 +93,7 @@ class CitaController extends Controller
 
         return redirect()->route('citas.index')->with('success', 'Cita creada correctamente.');
     }
+
 
     public function edit(Cita $cita)
     {

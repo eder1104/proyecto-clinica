@@ -12,7 +12,6 @@ class Cita extends Model
 
     protected $fillable = [
         'cita_id',
-        'numero_fuente',
         'fecha',
         'hora_inicio',
         'hora_fin',

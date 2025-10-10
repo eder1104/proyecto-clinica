@@ -12,6 +12,7 @@ class Plantilla_Optometria extends Model
     protected $table = 'optometria';
 
     protected $fillable = [
+        'cita_id',
         'optometra',
         'consulta_completa',
         'anamnesis',

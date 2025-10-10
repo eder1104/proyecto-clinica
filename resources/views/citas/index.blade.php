@@ -26,7 +26,7 @@
                             <option value=""> Estado </option>
                             <option value="pendiente" {{ request('estado') == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
                             <option value="confirmada" {{ request('estado') == 'confirmada' ? 'selected' : '' }}>Confirmada</option>
-                            <option value="finalizada" {{ request('estado') == 'finalizada' ? 'selected' : '' }}>finalizada</option>
+                            <option value="finalizada" {{ request('estado') == 'finalizada' ? 'selected' : '' }}>Finalizada</option>
                             <option value="cancelada" {{ request('estado') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
                         </select>
 
@@ -72,19 +72,21 @@
                                 <td>
                                     @if($c->estado === 'cancelada')
                                     <span class="estado-cancelada">Cancelada</span>
+                                    @elseif($c->estado === 'finalizada')
+                                    <span class="estado-finalizada">Finalizada</span>
                                     @else
                                     {{ ucfirst($c->estado) }}
                                     @endif
                                 </td>
                                 <td>
-                                    @if($c->estado === 'cancelada')
-                                    {{ $c->cancel_reason ?? 'Sin motivo registrado' }}
+                                    @if(in_array($c->estado, ['cancelada', 'finalizada']))
+                                    {{ $c->cancel_reason ?? $c->mensaje ?? 'Sin motivo registrado' }}
                                     @else
                                     {{ $c->mensaje ?? '—' }}
                                     @endif
                                 </td>
                                 <td>
-                                    @if ($c->estado !== 'cancelada')
+                                    @if (!in_array($c->estado, ['cancelada', 'finalizada']))
                                     <a href="{{ route('citas.edit', $c) }}" class="btn-link">
                                         Editar
                                     </a>
@@ -100,7 +102,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if($c->estado !== 'cancelada')
+                                    @if (!in_array($c->estado, ['cancelada', 'finalizada']))
                                     <a href="{{ route('citas.examen', $c->id) }}" class="btn">Tomar Atención</a>
                                     @else
                                     <span class="btn-disabled">No disponible</span>

@@ -4,17 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Plantilla_Examenes;
 use Illuminate\Http\Request;
+use App\Models\Cita;
 
 class PlantillaControllerExamenes extends Controller
 {
     public function index()
     {
         $examenes = Plantilla_Examenes::all();
-        return view('plantillas.examenes', /* compact('id', 'plantilla', 'citas') */);
-
+        $citas = Cita::with('paciente')->orderBy('fecha', 'desc')->get();
+        return view('plantillas.examenes', compact('examenes', 'citas'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, Cita $cita)
     {
         $request->validate([
             'profesional' => 'required|string|max:255',
@@ -40,13 +41,12 @@ class PlantillaControllerExamenes extends Controller
             'observaciones' => $request->observaciones,
             'codigoCiex' => $request->codigoCiex,
             'diagnostico' => $request->diagnostico,
-            'ojoDiag' => $request->ojoDiag
+            'ojoDiag' => $request->ojoDiag,
+            'cita_id' => $cita->id
         ]);
 
         return response()->json(['message' => 'Examen creado correctamente', 'data' => $examen], 201);
     }
-
-    
 
     public function update(Request $request, $id)
     {
