@@ -6,14 +6,30 @@
             <button type="button" class="tab active" data-tab="examenes">Exámenes</button>
             <button type="button" class="tab" data-tab="diagnosticos">Diagnósticos</button>
         </div>
-        <form action="{{ isset($plantilla) ? route('plantilla.update', $plantilla->id) : route('plantilla.store') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('examenes.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            @if(isset($plantilla))
-            @method('PUT')
-            @endif
-
 
             <div id="examenes" class="tab-content active">
+                <input type="hidden" name="cita" value="{{ $cita->id }}">
+
+                <div class="campo">
+                    <label>Profesional</label>
+                    <select name="profesional" class="form-control" required>
+                        @forelse ($users as $user)
+                        @if($user->role == 'admisiones')
+                        <option value="{{ $user->id }}">
+                            {{ $user->nombres }} {{ $user->apellidos }}
+                        </option>
+                        @endif
+                        @empty
+                        <option value="">No hay usuarios de admisión</option>
+                        @endforelse
+                    </select>
+                    @error('profesional')
+                    <div class="invalid-feedback alerta">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 <div class="campo">
                     <label>Tipo de examen</label>
                     <select name="tipoExamen" required>

@@ -34,17 +34,15 @@ class CitaController extends Controller
     public function create()
     {
         $pacientes = Paciente::all();
-        $admisiones = User::all();
+        $users = User::all();
         $optometria = Plantilla_Optometria::all();
         $tiposCitas = TipoCita::all();
-        return view('citas.create', compact('pacientes', 'admisiones', 'optometria', 'tiposCitas'));
+        $cita = new Cita();
+        return view('citas.create', compact('pacientes', 'users', 'optometria', 'tiposCitas', 'cita'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, User $users)
     {
-        if (in_array($request->estado, ['finalizada', 'cancelada'])) {
-            return redirect()->route('citas.index')->with('error', 'No se puede crear una cita con estado ' . $request->estado . '.');
-        }
 
         $consultaCompleta = $request->input('consulta_completa', 0);
 
@@ -75,14 +73,7 @@ class CitaController extends Controller
         $validated['created_by'] = Auth::id();
 
         $cita = Cita::create($validated);
-
-        if ($cita->tipo_cita_id == 1) {
-            Plantilla_Optometria::create([
-                'cita_id' => $cita->id,
-                'optometra' => Auth::user()->name ?? 'Desconocido',
-            ]);
-        }
-
+        
         $this->generarPDF($cita);
 
         if ($cita->tipo_cita_id == 1) {
@@ -106,11 +97,6 @@ class CitaController extends Controller
 
     public function update(Request $request, Cita $cita)
     {
-        if ($cita->estado === 'finalizada') {
-            return redirect()->route('citas.index')->with('error', 'La cita ya fue finalizada y no se puede modificar.');
-        }
-
-        $consultaCompleta = $request->input('consulta_completa', 0);
 
         $rules = [
             'fecha'                   => 'required|date',
@@ -119,36 +105,15 @@ class CitaController extends Controller
             'estado'                  => 'required|string|in:programada,cancelada,finalizada',
             'paciente_id'             => 'required|exists:pacientes,id',
             'admisiones_id'           => 'required|exists:users,id',
-            'motivo_consulta'         => 'nullable|string|max:1000',
-            'tension_arterial'        => 'nullable|string|max:20',
-            'frecuencia_cardiaca'     => 'nullable|string|max:20',
-            'observaciones'           => 'nullable|string|max:2000',
-            'frecuencia_respiratoria' => 'nullable|string|max:20',
-            'temperatura'             => 'nullable|string|max:20',
-            'saturacion'              => 'nullable|string|max:20',
-            'peso'                    => 'nullable|string|max:20',
-            'examen_fisico'           => 'nullable|string',
-            'diagnostico'             => 'nullable|string|max:2000',
-            'plantilla_id'            => 'nullable|exists:plantilla_optometria,id',
-            'tipo_cita_id'            => 'nullable|exists:tipos_citas,id',
         ];
 
-        $validated = $consultaCompleta ? $request->all() : $request->validate($rules);
+        $validated = $request->validate($rules);
 
-        $validated['consulta_completa'] = $consultaCompleta ? 1 : 0;
         $validated['updated_by'] = Auth::id();
 
-        $cita->update([
-            'estado'        => 'finalizada'
-        ]);
+        $cita->update($validated);
 
         $this->generarPDF($cita);
-
-        if ($cita->tipo_cita_id == 1) {
-            return redirect()->route('optometria.show', ['cita_id' => $cita->id]);
-        } elseif ($cita->tipo_cita_id == 2) {
-            return redirect()->route('citas.examen', ['cita' => $cita->id]);
-        }
 
         return redirect()->route('citas.index')->with('success', 'Cita creada correctamente.');
     }

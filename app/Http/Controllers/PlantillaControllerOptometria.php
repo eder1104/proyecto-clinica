@@ -23,8 +23,12 @@ class PlantillaControllerOptometria extends Controller
         return view('plantillas.optometria', compact('plantilla', 'cita', 'id'));
     }
 
-     public function store(Request $request, $cita)
+    public function store(Request $request)
     {
+        if (in_array($request->estado, ['finalizada', 'cancelada'])) {
+            return redirect()->route('citas.index')->with('error', 'No se puede crear una cita con estado ' . $request->estado . '.');
+        }
+
         $request->validate([
             'optometra' => 'required|string|max:255',
             'consulta_completa' => 'nullable|boolean',
@@ -54,7 +58,9 @@ class PlantillaControllerOptometria extends Controller
             'causa_motivo_atencion' => 'nullable|string|max:255',
         ]);
 
-        $citaRegistro = Cita::findOrFail($cita);
+        $citaId = $request->input('cita');
+
+        $citaRegistro = Cita::findOrFail($citaId);
 
         $data = $request->all();
         $data['cita_id'] = $citaRegistro->id;
@@ -66,54 +72,14 @@ class PlantillaControllerOptometria extends Controller
             $data
         );
 
+        $citaRegistro->update([
+            'estado'        => 'finalizada'
+        ]);
+
         $citaRegistro->estado = 'finalizada';
         $citaRegistro->save();
 
         return redirect()->route('citas.index')->with('success', 'Cita y plantilla guardadas correctamente.');
-    }
-    
-    public function update(Request $request, Plantilla_Optometria $plantilla)
-    {
-        $request->validate([
-            'cita_id' => 'required|exists:citas,id',
-            'optometra' => 'required|string|max:255',
-            'consulta_completa' => 'nullable|boolean',
-            'anamnesis' => 'nullable|string',
-            'alternativa_deseada' => 'nullable|string|max:255',
-            'dominancia_ocular' => 'nullable|string|max:50',
-            'av_lejos_od' => 'nullable|string|max:20',
-            'av_intermedia_od' => 'nullable|string|max:20',
-            'av_cerca_od' => 'nullable|string|max:20',
-            'av_lejos_oi' => 'nullable|string|max:20',
-            'av_intermedia_oi' => 'nullable|string|max:20',
-            'av_cerca_oi' => 'nullable|string|max:20',
-            'observaciones_internas' => 'nullable|string',
-            'observaciones_optometria' => 'nullable|string',
-            'tipo_lente' => 'nullable|string|max:50',
-            'especificaciones_lente' => 'nullable|string',
-            'vigencia_formula' => 'nullable|string|max:50',
-            'filtro' => 'nullable|string|max:50',
-            'tiempo_formulacion' => 'nullable|string|max:50',
-            'distancia_pupilar' => 'nullable|string|max:10',
-            'cantidad' => 'nullable|integer',
-            'diagnostico_principal' => 'nullable|string|max:255',
-            'otros_diagnosticos' => 'nullable|string',
-            'datos_adicionales' => 'nullable|string',
-            'finalidad_consulta' => 'nullable|string|max:255',
-            'causa_motivo_atencion' => 'nullable|string|max:255',
-        ]);
-
-        $data = $request->all();
-        $data['consulta_completa'] = $request->has('consulta_completa') ? 1 : 0;
-
-        $plantilla->update($data);
-
-        $cita = $plantilla->cita;
-        $cita->estado = 'finalizada';
-        $cita->save();
-
-        return redirect()->route('citas.index')
-            ->with('success', 'Plantilla actualizada y cita finalizada correctamente.');
     }
 
     public function destroy($id)

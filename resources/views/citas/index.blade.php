@@ -24,10 +24,11 @@
                     <form method="GET" action="{{ route('citas.index') }}" class="mt-6 mb-4 flex space-x-4">
                         <select name="estado" class="border rounded px-6 py-3">
                             <option value=""> Estado </option>
-                            <option value="pendiente" {{ request('estado') == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
-                            <option value="confirmada" {{ request('estado') == 'confirmada' ? 'selected' : '' }}>Confirmada</option>
-                            <option value="finalizada" {{ request('estado') == 'finalizada' ? 'selected' : '' }}>Finalizada</option>
+                            <option value="programada" {{ request('estado') == 'programada' ? 'selected' : '' }}>programada</option>
+                            <option value="modificada" {{ request('estado') == 'modificada' ? 'selected' : '' }}>modificada</option>
                             <option value="cancelada" {{ request('estado') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
+                            <option value="no_asistida" {{ request('estado') == 'no_asistida' ? 'selected' : '' }}>no_asistida</option>
+                            <option value="asistida" {{ request('estado') == 'asistida' ? 'selected' : '' }}>asistida</option>
                         </select>
 
                         <input type="date" name="fecha" value="{{ request('fecha') }}" class="border rounded px-2 py-1">

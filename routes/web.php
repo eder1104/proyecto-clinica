@@ -52,6 +52,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/citas/ModalPaciente', [CitaController::class, 'ModalPaciente'])->name('citas.ModalPaciente');
     Route::get('/citas/{cita}/examen', [CitaController::class, 'examen'])->name('citas.examen');
     Route::post('/citas/{cita}/guardar-examen', [CitaController::class, 'guardarExamen'])->name('citas.guardarExamen');
+    Route::post('/citas/{cita}/guardar-examen', [CitaController::class, 'guardarExamen'])->name('citas.guardarExamen');
+    Route::post('/citas/create', [CitaController::class, 'create'])->name('citas.create');
+    Route::get('/citas/{cita}/edit', [CitaController::class, 'edit'])->name('citas.edit');
+    Route::post('/citas', [CitaController::class, 'store'])->name('citas.store');
+    Route::put('/citas/{cita}', [CitaController::class, 'update'])->name('citas.update');
 
     Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
     Route::get('/pacientes/create', [PacienteController::class, 'create'])->name('pacientes.create');
@@ -62,16 +67,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pacientes/{id}/historia/pdf', [CitaController::class, 'descargarHistoriaPdf'])->name('pacientes.historia.pdf');
 
     Route::get('/plantillas/optometria', [PlantillaControllerOptometria::class, 'index'])->name('plantillas.optometria');
-    Route::get('/optometria/{cita}/crear', [PlantillaControllerOptometria::class, 'create'])->name('optometria.create');
-    Route::get('/optometria/{plantilla}/editar', [PlantillaControllerOptometria::class, 'edit'])->name('plantilla.edit');
-    Route::post('/optometria/{cita}', [PlantillaControllerOptometria::class, 'store'])->name('plantilla.store');
-    Route::put('/optometria/{plantilla_optometria}', [PlantillaControllerOptometria::class, 'update'])->name('plantilla.update');
-
+    Route::post('/optometria', [PlantillaControllerOptometria::class, 'store'])->name('optometria.store');
 
     Route::get('/plantillas/examenes', [PlantillaControllerExamenes::class, 'index'])->name('plantillas.examenes');
-    Route::get('/plantillas/{cita}', [PlantillaControllerExamenes::class, 'store'])->name('plantillas.examenes');
-
-
+    Route::post('/examenes', [PlantillaControllerExamenes::class, 'store'])->name('examenes.store');
 
     Route::post('/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'store'])->name('register.store');
 });

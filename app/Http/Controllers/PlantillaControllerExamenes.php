@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Plantilla_Examenes;
 use Illuminate\Http\Request;
 use App\Models\Cita;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class PlantillaControllerExamenes extends Controller
 {
@@ -15,9 +17,13 @@ class PlantillaControllerExamenes extends Controller
         return view('plantillas.examenes', compact('examenes', 'citas'));
     }
 
-    public function store(Request $request, Cita $cita)
+    public function store(Request $request, User $user)
     {
+        $citaId = $request->input('cita');
+        $citaRegistro = Cita::findOrFail($citaId);
+
         $request->validate([
+            'cita' => 'required|exists:citas,id',
             'profesional' => 'required|string|max:255',
             'tipoExamen' => 'required|string|max:255',
             'ojo' => 'required|string|in:Ojo Derecho,Ojo Izquierdo',
@@ -33,45 +39,23 @@ class PlantillaControllerExamenes extends Controller
             $archivoPath = $request->file('archivo')->store('archivos_examenes', 'public');
         }
 
-        $examen = Plantilla_Examenes::create([
-            'profesional' => $request->profesional,
-            'tipoExamen' => $request->tipoExamen,
-            'ojo' => $request->ojo,
-            'archivo' => $archivoPath,
-            'observaciones' => $request->observaciones,
-            'codigoCiex' => $request->codigoCiex,
-            'diagnostico' => $request->diagnostico,
-            'ojoDiag' => $request->ojoDiag,
-            'cita_id' => $cita->id
+        $data = $request->all();
+        $data['cita_id'] = $citaRegistro->id;
+        $data['archivo'] = $archivoPath;
+       
+        Plantilla_Examenes::updateOrCreate(
+            ['cita_id' => $data['cita_id']],
+            $data
+        );
+
+        $citaRegistro->update([
+            'estado' => 'finalizada'
         ]);
 
-        return response()->json(['message' => 'Examen creado correctamente', 'data' => $examen], 201);
+        return redirect()->route('citas.index')->with('success', 'Examen guardado y cita finalizada correctamente.');
     }
 
-    public function update(Request $request, $id)
-    {
-        $examen = Plantilla_Examenes::findOrFail($id);
 
-        $request->validate([
-            'profesional' => 'sometimes|required|string|max:255',
-            'tipoExamen' => 'sometimes|required|string|max:255',
-            'ojo' => 'sometimes|required|string|in:Ojo Derecho,Ojo Izquierdo',
-            'archivo' => 'nullable|mimes:pdf|max:2048',
-            'observaciones' => 'nullable|string',
-            'codigoCiex' => 'nullable|string|max:50',
-            'diagnostico' => 'nullable|string',
-            'ojoDiag' => 'nullable|string|in:Ojo Derecho,Ojo Izquierdo'
-        ]);
-
-        if ($request->hasFile('archivo')) {
-            $archivoPath = $request->file('archivo')->store('archivos_examenes', 'public');
-            $examen->archivo = $archivoPath;
-        }
-
-        $examen->update($request->except('archivo'));
-
-        return response()->json(['message' => 'Examen actualizado correctamente', 'data' => $examen]);
-    }
 
     public function destroy($id)
     {

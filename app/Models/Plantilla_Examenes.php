@@ -12,6 +12,7 @@ class Plantilla_Examenes extends Model
     protected $table = 'examenes';
 
     protected $fillable = [
+        'cita_id',
         'profesional',
         'tipoExamen',
         'ojo',
@@ -19,6 +20,11 @@ class Plantilla_Examenes extends Model
         'observaciones',
         'codigoCiex',
         'diagnostico',
-        'ojoDiag'
+        'ojoDiag',
     ];
+
+    public function cita()
+    {
+        return $this->belongsTo(\App\Models\Cita::class, 'id');
+    }
 }

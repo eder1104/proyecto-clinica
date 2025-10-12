@@ -14,6 +14,12 @@
     </div>
     @endif
 
+    @if(session('error'))
+    <div class="mb-4 rounded-md bg-red-50 border border-red-100 text-red-800 px-4 py-2">
+        {{ session('error') }}
+    </div>
+    @endif
+
     @if($errors->any())
     <div class="mb-4 rounded-md bg-red-50 border border-red-200 text-red-700 px-4 py-2">
         <ul class="list-disc pl-5">
@@ -27,7 +33,7 @@
     <div class="bg-white shadow rounded-lg overflow-hidden">
         <div class="flex justify-end p-4 bg-gray-50 border-b">
             <a href="{{ route('users.create') }}"
-               class="inline-block px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500">
+                class="inline-block px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500">
                 ➕ Agregar Usuario
             </a>
         </div>
@@ -62,19 +68,23 @@
                             </form>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
+                            @if($user->status == 'activo')
                             <a href="{{ route('users.edit', $user->id) }}"
-                               class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-md shadow hover:bg-blue-700">
+                                class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-md shadow hover:bg-blue-700">
                                 ✎ Editar
                             </a>
                             <form action="{{ route('users.destroy', $user->id) }}" method="POST"
-                                  onsubmit="return confirm('¿Seguro que quieres eliminar este usuario?');">
+                                onsubmit="return confirm('¿Seguro que quieres eliminar este usuario?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit"
-                                        class="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md shadow hover:bg-red-700">
+                                    class="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md shadow hover:bg-red-700">
                                     ❌ Eliminar
                                 </button>
                             </form>
+                            @else
+                            <span class="text-gray-400 text-sm">usuario inactivo</span>
+                            @endif
                         </td>
                     </tr>
                     @endforeach

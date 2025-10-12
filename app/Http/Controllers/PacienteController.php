@@ -33,13 +33,17 @@ class PacienteController extends Controller
             'sexo'             => 'nullable|in:M,F',
         ]);
 
-        $validated['created_by'] = Auth::id();
-
         Paciente::create([
-            'created_by' => Auth::id(),
-            'updated_by' => Auth::id(),
+            'nombres'          => $validated['nombres'],
+            'apellidos'        => $validated['apellidos'],
+            'documento'        => $validated['documento'],
+            'telefono'         => $validated['telefono'],
+            'direccion'        => $validated['direccion'],
+            'email'            => $validated['email'] ?? null,
+            'fecha_nacimiento' => $validated['fecha_nacimiento'] ?? null,
+            'sexo'             => $validated['sexo'] ?? null,
+            'created_by'       => Auth::id(),
         ]);
-
 
         return redirect()->route('pacientes.index')->with('success', 'Paciente creado correctamente.');
     }
@@ -56,9 +60,6 @@ class PacienteController extends Controller
             'apellidos'        => 'required|string|max:255',
             'documento'        => 'required|string|max:50|unique:pacientes,documento,' . $paciente->id,
             'telefono'         => 'required|string|max:20',
-            'estado'           => 'required|string|max:10',
-            'profesion'        => 'required|string|max:100',
-            'ciudad'           => 'required|string|max:100',
             'direccion'        => 'required|string|max:255',
             'email'            => 'nullable|email|unique:pacientes,email,' . $paciente->id,
             'fecha_nacimiento' => 'nullable|date',
@@ -77,7 +78,9 @@ class PacienteController extends Controller
     public function destroy(Paciente $paciente)
     {
         $paciente->delete();
-
+        $paciente->update([
+            'cancelled_by'  => Auth::id(),
+        ]);
         return redirect()->route('pacientes.index')->with('success', 'Paciente eliminado correctamente.');
     }
 

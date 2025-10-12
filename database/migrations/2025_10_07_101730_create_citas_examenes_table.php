@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('examenes', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('cita_id');
             $table->string('profesional');
             $table->string('tipoExamen');
             $table->enum('ojo', ['Ojo Derecho', 'Ojo Izquierdo']);

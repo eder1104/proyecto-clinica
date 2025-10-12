@@ -39,27 +39,7 @@
                             <label for="email">Correo</label>
                             <input type="email" name="email" id="email" class="input-field" value="{{ old('email') }}">
                         </div>
-
-                        <div class="form-group">
-                            <label for="estado">Estado civil</label>
-                            <input type="text" name="estado" id="estado" class="input-field" value="{{ old('estado') }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="observaciones">Observaciones</label>
-                            <input type="text" name="observaciones" id="observaciones" class="input-field" value="{{ old('observaciones') }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="ciudad">Ciudad</label>
-                            <input type="text" name="ciudad" id="ciudad" class="input-field" value="{{ old('ciudad') }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="profesion">Profesión</label>
-                            <input type="text" name="profesion" id="profesion" class="input-field" value="{{ old('profesion') }}">
-                        </div>
-
+                        
                         <div class="form-group">
                             <label for="direccion">Dirección</label>
                             <input type="text" name="direccion" id="direccion" class="input-field" value="{{ old('direccion') }}">

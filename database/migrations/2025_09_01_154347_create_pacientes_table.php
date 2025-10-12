@@ -12,15 +12,11 @@ return new class extends Migration
             $table->id();
 
             $table->unsignedBigInteger('user_id')->nullable();
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->string('nombres');
             $table->string('apellidos');
             $table->string('documento')->unique();
             $table->string('telefono');
-            $table->string('estado');
-            $table->string('profesion');
-            $table->string('ciudad');
             $table->string('direccion');
             $table->string('email')->unique();
             $table->date('fecha_nacimiento');

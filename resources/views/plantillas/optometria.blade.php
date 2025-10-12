@@ -2,11 +2,8 @@
 <div class="container">
     <h2 class="titulo">Plantilla de Consulta de Optometría</h2>
 
-    <form action="{{ isset($plantilla) ? route('plantilla.update', $plantilla->id) : route('plantilla.store', ['cita' => $cita->id]) }}" method="POST">
+    <form action="{{route('optometria.store', ['cita' => $cita->id]) }}" method="POST">
         @csrf
-        @if(isset($plantilla))
-        @method('PUT')
-        @endif
 
         <input type="hidden" name="id" value="{{ $plantilla->id ?? $id ?? '' }}">
 

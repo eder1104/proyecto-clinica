@@ -110,9 +110,11 @@
                             class="w-full border-gray-300 rounded-md shadow-sm"
                             @if($cita->estado === 'finalizada') disabled @endif
                         >
-                            <option value="programada" @selected(old('estado', $cita->estado) == 'programada')>Programada</option>
-                            <option value="cancelada" @selected(old('estado', $cita->estado) == 'cancelada')>Cancelada</option>
-                            <option value="finalizada" @selected(old('estado', $cita->estado) == 'finalizada')>Finalizada</option>
+                            <option value="programada" {{ request('estado') == 'programada' ? 'selected' : '' }}>programada</option>
+                            <option value="modificada" {{ request('estado') == 'modificada' ? 'selected' : '' }}>modificada</option>
+                            <option value="cancelada" {{ request('estado') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
+                            <option value="no_asistida" {{ request('estado') == 'no_asistida' ? 'selected' : '' }}>no_asistida</option>
+                            <option value="asistida" {{ request('estado') == 'asistida' ? 'selected' : '' }}>asistida</option>
                         </select>
                         @error('estado')
                             <span class="text-red-600 text-sm">{{ $message }}</span>

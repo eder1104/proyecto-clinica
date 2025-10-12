@@ -66,10 +66,11 @@
                         <label class="block text-gray-700">Estado</label>
                         <select name="estado" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                             <option value="">Seleccione un estado</option>
-                            <option value="pendiente" {{ old('estado') == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
-                            <option value="confirmada" {{ old('estado') == 'confirmada' ? 'selected' : '' }}>Confirmada</option>
-                            <option value="finalizada" {{ old('estado') == 'finalizada' ? 'selected' : '' }}>Finalizada</option>
-                            <option value="cancelada" {{ old('estado') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
+                            <option value="programada" {{ request('estado') == 'programada' ? 'selected' : '' }}>programada</option>
+                            <option value="modificada" {{ request('estado') == 'modificada' ? 'selected' : '' }}>modificada</option>
+                            <option value="cancelada" {{ request('estado') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
+                            <option value="no_asistida" {{ request('estado') == 'no_asistida' ? 'selected' : '' }}>no_asistida</option>
+                            <option value="asistida" {{ request('estado') == 'asistida' ? 'selected' : '' }}>asistida</option>
                         </select>
                     </div>
 
@@ -83,11 +84,15 @@
                         <label class="block text-gray-700">Admisiones</label>
                         <select name="admisiones_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                             <option value="">Seleccione un usuario de admisiones</option>
-                            @foreach($admisiones as $adm)
-                            <option value="{{ $adm->id }}" {{ old('admisiones_id') == $adm->id ? 'selected' : '' }}>
-                                {{ $adm->nombres }} {{ $adm->apellidos }}
+                            @forelse ($users as $user)
+                            @if($user->role == 'admisiones')
+                            <option value="{{ $user->id }}">
+                                {{ $user->nombres }} {{ $user->apellidos }}
                             </option>
-                            @endforeach
+                            @endif
+                            @empty
+                            <option value="">No hay usuarios de admisión</option>
+                            @endforelse
                         </select>
                     </div>
 
