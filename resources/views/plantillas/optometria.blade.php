@@ -1,9 +1,17 @@
 @section('content')
+
 <div class="container">
     <h2 class="titulo">Plantilla de Consulta de Optometría</h2>
 
-    <form action="{{route('optometria.store', ['cita' => $cita->id]) }}" method="POST">
+    @php
+    $isEdit = isset($plantilla) && $plantilla->exists;
+    @endphp
+
+    <form action="{{ $isEdit ? route('optometria.update', ['cita' => $cita->id]) : route('optometria.store', $cita->id) }}" method="POST">
         @csrf
+        @if($isEdit)
+        @method('PUT')
+        @endif
 
         <input type="hidden" name="id" value="{{ $plantilla->id ?? $id ?? '' }}">
 
@@ -12,7 +20,7 @@
                 <label>Optómetra</label>
                 <select name="optometra" class="form-control">
                     <option value="">-- Doctor a cargo de la consulta --</option>
-                    @forelse ($users as $user)
+                    @forelse ($users->where('role', 'admisiones') as $user)
                     <option value="{{ $user->id }}"
                         {{ old('optometra', $plantilla->optometra ?? '') == $user->id ? 'selected' : '' }}>
                         {{ $user->nombres }} {{ $user->apellidos }}
@@ -62,44 +70,40 @@
 
         <h3>Agudeza Visual</h3>
         <div class="grid-2">
-            <div><label>Lejos OD</label><input type="text" name="av_lejos_od" value="{{ old('av_lejos_od', $plantilla->av_lejos_od ?? '') }}">
-                @error('av_lejos_od')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
-            </div>
-            <div><label>Lejos OI</label><input type="text" name="av_lejos_oi" value="{{ old('av_lejos_oi', $plantilla->av_lejos_oi ?? '') }}">
-                @error('av_lejos_oi')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
-            </div>
-            <div><label>Intermedia OD</label><input type="text" name="av_intermedia_od" value="{{ old('av_intermedia_od', $plantilla->av_intermedia_od ?? '') }}">
-                @error('av_intermedia_od')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
-            </div>
-            <div><label>Intermedia OI</label><input type="text" name="av_intermedia_oi" value="{{ old('av_intermedia_oi', $plantilla->av_intermedia_oi ?? '') }}">
-                @error('av_intermedia_oi')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
-            </div>
-            <div><label>Cerca OD</label><input type="text" name="av_cerca_od" value="{{ old('av_cerca_od', $plantilla->av_cerca_od ?? '') }}">
-                @error('av_cerca_od')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
-            </div>
-            <div><label>Cerca OI</label><input type="text" name="av_cerca_oi" value="{{ old('av_cerca_oi', $plantilla->av_cerca_oi ?? '') }}">
-                @error('av_cerca_oi')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
-            </div>
+            @php
+            $valores = [];
+            for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
+                $valores[]=number_format($i, 2, '.' , '' );
+                }
+                @endphp
+
+                @foreach (['av_lejos_od'=>'Lejos OD', 'av_lejos_oi'=>'Lejos OI', 'av_intermedia_od'=>'Intermedia OD', 'av_intermedia_oi'=>'Intermedia OI', 'av_cerca_od'=>'Cerca OD', 'av_cerca_oi'=>'Cerca OI'] as $campo => $label)
+                <div>
+                    <label>{{ $label }}</label>
+                    <select name="{{ $campo }}" class="form-control">
+                        <option value="">-- Seleccionar --</option>
+                        @foreach ($valores as $valor)
+                        <option value="{{ $valor }}" {{ old($campo, $plantilla->$campo ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
+                        @endforeach
+                    </select>
+                    @error($campo)
+                    <div class="invalid-feedback alerta">{{ $message }}</div>
+                    @enderror
+                </div>
+                @endforeach
         </div>
 
-        <div class="form-group"><label>Observaciones internas</label><textarea name="observaciones_internas">{{ old('observaciones_internas', $plantilla->observaciones_internas ?? '') }}</textarea>
+        <div class="form-group">
+            <label>Observaciones internas</label>
+            <textarea name="observaciones_internas">{{ old('observaciones_internas', $plantilla->observaciones_internas ?? '') }}</textarea>
             @error('observaciones_internas')
             <div class="invalid-feedback alerta">{{ $message }}</div>
             @enderror
         </div>
-        <div class="form-group"><label>Observaciones optometría</label><textarea name="observaciones_optometria">{{ old('observaciones_optometria', $plantilla->observaciones_optometria ?? '') }}</textarea>
+
+        <div class="form-group">
+            <label>Observaciones optometría</label>
+            <textarea name="observaciones_optometria">{{ old('observaciones_optometria', $plantilla->observaciones_optometria ?? '') }}</textarea>
             @error('observaciones_optometria')
             <div class="invalid-feedback alerta">{{ $message }}</div>
             @enderror
@@ -107,72 +111,60 @@
 
         <h3>Fórmula y lentes</h3>
         <div class="grid-2">
-            <div><label>Tipo lente</label><input type="text" name="tipo_lente" value="{{ old('tipo_lente', $plantilla->tipo_lente ?? '') }}">
-                @error('tipo_lente')
+            @foreach (['tipo_lente','especificaciones_lente','vigencia_formula','filtro','tiempo_formulacion','distancia_pupilar','cantidad'] as $campo)
+            <div>
+                <label>{{ ucwords(str_replace('_',' ',$campo)) }}</label>
+                <input type="{{ $campo === 'cantidad' ? 'number' : 'text' }}" name="{{ $campo }}" value="{{ old($campo, $plantilla->$campo ?? '') }}">
+                @error($campo)
                 <div class="invalid-feedback alerta">{{ $message }}</div>
                 @enderror
             </div>
-            <div><label>Especificaciones</label><input type="text" name="especificaciones_lente" value="{{ old('especificaciones_lente', $plantilla->especificaciones_lente ?? '') }}">
-                @error('especificaciones_lente')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
-            </div>
-            <div><label>Vigencia fórmula</label><input type="text" name="vigencia_formula" value="{{ old('vigencia_formula', $plantilla->vigencia_formula ?? '') }}">
-                @error('vigencia_formula')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
-            </div>
-            <div><label>Filtro</label><input type="text" name="filtro" value="{{ old('filtro', $plantilla->filtro ?? '') }}">
-                @error('filtro')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
-            </div>
-            <div><label>Tiempo formulación</label><input type="text" name="tiempo_formulacion" value="{{ old('tiempo_formulacion', $plantilla->tiempo_formulacion ?? '') }}">
-                @error('tiempo_formulacion')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
-            </div>
-            <div><label>Distancia pupilar</label><input type="text" name="distancia_pupilar" value="{{ old('distancia_pupilar', $plantilla->distancia_pupilar ?? '') }}">
-                @error('distancia_pupilar')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
-            </div>
-            <div><label>Cantidad</label><input type="number" name="cantidad" value="{{ old('cantidad', $plantilla->cantidad ?? '') }}">
-                @error('cantidad')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
-            </div>
+            @endforeach
         </div>
 
         <h3>Diagnósticos</h3>
-        <div class="form-group"><label>Diagnóstico principal</label><input type="text" name="diagnostico_principal" value="{{ old('diagnostico_principal', $plantilla->diagnostico_principal ?? '') }}">
+        <div class="form-group">
+            <label>Diagnóstico principal</label>
+            <input type="text" name="diagnostico_principal" value="{{ old('diagnostico_principal', $plantilla->diagnostico_principal ?? '') }}">
             @error('diagnostico_principal')
             <div class="invalid-feedback alerta">{{ $message }}</div>
             @enderror
         </div>
-        <div class="form-group"><label>Otros diagnósticos</label><textarea name="otros_diagnosticos">{{ old('otros_diagnosticos', $plantilla->otros_diagnosticos ?? '') }}</textarea>
+
+        <div class="form-group">
+            <label>Otros diagnósticos</label>
+            <textarea name="otros_diagnosticos">{{ old('otros_diagnosticos', $plantilla->otros_diagnosticos ?? '') }}</textarea>
             @error('otros_diagnosticos')
             <div class="invalid-feedback alerta">{{ $message }}</div>
             @enderror
         </div>
-        <div class="form-group"><label>Datos adicionales</label><textarea name="datos_adicionales">{{ old('datos_adicionales', $plantilla->datos_adicionales ?? '') }}</textarea>
+
+        <div class="form-group">
+            <label>Datos adicionales</label>
+            <textarea name="datos_adicionales">{{ old('datos_adicionales', $plantilla->datos_adicionales ?? '') }}</textarea>
             @error('datos_adicionales')
             <div class="invalid-feedback alerta">{{ $message }}</div>
             @enderror
         </div>
-        <div class="form-group"><label>Finalidad de la consulta</label><input type="text" name="finalidad_consulta" value="{{ old('finalidad_consulta', $plantilla->finalidad_consulta ?? '') }}">
+
+        <div class="form-group">
+            <label>Finalidad de la consulta</label>
+            <input type="text" name="finalidad_consulta" value="{{ old('finalidad_consulta', $plantilla->finalidad_consulta ?? '') }}">
             @error('finalidad_consulta')
             <div class="invalid-feedback alerta">{{ $message }}</div>
             @enderror
         </div>
-        <div class="form-group"><label>Causa / Motivo atención</label><input type="text" name="causa_motivo_atencion" value="{{ old('causa_motivo_atencion', $plantilla->causa_motivo_atencion ?? '') }}">
+
+        <div class="form-group">
+            <label>Causa / Motivo atención</label>
+            <input type="text" name="causa_motivo_atencion" value="{{ old('causa_motivo_atencion', $plantilla->causa_motivo_atencion ?? '') }}">
             @error('causa_motivo_atencion')
             <div class="invalid-feedback alerta">{{ $message }}</div>
             @enderror
         </div>
 
         <div class="boton-guardar">
-            <button type="submit">{{ isset($plantilla) ? 'Actualizar' : 'Guardar' }}</button>
+            <button type="submit">{{ $isEdit ? 'Actualizar' : 'Guardar' }}</button>
         </div>
     </form>
 </div>

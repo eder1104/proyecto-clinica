@@ -26,9 +26,9 @@
                                 <td class="px-4 py-2">{{ $paciente->nombres }} {{ $paciente->apellidos }}</td>
                                 <td class="px-4 py-2">{{ $paciente->documento }}</td>
                                 <td class="px-4 py-2">
-                                    <a href="{{ route('historias.show', $paciente->id) }}" 
-                                       class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
-                                        Ver Historia Clínica
+                                    <a href="{{ route('historias.cita', $paciente->id) }}" 
+                                       class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-200">
+                                        Historia Clínica
                                     </a>
                                 </td>
                             </tr>

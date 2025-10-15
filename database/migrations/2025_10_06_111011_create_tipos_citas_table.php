@@ -12,17 +12,18 @@ return new class extends Migration
         Schema::create('tipos_citas', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
-            $table->text('descripcion')->nullable();
             $table->timestamps();
         });
 
         DB::table('tipos_citas')->insert([
             [
+                'id' => 1,
                 'nombre' => 'Optometría',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
+                'id' => 2,
                 'nombre' => 'Exámenes',
                 'created_at' => now(),
                 'updated_at' => now(),

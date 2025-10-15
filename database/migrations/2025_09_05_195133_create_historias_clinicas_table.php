@@ -8,6 +8,7 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('historias_clinicas', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('paciente_id')
                   ->constrained('pacientes')
                   ->cascadeOnDelete();
@@ -15,8 +16,8 @@ return new class extends Migration {
             $table->text('motivo_consulta')->nullable();
             $table->text('antecedentes')->nullable();
             $table->json('signos_vitales')->nullable();
-            $table->text('diagnostico')->nullable();
-            $table->text('conducta')->nullable();
+            $table->text('diagnostico');
+            $table->text('conducta');
 
             $table->foreignId('created_by')
                   ->constrained('users')

@@ -12,9 +12,9 @@ class TipoCita extends Model
     protected $table = 'tipos_citas';
 
     protected $fillable = [
+        'id',
         'nombre',
-        'descripcion',
-    ];
+        ];
 
     public function citas()
     {

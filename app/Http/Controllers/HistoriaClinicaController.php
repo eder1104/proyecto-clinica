@@ -6,8 +6,9 @@ use App\Models\HistoriaClinica;
 use App\Models\Paciente;
 use App\Models\Cita;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Plantilla_Optometria;
+use App\Models\Plantilla_Examenes;
 
 class HistoriaClinicaController extends Controller
 {
@@ -17,47 +18,33 @@ class HistoriaClinicaController extends Controller
         return view('historias.index', compact('pacientes'));
     }
 
-    public function create(Paciente $paciente)
-    {
-        return view('historias.create', compact('paciente'));
-    }
-
-    public function store(Request $request, Paciente $paciente)
-    {
-        $request->validate([
-            'motivo_consulta' => 'required|string|max:255',
-            'antecedentes'    => 'nullable|string',
-            'signos_vitales'  => 'nullable|string',
-            'diagnostico'     => 'required|string',
-            'conducta'        => 'required|string',
-        ]);
-
-        HistoriaClinica::create([
-            'paciente_id'     => $paciente->id,
-            'motivo_consulta' => $request->motivo_consulta,
-            'antecedentes'    => $request->antecedentes,
-            'signos_vitales'  => $request->signos_vitales,
-            'diagnostico'     => $request->diagnostico,
-            'conducta'        => $request->conducta,
-        ]);
-
-        return redirect()->route('historias.show', $paciente->id)
-            ->with('success', 'Historia clínica registrada.');
-    }
-
-    public function show($paciente_id)
+    public function cita($paciente_id)
     {
         $paciente = Paciente::findOrFail($paciente_id);
 
-        $historias = HistoriaClinica::where('paciente_id', $paciente_id)->get();
-
-        $pdfs = Cita::where('paciente_id', $paciente_id)
-            ->whereNotNull('pdf_path')
+        $citas = Cita::where('paciente_id', $paciente_id)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('historias.show', compact('paciente', 'historias', 'pdfs'));
+        return view('historias.historia', compact('paciente', 'citas'));
     }
+
+    public function show($id)
+    {
+        $cita = Cita::with(['paciente', 'TipoCita'])->findOrFail($id);
+
+        if ($cita->tipo_cita_id == 1) {
+            return redirect()->route('optometria.edit', ['cita' => $cita->id]);
+        }
+
+        if ($cita->tipo_cita_id == 2) {
+            return redirect()->route('examenes.edit', ['cita' => $cita->id]);
+        }
+
+        return redirect()->route('historias.index')
+            ->with('error', 'No existe una plantilla asociada a este tipo de cita.');
+    }
+
 
     public function edit(HistoriaClinica $historia)
     {
@@ -107,7 +94,6 @@ class HistoriaClinicaController extends Controller
 
     public function descargarPdf(Cita $cita)
     {
-        //al fin sirve este desgraciado
         if ($cita->pdf_path && Storage::disk('public')->exists($cita->pdf_path)) {
             return response()->download(storage_path('app/public/' . $cita->pdf_path));
         }

@@ -17,7 +17,9 @@ class PacienteController extends Controller
 
     public function create()
     {
-        return view('pacientes.create');
+        $pacientes = Paciente::all();
+
+        return view('pacientes.create', compact('pacientes'));
     }
 
     public function store(Request $request)
@@ -25,7 +27,7 @@ class PacienteController extends Controller
         $validated = $request->validate([
             'nombres'          => 'required|string|max:255',
             'apellidos'        => 'required|string|max:255',
-            'documento'        => 'required|string|max:50|unique:pacientes',
+            'documento'        => 'required|string|max:20|unique:pacientes',
             'telefono'         => 'required|string|max:20',
             'direccion'        => 'required|string|max:255',
             'email'            => 'nullable|email|unique:pacientes',
@@ -44,6 +46,7 @@ class PacienteController extends Controller
             'sexo'             => $validated['sexo'] ?? null,
             'created_by'       => Auth::id(),
         ]);
+        
 
         return redirect()->route('pacientes.index')->with('success', 'Paciente creado correctamente.');
     }

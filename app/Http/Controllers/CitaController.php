@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Cita;
 use App\Models\Paciente;
 use App\Models\User;
+use App\Models\Role;
 use App\Models\Plantilla_Optometria;
-use App\Models\TipoCita;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+
+use App\Models\tipoCita;
 
 class CitaController extends Controller
 {
@@ -41,7 +43,7 @@ class CitaController extends Controller
         return view('citas.create', compact('pacientes', 'users', 'optometria', 'tiposCitas', 'cita'));
     }
 
-    public function store(Request $request, User $users)
+    public function store(Request $request)
     {
 
         $consultaCompleta = $request->input('consulta_completa', 0);
@@ -73,7 +75,8 @@ class CitaController extends Controller
         $validated['created_by'] = Auth::id();
 
         $cita = Cita::create($validated);
-        
+
+
         $this->generarPDF($cita);
 
         if ($cita->tipo_cita_id == 1) {
@@ -85,15 +88,17 @@ class CitaController extends Controller
         return redirect()->route('citas.index')->with('success', 'Cita creada correctamente.');
     }
 
-
-    public function edit(Cita $cita)
+    public function edit($cita_id)
     {
+        $cita = Cita::findOrFail($cita_id);
+        $users = User::all();
         $pacientes = Paciente::all();
-        $admisiones = User::all();
-        $optometria = Plantilla_Optometria::all();
-        $tiposCitas = TipoCita::all();
-        return view('citas.edit', compact('cita', 'pacientes', 'admisiones', 'optometria', 'tiposCitas'));
+        $admisiones = User::Role('admisiones')->get();
+        $plantilla = Plantilla_Optometria::where('cita_id', $cita_id)->first();
+
+        return view('citas.edit', compact('cita', 'users', 'pacientes', 'admisiones', 'plantilla', 'role'));
     }
+
 
     public function update(Request $request, Cita $cita)
     {
@@ -156,6 +161,22 @@ class CitaController extends Controller
         $plantillaView = $this->obtenerPlantillaPorTipo($cita->tipo_cita_id);
         $users = User::all();
         return view('citas.cita', compact('cita', 'plantillaView', 'users'));
+    }
+
+    public function atencion_update(Cita $cita)
+    {
+        $cita->load(['paciente', 'TipoCita']);
+        $tipoCita = $cita->tipo_cita_id;
+
+        if ($tipoCita == 1) {
+            return redirect()->route('plantilla.optometria', ['cita' => $cita->id]);
+        }
+
+        if ($tipoCita == 2) {
+            return redirect()->route('plantilla.examenes', ['cita' => $cita->id]);
+        }
+
+        return back()->with('error', 'El tipo de cita no está definido o no existe.');
     }
 
     public function pdf(Cita $cita)

@@ -9,6 +9,7 @@ return new class extends Migration {
             $table->id();
             $table->string('numero_fuente')->nullable();
             $table->date('fecha');
+            $table->string('optometria');
             $table->time('hora_inicio');
             $table->time('hora_fin');
             $table->text('motivo_consulta')->nullable();

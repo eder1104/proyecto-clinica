@@ -1,12 +1,13 @@
 @section('content')
 
+
 <div class="contenedor-principal">
     <div class="examenes-container">
         <div class="tabs">
             <button type="button" class="tab active" data-tab="examenes">Exámenes</button>
             <button type="button" class="tab" data-tab="diagnosticos">Diagnósticos</button>
         </div>
-        <form action="{{ route('examenes.store') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('examenes.store', ['cita' => $cita->id]) }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div id="examenes" class="tab-content active">

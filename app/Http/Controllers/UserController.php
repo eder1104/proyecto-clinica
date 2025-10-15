@@ -36,13 +36,13 @@ class UserController extends Controller
             'email'      => $request->email,
             'password'   => Hash::make($request->password),
             'role'       => $request->role,
-            'status'     => 'activo',
             'created_by' => Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema',
         ]);
 
         return redirect()->route('users.index')
             ->with('success', 'Usuario creado correctamente.');
     }
+
 
 
     public function edit(User $user)
@@ -73,6 +73,8 @@ class UserController extends Controller
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
+
+        $user->update($data);
 
         return redirect()->route('users.index')
             ->with('success', 'Usuario actualizado correctamente.');

@@ -3,9 +3,7 @@
         <h2 class="font-semibold text-xl text-gray-800">Nuevo Paciente</h2>
     </x-slot>
 
-    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8"
-        x-data="{ open: true }">
-
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8" x-data="{ open: true }">
         <div x-show="open" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div class="modal-container">
                 <form action="{{ route('pacientes.store') }}" method="POST">
@@ -39,7 +37,7 @@
                             <label for="email">Correo</label>
                             <input type="email" name="email" id="email" class="input-field" value="{{ old('email') }}">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="direccion">Dirección</label>
                             <input type="text" name="direccion" id="direccion" class="input-field" value="{{ old('direccion') }}">
@@ -75,37 +73,41 @@
         background: #fff;
         width: 100%;
         max-width: 900px;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        padding: 24px;
+        border-radius: 10px;
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.25);
+        overflow-y: auto;
+        max-height: 90vh;
     }
 
     .modal-title {
         font-size: 1.5rem;
         font-weight: bold;
-        margin-bottom: 16px;
-        color: #333;
+        margin-bottom: 20px;
+        color: #1e3a8a;
+        text-align: center;
     }
 
     .form-group label {
         display: block;
         font-weight: 600;
         margin-bottom: 6px;
-        color: #444;
+        color: #374151;
     }
 
     .input-field {
         width: 100%;
-        padding: 8px 10px;
-        border: 1px solid #ccc;
+        padding: 9px 12px;
+        border: 1px solid #d1d5db;
         border-radius: 6px;
         font-size: 0.95rem;
+        transition: all 0.2s ease;
     }
 
     .input-field:focus {
         outline: none;
         border-color: #2563eb;
-        box-shadow: 0 0 4px rgba(37, 99, 235, 0.5);
+        box-shadow: 0 0 6px rgba(37, 99, 235, 0.4);
     }
 
     .error-msg {
@@ -117,25 +119,25 @@
     .btn-primary {
         background: #2563eb;
         color: #fff;
-        padding: 8px 16px;
+        padding: 10px 18px;
         border-radius: 6px;
         font-size: 0.95rem;
-        border: none;
-        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.2s;
     }
 
     .btn-primary:hover {
-        background: #1e40af;
+        background: #1d4ed8;
     }
 
     .btn-cancel {
         background: #e5e7eb;
-        color: #333;
-        padding: 8px 16px;
+        color: #111827;
+        padding: 10px 18px;
         border-radius: 6px;
         font-size: 0.95rem;
-        border: none;
-        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.2s;
     }
 
     .btn-cancel:hover {

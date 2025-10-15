@@ -108,8 +108,6 @@
                                 </option>
                                 @endforeach
                             </select>
-                            <button type="button" @click="openPaciente = true" class="bg-blue-600 text-white rounded px-3">🔎</button>
-                            <button type="button" @click="openNuevoPaciente = true" class="bg-green-600 text-white rounded px-3">➕</button>
                         </div>
                     </div>
 
@@ -118,6 +116,7 @@
                         <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700" id="Save">Guardar</button>
                     </div>
                 </form>
+        
             </div>
         </div>
     </div>

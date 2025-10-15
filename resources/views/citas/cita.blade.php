@@ -18,10 +18,7 @@
             </div>
 
             <div id="datosPaciente" class="extra-info hidden">
-                <p><strong>Estado Civil:</strong> {{ $cita->paciente->estado ?? '-' }}</p>
-                <p><strong>Profesión:</strong> {{ $cita->paciente->profesion ?? '-' }}</p>
                 <p><strong>Género:</strong> {{ $cita->paciente->sexo == 'M' ? 'Masculino' : 'Femenino' }}</p>
-                <p><strong>Ciudad:</strong> {{ $cita->paciente->ciudad ?? '-' }}</p>
 
                 <hr class="my-4">
 
