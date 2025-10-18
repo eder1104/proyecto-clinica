@@ -67,8 +67,8 @@
                                     {{ optional($c->paciente)->apellidos ?? '' }}
                                 </td>
                                 <td>
-                                    {{ optional($c->admisiones)->nombres ?? 'N/A' }}
-                                    {{ optional($c->admisiones)->apellidos ?? '' }}
+                                    {{ optional($c->createdBy)->nombres ?? 'N/A' }}
+                                    {{ optional($c->createdBy)->apellidos ?? '' }}
                                 </td>
                                 <td>
                                     @if($c->estado === 'cancelada')
@@ -88,10 +88,8 @@
                                 </td>
                                 <td>
                                     @if (!in_array($c->estado, ['cancelada', 'finalizada']))
-                                    <a href="{{ route('citas.edit', $c) }}" class="btn-link">
-                                        Editar
-                                    </a>
-                                    <form action="{{ route('citas.destroy', $c) }}" method="POST"
+                                    <a href="{{ route('citas.edit', $c->id) }}">Editar</a>
+                                    <form action="{{ route('citas.destroy', $c->id) }}" method="POST"
                                         onsubmit="return pedirRazon(this);">
                                         @csrf
                                         @method('DELETE')
@@ -104,7 +102,7 @@
                                 </td>
                                 <td>
                                     @if (!in_array($c->estado, ['cancelada', 'finalizada']))
-                                    <a href="{{ route('citas.examen', $c->id) }}" class="btn">Tomar Atención</a>
+                                    <a href="{{ route('preexamen.create', $c->id) }}" class="btn">Tomar Atención</a>
                                     @else
                                     <span class="btn-disabled">No disponible</span>
                                     @endif

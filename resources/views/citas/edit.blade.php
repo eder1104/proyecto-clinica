@@ -103,24 +103,6 @@
                         @enderror
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block font-medium">Estado</label>
-                        <select
-                            name="estado"
-                            class="w-full border-gray-300 rounded-md shadow-sm"
-                            @if($cita->estado === 'finalizada') disabled @endif
-                        >
-                            <option value="programada" {{ request('estado') == 'programada' ? 'selected' : '' }}>programada</option>
-                            <option value="modificada" {{ request('estado') == 'modificada' ? 'selected' : '' }}>modificada</option>
-                            <option value="cancelada" {{ request('estado') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
-                            <option value="no_asistida" {{ request('estado') == 'no_asistida' ? 'selected' : '' }}>no_asistida</option>
-                            <option value="asistida" {{ request('estado') == 'asistida' ? 'selected' : '' }}>asistida</option>
-                        </select>
-                        @error('estado')
-                            <span class="text-red-600 text-sm">{{ $message }}</span>
-                        @enderror
-                    </div>
-
                     <div class="flex justify-end items-center gap-2">
                         <a href="{{ route('citas.index') }}" class="px-4 py-2 bg-gray-300 rounded-md">Volver</a>
 

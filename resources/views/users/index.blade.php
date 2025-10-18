@@ -73,15 +73,8 @@
                                 class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-md shadow hover:bg-blue-700">
                                 ✎ Editar
                             </a>
-                            <form action="{{ route('users.destroy', $user->id) }}" method="POST"
-                                onsubmit="return confirm('¿Seguro que quieres eliminar este usuario?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit"
-                                    class="px-3 py-1 bg-red-600 text-white text-sm font-medium rounded-md shadow hover:bg-red-700">
-                                    ❌ Eliminar
-                                </button>
                             </form>
+
                             @else
                             <span class="text-gray-400 text-sm">usuario inactivo</span>
                             @endif

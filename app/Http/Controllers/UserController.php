@@ -83,8 +83,9 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        
         $user->status = 'inactivo';
-        $user->updated_by = Auth::id();
+        $user->cancelled_by = Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema';
         $user->save();
 
         return redirect()->route('users.index')
@@ -95,7 +96,7 @@ class UserController extends Controller
     public function toggleStatus(User $user)
     {
         $user->status = $user->status === 'activo' ? 'inactivo' : 'activo';
-        $user->updated_by = Auth::id();
+        $user->updated_by = Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema';
         $user->save();
 
         return redirect()->route('users.index')

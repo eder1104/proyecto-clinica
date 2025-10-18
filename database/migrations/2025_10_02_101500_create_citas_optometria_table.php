@@ -11,8 +11,11 @@ return new class extends Migration
         Schema::create('optometria', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('cita_id');
+            $table->unsignedBigInteger('cita_id')->nullable();
             $table->unsignedBigInteger('paciente_id')->nullable();
+            $table->foreign('cita_id', 'fk_optometria_cita')->references('id')->on('citas')->onDelete('cascade');
+
+            $table->foreign('paciente_id', 'fk_optometria_paciente')->references('id')->on('pacientes')->onDelete('set null');
 
             $table->string('optometra')->nullable();
             $table->boolean('consulta_completa')->default(false);

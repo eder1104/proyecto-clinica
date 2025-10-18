@@ -10,41 +10,29 @@ class Cita extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $primaryKey = 'id';
+    public $incrementing = true;
+    protected $keyType = 'int';
+
     protected $fillable = [
-        'cita_id',
         'fecha',
         'hora_inicio',
         'hora_fin',
-        'mensaje',
         'estado',
-        'paciente_id',
-        'admisiones_id',
-        'motivo_consulta',
-        'frecuencia_cardiaca',
-        'frecuencia_respiratoria',
-        'tension_arterial',
-        'temperatura',
-        'saturacion',
-        'peso',
-        'examen_fisico',
-        'diagnostico',
         'created_by',
+        'paciente_id',
         'updated_by',
         'cancelled_by',
         'cancel_reason',
-        'pdf_path',
+        'tipo_cita_id',
     ];
 
-    protected $with = ['paciente', 'admisiones'];
+    protected $with = ['paciente'];
 
+    // Relaciones
     public function paciente()
     {
         return $this->belongsTo(Paciente::class, 'paciente_id');
-    }
-
-    public function admisiones()
-    {
-        return $this->belongsTo(User::class, 'admisiones_id');
     }
 
     public function createdBy()
@@ -62,7 +50,7 @@ class Cita extends Model
         return $this->belongsTo(User::class, 'cancelled_by');
     }
 
-    public function TipoCita()
+    public function tipoCita()
     {
         return $this->belongsTo(TipoCita::class, 'tipo_cita_id');
     }

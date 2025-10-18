@@ -28,7 +28,7 @@ class PacienteController extends Controller
             'nombres'          => 'required|string|max:255',
             'apellidos'        => 'required|string|max:255',
             'documento'        => 'required|string|max:20|unique:pacientes',
-            'telefono'         => 'required|string|max:20',
+            'telefono'         => 'required|string|max:10',
             'direccion'        => 'required|string|max:255',
             'email'            => 'nullable|email|unique:pacientes',
             'fecha_nacimiento' => 'nullable|date',

@@ -12,6 +12,7 @@ class Plantilla_Optometria extends Model
     protected $table = 'optometria';
 
     protected $fillable = [
+        'cita_id',
         'optometra',
         'consulta_completa',
         'anamnesis',
@@ -25,6 +26,7 @@ class Plantilla_Optometria extends Model
         'av_cerca_oi',
         'observaciones_internas',
         'observaciones_optometria',
+        'observaciones_formula',
         'tipo_lente',
         'especificaciones_lente',
         'vigencia_formula',
@@ -41,6 +43,6 @@ class Plantilla_Optometria extends Model
 
     public function cita()
     {
-        return $this->belongsTo(\App\Models\Cita::class, 'id');
+        return $this->belongsTo(\App\Models\Cita::class, 'cita_id');
     }
 }

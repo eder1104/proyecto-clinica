@@ -1,7 +1,6 @@
-@php
-$isEdit = isset($plantilla) && $plantilla->exists;
-@endphp
-@section('title', 'Consulta de Optometría')
+@extends('layouts.historia')
+@section('title', isset($plantilla) ? 'Editar Exámenes de Optometría' : 'Registrar Exámenes de Optometría')
+
 @section('content')
 
 <div class="contenedor-principal">
@@ -10,8 +9,17 @@ $isEdit = isset($plantilla) && $plantilla->exists;
             <button type="button" class="tab active" data-tab="examenes">Exámenes</button>
             <button type="button" class="tab" data-tab="diagnosticos">Diagnósticos</button>
         </div>
-        <form action="{{ route('examenes.store', ['cita' => $cita->id]) }}" method="POST" enctype="multipart/form-data">
+
+        <form
+            action="{{ isset($plantilla) 
+                ? route('examenes.update', ['cita' => $cita->id, 'examen' => $plantilla->id]) 
+                : route('examenes.store', ['cita' => $cita->id]) }}"
+            method="POST"
+            enctype="multipart/form-data">
             @csrf
+            @if(isset($plantilla))
+            @method('PUT')
+            @endif
 
             <div id="examenes" class="tab-content active">
                 <input type="hidden" name="cita" value="{{ $cita->id }}">
@@ -21,7 +29,8 @@ $isEdit = isset($plantilla) && $plantilla->exists;
                     <select name="profesional" class="form-control" required>
                         @forelse ($users as $user)
                         @if($user->role == 'admisiones')
-                        <option value="{{ $user->id }}">
+                        <option value="{{ $user->id }}"
+                            {{ isset($plantilla) && $plantilla->profesional == $user->id ? 'selected' : '' }}>
                             {{ $user->nombres }} {{ $user->apellidos }}
                         </option>
                         @endif
@@ -65,7 +74,7 @@ $isEdit = isset($plantilla) && $plantilla->exists;
             </div>
 
             <div id="diagnosticos" class="tab-content">
-                <h3 class="titulo-seccion">OJO</h3>
+                <h3 class="titulo-seccion">Diagnósticos Oculares</h3>
 
                 <div class="campo">
                     <label>Seleccione el ojo</label>
@@ -102,8 +111,8 @@ $isEdit = isset($plantilla) && $plantilla->exists;
                             <td><input type="text" name="diagnostico" value="{{ isset($plantilla) ? $plantilla->diagnostico : '' }}" placeholder="Diagnóstico específico"></td>
                             <td>
                                 <select name="ojoDiag2">
-                                    <option value="Ojo Derecho" {{ isset($plantilla) && $plantilla->ojoDiag=='Ojo Derecho' ? 'selected' : '' }}>Ojo Derecho</option>
-                                    <option value="Ojo Izquierdo" {{ isset($plantilla) && $plantilla->ojoDiag=='Ojo Izquierdo' ? 'selected' : '' }}>Ojo Izquierdo</option>
+                                    <option value="Ojo Derecho" {{ isset($plantilla) && $plantilla->ojoDiag2=='Ojo Derecho' ? 'selected' : '' }}>Ojo Derecho</option>
+                                    <option value="Ojo Izquierdo" {{ isset($plantilla) && $plantilla->ojoDiag2=='Ojo Izquierdo' ? 'selected' : '' }}>Ojo Izquierdo</option>
                                 </select>
                             </td>
                         </tr>
@@ -112,11 +121,8 @@ $isEdit = isset($plantilla) && $plantilla->exists;
             </div>
 
             <div class="boton-guardar">
-                <button type="submit">
-                    {{ isset($plantilla) ? 'Actualizar' : 'Guardar' }}
-                </button>
+                <button type="submit">{{ isset($plantilla) ? 'Actualizar' : 'Guardar' }}</button>
             </div>
-
         </form>
     </div>
 </div>
@@ -192,23 +198,6 @@ $isEdit = isset($plantilla) && $plantilla->exists;
         outline: none;
     }
 
-    .boton-guardar {
-        text-align: center;
-        margin-top: 25px;
-    }
-
-    .boton-guardar button {
-        background: linear-gradient(135deg, #007bff, #0056b3);
-        color: #fff;
-        padding: 12px 28px;
-        border: none;
-        border-radius: 8px;
-        font-size: 17px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.2s, background 0.3s;
-    }
-
     .campo select:focus,
     .campo textarea:focus,
     .campo input:focus {
@@ -240,15 +229,38 @@ $isEdit = isset($plantilla) && $plantilla->exists;
         color: #1e3a8a;
         margin-bottom: 1rem;
     }
+
+    .boton-guardar {
+        text-align: center;
+        margin-top: 25px;
+    }
+
+    .boton-guardar button {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: #fff;
+        padding: 12px 28px;
+        border: none;
+        border-radius: 8px;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.3s;
+    }
+
+    .boton-guardar button:hover {
+        transform: scale(1.05);
+        background: linear-gradient(135deg, #0066d1, #004999);
+    }
 </style>
 
 <script>
-    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        t.classList.add('active');
-        document.getElementById(t.dataset.tab).classList.add('active');
-    }));
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.tab).classList.add('active');
+        });
+    });
 </script>
-
 @endsection
