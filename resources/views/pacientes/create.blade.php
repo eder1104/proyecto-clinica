@@ -11,50 +11,95 @@
                     <h2 class="modal-title">Nuevo Paciente</h2>
 
                     <div class="grid grid-cols-2 gap-4">
+                        {{-- NOMBRES --}}
                         <div class="form-group">
                             <label for="nombres">Nombres</label>
-                            <input type="text" name="nombres" id="nombres" class="input-field" value="{{ old('nombres') }}" required>
-                            @error('nombres') <p class="error-msg">{{ $message }}</p> @enderror
+                            <input type="text" name="nombres" id="nombres"
+                                class="input-field @error('nombres') border-red-500 @enderror"
+                                value="{{ old('nombres') }}" required>
+                            @error('nombres')
+                                <p class="error-msg">{{ $message }}</p>
+                            @enderror
                         </div>
 
+                        {{-- APELLIDOS --}}
                         <div class="form-group">
                             <label for="apellidos">Apellidos</label>
-                            <input type="text" name="apellidos" id="apellidos" class="input-field" value="{{ old('apellidos') }}" required>
-                            @error('apellidos') <p class="error-msg">{{ $message }}</p> @enderror
+                            <input type="text" name="apellidos" id="apellidos"
+                                class="input-field @error('apellidos') border-red-500 @enderror"
+                                value="{{ old('apellidos') }}" required>
+                            @error('apellidos')
+                                <p class="error-msg">{{ $message }}</p>
+                            @enderror
                         </div>
 
+                        {{-- DOCUMENTO --}}
                         <div class="form-group">
                             <label for="documento">Documento</label>
-                            <input type="text" name="documento" id="documento" class="input-field" value="{{ old('documento') }}" required>
+                            <input type="text" name="documento" id="documento"
+                                class="input-field @error('documento') border-red-500 @enderror"
+                                value="{{ old('documento') }}" required>
+                            @error('documento')
+                                <p class="error-msg">{{ $message }}</p>
+                            @enderror
                         </div>
 
+                        {{-- TELEFONO --}}
                         <div class="form-group">
                             <label for="telefono">Teléfono</label>
-                            <input type="text" name="telefono" id="telefono" class="input-field" value="{{ old('telefono') }}">
+                            <input type="text" name="telefono" id="telefono"
+                                class="input-field @error('telefono') border-red-500 @enderror"
+                                value="{{ old('telefono') }}">
+                            @error('telefono')
+                                <p class="error-msg">{{ $message }}</p>
+                            @enderror
                         </div>
 
+                        {{-- EMAIL --}}
                         <div class="form-group">
                             <label for="email">Correo</label>
-                            <input type="email" name="email" id="email" class="input-field" value="{{ old('email') }}">
+                            <input type="email" name="email" id="email"
+                                class="input-field @error('email') border-red-500 @enderror"
+                                value="{{ old('email') }}">
+                            @error('email')
+                                <p class="error-msg">{{ $message }}</p>
+                            @enderror
                         </div>
 
+                        {{-- DIRECCION --}}
                         <div class="form-group">
                             <label for="direccion">Dirección</label>
-                            <input type="text" name="direccion" id="direccion" class="input-field" value="{{ old('direccion') }}">
+                            <input type="text" name="direccion" id="direccion"
+                                class="input-field @error('direccion') border-red-500 @enderror"
+                                value="{{ old('direccion') }}">
+                            @error('direccion')
+                                <p class="error-msg">{{ $message }}</p>
+                            @enderror
                         </div>
 
+                        {{-- FECHA NACIMIENTO --}}
                         <div class="form-group">
                             <label for="fecha_nacimiento">Fecha de Nacimiento</label>
-                            <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="input-field" value="{{ old('fecha_nacimiento') }}">
+                            <input type="date" name="fecha_nacimiento" id="fecha_nacimiento"
+                                class="input-field @error('fecha_nacimiento') border-red-500 @enderror"
+                                value="{{ old('fecha_nacimiento') }}">
+                            @error('fecha_nacimiento')
+                                <p class="error-msg">{{ $message }}</p>
+                            @enderror
                         </div>
 
+                        {{-- SEXO --}}
                         <div class="form-group">
                             <label for="sexo">Sexo</label>
-                            <select name="sexo" id="sexo" class="input-field">
+                            <select name="sexo" id="sexo"
+                                class="input-field @error('sexo') border-red-500 @enderror">
                                 <option value="">Seleccione...</option>
                                 <option value="M" {{ old('sexo') == 'M' ? 'selected' : '' }}>Masculino</option>
                                 <option value="F" {{ old('sexo') == 'F' ? 'selected' : '' }}>Femenino</option>
                             </select>
+                            @error('sexo')
+                                <p class="error-msg">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 

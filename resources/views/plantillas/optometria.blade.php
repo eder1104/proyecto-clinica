@@ -7,10 +7,6 @@ $isEdit = isset($plantilla) && $plantilla->exists;
 <div class="container">
     <h2 class="titulo">Plantilla de Consulta de Optometría</h2>
 
-    @php
-    $isEdit = isset($plantilla) && $plantilla->exists;
-    @endphp
-
     <form action="{{ $isEdit ? route('optometria.update', ['cita' => $cita->id]) : route('optometria.store', ['cita' => $cita->id]) }}" method="POST">
         @csrf
         @if($isEdit)

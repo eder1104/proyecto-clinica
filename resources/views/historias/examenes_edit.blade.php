@@ -1,7 +1,9 @@
-@extends('layouts.historia')
-@section('title', isset($plantilla) ? 'Editar Exámenes de Optometría' : 'Registrar Exámenes de Optometría')
+@extends('layouts.app')
+
+@section('title', 'Consulta de Optometría')
 
 @section('content')
+
 
 <div class="contenedor-principal">
     <div class="examenes-container">

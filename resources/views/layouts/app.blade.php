@@ -32,4 +32,5 @@
 
     <script src="//unpkg.com/alpinejs" defer></script>
 </body>
+@include('layouts.footer')
 </html>

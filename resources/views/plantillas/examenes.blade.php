@@ -1,8 +1,9 @@
-@php
-$isEdit = isset($plantilla) && $plantilla->exists;
-@endphp
+@extends('layouts.app')
+
 @section('title', 'Consulta de Optometría')
+
 @section('content')
+
 
 <div class="contenedor-principal">
     <div class="examenes-container">

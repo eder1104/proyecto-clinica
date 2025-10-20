@@ -76,16 +76,17 @@
                         <select id="pacienteSelect" name="paciente_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                             <option value="">Seleccione un paciente</option>
                             @foreach($pacientes as $p)
-                            <option value="{{ $p->id }}">
+                            <option value="{{ $p->id }}"
+                                {{ old('paciente_id') == $p->id ? 'selected' : '' }}>
                                 {{ $p->nombres }} {{ $p->apellidos }}
                             </option>
                             @endforeach
                         </select>
-
-                        </select>
                     </div>
+                    @error('paciente_id')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
-
 
                 <div class="flex justify-end space-x-2 mt-4">
                     <a href="{{ route('citas.index') }}" class="px-4 py-2 rounded bg-gray-400 text-white hover:bg-gray-500">Cancelar</a>
@@ -111,7 +112,7 @@
         if (tipoCita) {
             tipoCita.addEventListener('change', function() {
                 if (this.value === 'optometria') {
-                    const citaId = this.dataset.citaId; // asegúrate de tener data-cita-id en el select
+                    const citaId = this.dataset.citaId;
                     window.location.href = `/citas/${citaId}/plantilla/optometria`;
                 }
             });

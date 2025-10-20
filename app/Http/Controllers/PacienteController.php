@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Paciente;
+use App\http\Requests\PacientesRequest;
 use App\Models\Cita;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class PacienteController extends Controller
         return view('pacientes.create', compact('pacientes'));
     }
 
-    public function store(Request $request)
+    public function store(PacientesRequest $request)
     {
         $validated = $request->validate([
             'nombres'          => 'required|string|max:255',
@@ -56,7 +57,7 @@ class PacienteController extends Controller
         return view('pacientes.edit', compact('paciente'));
     }
 
-    public function update(Request $request, Paciente $paciente)
+    public function update(PacientesRequest $request, Paciente $paciente)
     {
         $validated = $request->validate([
             'nombres'          => 'required|string|max:255',

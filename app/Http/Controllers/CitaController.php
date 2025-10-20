@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\http\Requests\CitaRequest;
 use App\Models\Cita;
 use App\Models\Paciente;
 use App\Models\User;
@@ -41,7 +42,7 @@ class CitaController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function store(CitaRequest $request)
     {
         $validated = $request->validate([
             'fecha'        => 'required|date',
@@ -66,7 +67,7 @@ class CitaController extends Controller
         return view('citas.edit', compact('cita', 'pacientes', 'admisiones'));
     }
 
-    public function update(Request $request, Cita $cita)
+    public function update(CitaRequest $request, Cita $cita)
     {
         $validated = $request->validate([
             'fecha'        => 'required|date',
