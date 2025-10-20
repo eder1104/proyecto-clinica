@@ -13,27 +13,29 @@ class UserRequest extends FormRequest
 
     public function rules(): array
     {
-        // Detecta si es una actualización (PUT/PATCH) o creación (POST)
         $id = $this->route('user') ?? $this->route('id');
         $isUpdate = in_array($this->method(), ['PUT', 'PATCH']);
 
         return [
             'nombres' => [
                 'required',
+                'filled',
                 'string',
-                'regex:/^[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/u',
-                'min:2',
+                'regex:/^(?!\s*$)[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/u',
+                'min:3',
                 'max:100',
             ],
             'apellidos' => [
                 'required',
+                'filled',
                 'string',
-                'regex:/^[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/u',
+                'regex:/^(?!\s*$)[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/u',
                 'min:2',
                 'max:100',
             ],
             'email' => [
                 'required',
+                'filled',
                 'email',
                 'max:255',
                 $isUpdate

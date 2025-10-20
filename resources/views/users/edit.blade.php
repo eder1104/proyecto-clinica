@@ -19,18 +19,27 @@
                 <label class="block text-sm font-medium text-gray-700">Nombres</label>
                 <input type="text" name="nombres" value="{{ old('nombres', $user->nombres) }}"
                     class="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200" required>
+                @error('nombres')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Apellidos</label>
                 <input type="text" name="apellidos" value="{{ old('apellidos', $user->apellidos) }}"
                     class="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200" required>
+                @error('apellidos')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Email</label>
                 <input type="email" name="email" value="{{ old('email', $user->email) }}"
                     class="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200" required>
+                @error('email')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="mb-4">
@@ -42,6 +51,9 @@
                     <option value="callcenter" {{ $user->role == 'callcenter' ? 'selected' : '' }}>Callcenter</option>
                     <option value="paciente" {{ $user->role == 'paciente' ? 'selected' : '' }}>Paciente</option>
                 </select>
+                @error('role')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="flex justify-end gap-2">
