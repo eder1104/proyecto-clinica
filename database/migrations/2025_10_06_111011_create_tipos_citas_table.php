@@ -31,9 +31,9 @@ return new class extends Migration
         ]);
 
         Schema::table('citas', function (Blueprint $table) {
-            $table->foreignId('tipo_cita_id')
-                ->nullable()
-                ->constrained('tipos_citas')
+            $table->foreign('tipo_cita_id')
+                ->references('id')
+                ->on('tipos_citas')
                 ->nullOnDelete();
         });
     }

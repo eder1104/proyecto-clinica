@@ -32,8 +32,6 @@ class CitaController extends Controller
         return view('citas.index', compact('citas'));
     }
 
-
-
     public function create()
     {
         $users = User::where('role', 'admisiones')->get();

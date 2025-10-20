@@ -49,9 +49,9 @@ class PreExamenController extends Controller
         ]);
 
         if ($cita->tipo_cita_id == 1) {
-            return redirect()->route('plantillas.optometria', ['cita_id' => $cita->id]);
+            return redirect()->route('plantillas.optometria', ['cita' => $cita->id]);
         } elseif ($cita->tipo_cita_id == 2) {
-            return redirect()->route('examenes.edit', $cita->id);
+            return redirect()->route('examenes.edit', ['cita' => $cita->id]);
         }
 
         return redirect()->back()->with('error', 'Tipo de cita no válido.');

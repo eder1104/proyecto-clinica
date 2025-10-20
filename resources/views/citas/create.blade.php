@@ -111,7 +111,8 @@
         if (tipoCita) {
             tipoCita.addEventListener('change', function() {
                 if (this.value === 'optometria') {
-                    window.location.href = "{{ route('plantillas.optometria') }}";
+                    const citaId = this.dataset.citaId; // asegúrate de tener data-cita-id en el select
+                    window.location.href = `/citas/${citaId}/plantilla/optometria`;
                 }
             });
         }

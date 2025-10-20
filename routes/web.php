@@ -31,8 +31,8 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'checkrole:admin'])->group(function () {
-    Route::resource('usuarios', UserController::class)->except(['show']);
-    Route::patch('/usuarios/{user}', [UserController::class, 'toggleStatus'])->name('users.toggle');
+    Route::resource('users', UserController::class)->except(['show']);
+    Route::patch('/users/{user}', [UserController::class, 'toggleStatus'])->name('users.toggle');
 });
 
 Route::middleware('auth')->group(function () {

@@ -12,7 +12,6 @@ return new class extends Migration {
             $table->date('fecha');
             $table->time('hora_inicio');
             $table->time('hora_fin');
-
             $table->string('estado')->default('programada');
 
             $table->foreignId('paciente_id')->constrained('pacientes')->restrictOnDelete();
@@ -21,7 +20,7 @@ return new class extends Migration {
             $table->foreignId('cancelled_by')->nullable()->constrained('users')->nullOnDelete();
             $table->text('cancel_reason')->nullable();
 
-            $table->foreignId('tipo_cita_id')->nullable()->constrained('tipos_citas')->nullOnDelete();
+            $table->unsignedBigInteger('tipo_cita_id')->nullable();
 
             $table->softDeletes();
             $table->timestamps();

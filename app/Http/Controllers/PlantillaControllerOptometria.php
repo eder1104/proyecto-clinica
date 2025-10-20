@@ -11,11 +11,14 @@ class PlantillaControllerOptometria extends Controller
 {
     public function index($cita_id)
     {
-        $id = null;
-            $cita = Cita::findOrFail($cita_id);
-        $plantilla = null;
+        $cita = Cita::with('paciente')->findOrFail($cita_id);
+
+        $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
         $citas = Cita::with('paciente')->orderBy('fecha', 'desc')->get();
-        return view('plantillas.optometria', compact('id', 'plantilla', 'citas'));
+        $users = User::all();
+        $id = $plantilla ? $plantilla->id : null;
+
+        return view('plantillas.optometria', compact('id', 'plantilla', 'citas', 'cita', 'users'));
     }
 
     public function edit(Cita $cita)
@@ -144,14 +147,16 @@ class PlantillaControllerOptometria extends Controller
         } else {
             Plantilla_Optometria::create(array_merge(
                 $data,
-                ['cita_id' => $cita->id, 'paciente_id' => $cita->paciente_id]
+                [
+                    'cita_id' => $cita->id,
+                    'paciente_id' => $cita->paciente_id
+                ]
             ));
         }
 
         return redirect()->route('historias.index', $cita->id)
             ->with('success', 'Plantilla de optometría actualizada correctamente.');
     }
-
 
     public function atender(Cita $cita)
     {

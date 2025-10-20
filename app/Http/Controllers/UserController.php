@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\UserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -20,23 +22,15 @@ class UserController extends Controller
         return view('users.create');
     }
 
-    public function store(Request $request)
+    public function store(UserRequest $request)
     {
-        $request->validate([
-            'nombres'   => 'required|string|max:255',
-            'apellidos' => 'required|string|max:255',
-            'email'     => 'required|string|email|max:255|unique:users',
-            'password'  => 'required|string|min:8|confirmed',
-            'role'      => 'required|in:admin,admisiones,callcenter',
-        ]);
-
         User::create([
-            'nombres'    => $request->nombres,
-            'apellidos'  => $request->apellidos,
-            'email'      => $request->email,
+            'nombres'    => trim($request->nombres),
+            'apellidos'  => trim($request->apellidos),
+            'email'      => strtolower(trim($request->email)),
             'password'   => Hash::make($request->password),
             'role'       => $request->role,
-            'created_by' => Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema',
+            'created_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
         ]);
 
         return redirect()->route('users.index')
@@ -44,30 +38,21 @@ class UserController extends Controller
     }
 
 
-
     public function edit(User $user)
     {
         return view('users.edit', compact('user'));
     }
 
-    public function update(Request $request, $id)
+    public function update(UserRequest $request, $id)
     {
         $user = User::findOrFail($id);
 
-        $request->validate([
-            'nombres'   => 'required|string|max:255',
-            'apellidos' => 'required|string|max:255',
-            'email'     => 'required|email|unique:users,email,' . $id,
-            'role'      => 'required|in:admin,admisiones,callcenter',
-            'password'  => 'nullable|string|min:8|confirmed',
-        ]);
-
         $data = [
-            'nombres'    => $request->nombres,
-            'apellidos'  => $request->apellidos,
-            'email'      => $request->email,
+            'nombres'    => trim($request->nombres),
+            'apellidos'  => trim($request->apellidos),
+            'email'      => strtolower(trim($request->email)),
             'role'       => $request->role,
-            'updated_by' => Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema',
+            'updated_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
         ];
 
         if ($request->filled('password')) {
@@ -83,7 +68,7 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        
+
         $user->status = 'inactivo';
         $user->cancelled_by = Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema';
         $user->save();

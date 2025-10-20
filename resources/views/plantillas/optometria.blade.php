@@ -3,6 +3,7 @@ $isEdit = isset($plantilla) && $plantilla->exists;
 @endphp
 @section('title', 'Consulta de Optometría')
 @section('content')
+@extends('layouts.app')
 <div class="container">
     <h2 class="titulo">Plantilla de Consulta de Optometría</h2>
 
