@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Plantilla_Optometria;
 use App\Models\Cita;
-use App\Models\User;
+use App\Models\doctores; 
 
 class PlantillaControllerOptometria extends Controller
 {
@@ -15,10 +15,10 @@ class PlantillaControllerOptometria extends Controller
 
         $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
         $citas = Cita::with('paciente')->orderBy('fecha', 'desc')->get();
-        $users = User::all();
+        $doctores = doctores::all();
         $id = $plantilla ? $plantilla->id : null;
 
-        return view('plantillas.optometria', compact('id', 'plantilla', 'citas', 'cita', 'users'));
+        return view('plantillas.optometria', compact('id', 'plantilla', 'citas', 'cita', 'doctores'));
     }
 
     public function edit(Cita $cita)
@@ -26,21 +26,19 @@ class PlantillaControllerOptometria extends Controller
         $cita->load(['paciente', 'TipoCita']);
 
         $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
-
-        $users = User::where('role', 'admisiones')->get();
+        $doctores = doctores::all(); 
 
         $TipoCita = $cita->TipoCita ?? null;
 
-        return view('historias.optometria_edit', compact('plantilla', 'cita', 'users', 'TipoCita'));
+        return view('historias.optometria_edit', compact('plantilla', 'cita', 'doctores', 'TipoCita'));
     }
-
 
     public function store(Request $request, $cita_id)
     {
         $cita = Cita::findOrFail($cita_id);
 
         $request->validate([
-            'optometra' => 'required|integer|exists:users,id',
+            'optometra' => 'required|integer|exists:doctores,id',
             'consulta_completa' => 'nullable|boolean',
             'anamnesis' => 'nullable|string',
             'alternativa_deseada' => 'nullable|string|max:255',
@@ -110,31 +108,7 @@ class PlantillaControllerOptometria extends Controller
     public function update(Request $request, Cita $cita)
     {
         $request->validate([
-            'optometra' => 'required|integer|exists:users,id',
-            'consulta_completa' => 'nullable|boolean',
-            'anamnesis' => 'nullable|string',
-            'alternativa_deseada' => 'nullable|string|max:255',
-            'dominancia_ocular' => 'nullable|string|max:50',
-            'av_lejos_od' => 'nullable|string|max:20',
-            'av_intermedia_od' => 'nullable|string|max:20',
-            'av_cerca_od' => 'nullable|string|max:20',
-            'av_lejos_oi' => 'nullable|string|max:20',
-            'av_intermedia_oi' => 'nullable|string|max:20',
-            'av_cerca_oi' => 'nullable|string|max:20',
-            'observaciones_optometria' => 'nullable|string',
-            'observaciones_formula' => 'nullable|string',
-            'tipo_lente' => 'nullable|string|max:50',
-            'especificaciones_lente' => 'nullable|string',
-            'vigencia_formula' => 'nullable|string|max:50',
-            'filtro' => 'nullable|string|max:50',
-            'tiempo_formulacion' => 'nullable|string|max:50',
-            'distancia_pupilar' => 'nullable|string|max:10',
-            'cantidad' => 'nullable|integer',
-            'diagnostico_principal' => 'nullable|string|max:255',
-            'otros_diagnosticos' => 'nullable|string',
-            'datos_adicionales' => 'nullable|string',
-            'finalidad_consulta' => 'nullable|string|max:255',
-            'causa_motivo_atencion' => 'nullable|string|max:255',
+            'optometra' => 'required|integer|exists:doctores,id',
         ]);
 
         $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();

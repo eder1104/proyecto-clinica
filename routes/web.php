@@ -8,7 +8,8 @@ use App\Http\Controllers\{
     CitaController,
     PacienteController,
     HistoriaClinicaController,
-    PreExamenController
+    PreExamenController,
+    CalendarioController
 };
 use Illuminate\Support\Facades\Route;
 
@@ -22,22 +23,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    Route::get('/administracion', fn() => view('administracion'))->name('administracion');
-
-    Route::get('/historias/historia', [HistoriaClinicaController::class, 'index'])->name('historias.index');
-    Route::resource('historias', HistoriaClinicaController::class)->except(['index']);
-    Route::get('/historias/cita/{paciente}', [HistoriaClinicaController::class, 'cita'])->name('historias.cita');
 });
 
 Route::middleware(['auth', 'checkrole:admin'])->group(function () {
+    Route::get('/administracion', fn() => view('administracion'))->name('administracion');
     Route::resource('users', UserController::class)->except(['show']);
     Route::patch('/users/{user}', [UserController::class, 'toggleStatus'])->name('users.toggle');
 });
 
-Route::middleware('auth')->group(function () {
-
-    Route::resource('citas', CitaController::class)->except(['show']);
+Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones'])->group(function () {
+    Route::resource('citas', controller: CitaController::class)->except(['show']);
     Route::get('/citas/{cita}/atencion', [CitaController::class, 'atencion'])->name('citas.atencion');
     Route::patch('/citas/{cita}/motivo', [CitaController::class, 'updateMotivo'])->name('citas.updateMotivo');
     Route::get('/citas/{cita}/pdf', [CitaController::class, 'pdf'])->name('citas.pdf');
@@ -68,7 +63,14 @@ Route::middleware('auth')->group(function () {
     Route::resource('pacientes', PacienteController::class)->except(['show']);
     Route::get('/pacientes/{id}/historia/pdf', [CitaController::class, 'descargarHistoriaPdf'])->name('pacientes.historia.pdf');
 
-    Route::post('/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'store'])->name('register.store');
+    Route::get('/historias/historia', [HistoriaClinicaController::class, 'index'])->name('historias.index');
+    Route::resource('historias', HistoriaClinicaController::class)->except(['index']);
+    Route::get('/historias/cita/{paciente}', [HistoriaClinicaController::class, 'cita'])->name('historias.cita');
+
+    Route::get('/calendario', [CalendarioController::class, 'index'])->name('calendario.index');
+    Route::get('/calendario/citas/{fecha}', [CalendarioController::class, 'citasPorDia'])->name('calendario.citasPorDia');
 });
+
+Route::post('/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'store'])->name('register.store');
 
 require __DIR__ . '/auth.php';

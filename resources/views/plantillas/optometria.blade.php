@@ -18,19 +18,20 @@ $isEdit = isset($plantilla) && $plantilla->exists;
                 <label>Optómetra</label>
                 <select name="optometra" class="form-control">
                     <option value="">-- Doctor a cargo de la consulta --</option>
-                    @forelse ($users->where('role', 'admisiones') as $user)
-                    <option value="{{ $user->id }}"
-                        {{ old('optometra', $plantilla->optometra ?? '') == $user->id ? 'selected' : '' }}>
-                        {{ $user->nombres }} {{ $user->apellidos }}
+                    @forelse ($doctores as $doctor)
+                    <option value="{{ $doctor->id }}"
+                        {{ old('optometra', $plantilla->optometra ?? '') == $doctor->id ? 'selected' : '' }}>
+                        {{ $doctor->nombres }} {{ $doctor->apellidos }}
                     </option>
                     @empty
-                    <option value="">No hay optometras disponibles</option>
+                    <option value="">No hay doctores disponibles</option>
                     @endforelse
                 </select>
                 @error('optometra')
                 <div class="invalid-feedback alerta">{{ $message }}</div>
                 @enderror
             </div>
+
 
             <div class="form-group checkbox-right">
                 <label for="consulta_completa">Consulta Completa</label>

@@ -67,7 +67,7 @@ class CitaController extends Controller
         return view('citas.edit', compact('cita', 'pacientes', 'admisiones'));
     }
 
-    public function update(CitaRequest $request, Cita $cita)
+    public function update(request $request, Cita $cita)
     {
         $validated = $request->validate([
             'fecha'        => 'required|date',

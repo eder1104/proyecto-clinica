@@ -24,7 +24,9 @@
             </header>
         @endif
 
-        <main>
+        <main class="p-4">
+            <x-alertas />
+
             {{ $slot ?? '' }}
             @yield('content')
         </main>

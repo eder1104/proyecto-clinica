@@ -9,15 +9,16 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $roles = ['paciente', 'admisiones'];
+        $roles = ['admin', 'admisiones', 'callcenter', 'doctor', 'paciente'];
 
         foreach ($roles as $role) {
-            Role::firstOrCreate(['name'=>$role,'guard_name'=>'web']);
+            Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
         }
 
         $this->call([
             UserSeeder::class,
-            PacienteSeeder::class,
+            DoctorSeeder::class, 
+            PacienteSeeder::class, 
         ]);
     }
 }

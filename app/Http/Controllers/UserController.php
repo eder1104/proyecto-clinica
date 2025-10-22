@@ -11,17 +11,35 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
+    /**
+     * Mostrar todos los usuarios administrativos (admin, admisiones, callcenter, doctor)
+     */
     public function index()
     {
-        $users = User::whereIn('role', ['admin', 'admisiones', 'callcenter'])->get();
+        $users = User::whereIn('role', ['admin', 'admisiones', 'callcenter', 'doctor'])->get();
         return view('users.index', compact('users'));
     }
 
+    /**
+     * Listar solo doctores
+     */
+    public function indexDoctors()
+    {
+        $users = User::where('role', 'doctor')->get();
+        return view('users.index', compact('users'));
+    }
+
+    /**
+     * Mostrar formulario de creación
+     */
     public function create()
     {
         return view('users.create');
     }
 
+    /**
+     * Guardar un nuevo usuario
+     */
     public function store(UserRequest $request)
     {
         User::create([
@@ -37,12 +55,17 @@ class UserController extends Controller
             ->with('success', 'Usuario creado correctamente.');
     }
 
-
+    /**
+     * Mostrar formulario de edición
+     */
     public function edit(User $user)
     {
         return view('users.edit', compact('user'));
     }
 
+    /**
+     * Actualizar usuario
+     */
     public function update(UserRequest $request, $id)
     {
         $user = User::findOrFail($id);
@@ -65,28 +88,39 @@ class UserController extends Controller
             ->with('success', 'Usuario actualizado correctamente.');
     }
 
-
+    /**
+     * Inactivar usuario (borrado lógico)
+     */
     public function destroy(User $user)
     {
-
         $user->status = 'inactivo';
-        $user->cancelled_by = Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema';
+        $user->cancelled_by = Auth::check()
+            ? Auth::user()->nombres . ' ' . Auth::user()->apellidos
+            : 'Registro por sistema';
         $user->save();
 
         return redirect()->route('users.index')
-            ->with('success', 'Usuario se inactivo correctamente.');
+            ->with('success', 'Usuario inactivado correctamente.');
     }
 
-
+    /**
+     * Activar / inactivar usuario
+     */
     public function toggleStatus(User $user)
     {
         $user->status = $user->status === 'activo' ? 'inactivo' : 'activo';
-        $user->updated_by = Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema';
+        $user->updated_by = Auth::check()
+            ? Auth::user()->nombres . ' ' . Auth::user()->apellidos
+            : 'Registro por sistema';
         $user->save();
 
         return redirect()->route('users.index')
-            ->with('success', 'Actualizado correctamente.');
+            ->with('success', 'Estado actualizado correctamente.');
     }
+
+    /**
+     * Registro de pacientes desde frontend
+     */
     public function register(Request $request)
     {
         $request->validate([
@@ -99,12 +133,16 @@ class UserController extends Controller
         $user = User::create([
             'nombres'    => $request->nombres,
             'apellidos'  => $request->apellidos,
-            'email'      => $request->email,
+            'email'      => strtolower($request->email),
             'password'   => Hash::make($request->password),
             'role'       => 'paciente',
             'status'     => 'activo',
-            'created_by' => Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema',
-            'updated_by' => Auth::check() ? Auth::user()->nombres . ' ' . Auth::user()->apellidos : 'Registro por sistema',
+            'created_by' => Auth::check()
+                ? Auth::user()->nombres . ' ' . Auth::user()->apellidos
+                : 'Registro por sistema',
+            'updated_by' => Auth::check()
+                ? Auth::user()->nombres . ' ' . Auth::user()->apellidos
+                : 'Registro por sistema',
         ]);
 
         Auth::login($user);

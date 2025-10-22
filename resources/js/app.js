@@ -18,3 +18,7 @@ Alpine.data('citasComponent', () => ({
 }))
 
 Alpine.start()
+
+window.navigationComponent = () => ({
+    open: false,
+});

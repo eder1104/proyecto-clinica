@@ -10,14 +10,28 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        $permisoUsuarios = Permission::firstOrCreate(['name' => 'gestionar usuarios', 'guard_name' => 'web']);
+        // Permisos base
+        $permisoUsuarios = Permission::firstOrCreate([
+            'name' => 'gestionar usuarios',
+            'guard_name' => 'web'
+        ]);
+
+        $permisoCitas = Permission::firstOrCreate([
+            'name' => 'gestionar citas',
+            'guard_name' => 'web'
+        ]);
 
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $admin->givePermissionTo([$permisoUsuarios,]);
+        $admin->givePermissionTo([$permisoUsuarios, $permisoCitas]);
 
         $callcenter = Role::firstOrCreate(['name' => 'callcenter', 'guard_name' => 'web']);
+        $callcenter->givePermissionTo([$permisoCitas]);
 
         $admisiones = Role::firstOrCreate(['name' => 'admisiones', 'guard_name' => 'web']);
+        $admisiones->givePermissionTo([$permisoCitas]);
+
+        $doctor = Role::firstOrCreate(['name' => 'doctor', 'guard_name' => 'web']);
+        $doctor->givePermissionTo([$permisoCitas]);
 
         $paciente = Role::firstOrCreate(['name' => 'paciente', 'guard_name' => 'web']);
     }
