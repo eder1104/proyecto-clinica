@@ -5,10 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\HistoriaClinica;
 use App\Models\Paciente;
 use App\Models\Cita;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use App\Models\Plantilla_Optometria;
-use App\Models\Plantilla_Examenes;
 
 class HistoriaClinicaController extends Controller
 {
@@ -33,18 +32,17 @@ class HistoriaClinicaController extends Controller
     {
         $cita = Cita::with(['paciente', 'TipoCita'])->findOrFail($id);
 
-        if ($cita->tipo_cita_id == 1) {
-            return redirect()->route('optometria.edit', ['cita' => $cita->id]);
-        }
+        if ($cita->tipo_cita_id == 1 || $cita->tipo_cita_id == 2) {
+            $historia = HistoriaClinica::firstOrCreate([
+                'paciente_id' => $cita->paciente_id,
+            ]);
 
-        if ($cita->tipo_cita_id == 2) {
-            return redirect()->route('examenes.edit', ['cita' => $cita->id]);
+            return redirect()->route('historias.edit', ['historia' => $historia->id]);
         }
 
         return redirect()->route('historias.index')
             ->with('error', 'No existe una plantilla asociada a este tipo de cita.');
     }
-
 
     public function edit(HistoriaClinica $historia)
     {
@@ -55,49 +53,28 @@ class HistoriaClinicaController extends Controller
     public function update(Request $request, Cita $cita)
     {
         $request->validate([
-            'optometra' => 'required|integer|exists:users,id',
-            'consulta_completa' => 'nullable|boolean',
-            'anamnesis' => 'nullable|string',
-            'alternativa_deseada' => 'nullable|string|max:255',
-            'dominancia_ocular' => 'nullable|string|max:50',
-            'av_lejos_od' => 'nullable|string|max:20',
-            'av_intermedia_od' => 'nullable|string|max:20',
-            'av_cerca_od' => 'nullable|string|max:20',
-            'av_lejos_oi' => 'nullable|string|max:20',
-            'av_intermedia_oi' => 'nullable|string|max:20',
-            'av_cerca_oi' => 'nullable|string|max:20',
-            'observaciones_internas' => 'nullable|string',
-            'observaciones_optometria' => 'nullable|string',
-            'observaciones_formula' => 'nullable|string',
-            'tipo_lente' => 'nullable|string|max:50',
-            'especificaciones_lente' => 'nullable|string',
-            'vigencia_formula' => 'nullable|string|max:50',
-            'filtro' => 'nullable|string|max:50',
-            'tiempo_formulacion' => 'nullable|string|max:50',
-            'distancia_pupilar' => 'nullable|string|max:10',
-            'cantidad' => 'nullable|integer',
-            'diagnostico_principal' => 'nullable|string|max:255',
-            'otros_diagnosticos' => 'nullable|string',
-            'datos_adicionales' => 'nullable|string',
-            'finalidad_consulta' => 'nullable|string|max:255',
-            'causa_motivo_atencion' => 'nullable|string|max:255',
+            'motivo_consulta' => 'nullable|string',
+            'antecedentes' => 'nullable|array',
+            'signos_vitales' => 'nullable|array',
+            'diagnostico' => 'nullable|string|max:255',
+            'conducta' => 'nullable|string',
+            'created_by' => 'nullable|integer|exists:users,id',
+            'updated_by' => 'nullable|integer|exists:users,id',
         ]);
 
-        $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
+        $historia = HistoriaClinica::where('paciente_id', $cita->paciente_id)->first();
 
-        if ($plantilla) {
-            $plantilla->update($request->all());
+        if ($historia) {
+            $historia->update($request->all());
         } else {
-            Plantilla_Optometria::create([
-                'cita_id' => $cita->id,
+            HistoriaClinica::create([
                 'paciente_id' => $cita->paciente_id,
             ] + $request->all());
         }
 
-        return redirect()->route('optometria.edit', $cita->id)
-            ->with('success', 'Plantilla de optometría actualizada correctamente.');
+        return redirect()->route('historias.edit', ['historia' => $historia->id ?? HistoriaClinica::latest()->first()->id])
+            ->with('success', 'Historia clínica actualizada correctamente.');
     }
-
 
     public function destroy(HistoriaClinica $historia)
     {
@@ -107,6 +84,29 @@ class HistoriaClinicaController extends Controller
         return redirect()->route('historias.show', $paciente_id)
             ->with('success', 'Historia clínica eliminada.');
     }
+
+
+    public function registrarDesdeCita(Cita $cita, User $user)
+    {
+        $historiaData = [
+            'paciente_id'     => $cita->paciente_id,
+            'motivo_consulta' => 'Atención en cita de optometría',
+            'antecedentes'    => [],
+            'signos_vitales'  => [],
+            'diagnostico'     => 'En espera de diagnóstico del optómetra',
+            'conducta'        => 'Se recomienda seguimiento',
+            'created_by'      => $user->id,
+            'updated_by'      => $user->id,
+        ];
+
+        HistoriaClinica::updateOrCreate(
+            ['paciente_id' => $cita->paciente_id],
+            $historiaData
+        );
+
+        return true;
+    }
+
 
     public function verPdf(Cita $cita)
     {

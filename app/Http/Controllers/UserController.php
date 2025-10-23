@@ -11,35 +11,28 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    /**
-     * Mostrar todos los usuarios administrativos (admin, admisiones, callcenter, doctor)
-     */
     public function index()
     {
-        $users = User::whereIn('role', ['admin', 'admisiones', 'callcenter', 'doctor'])->get();
+        $users = User::whereIn('role', ['admin', 'admisiones', 'callcenter', 'doctor'])
+            ->orderBy('nombres', 'asc')
+            ->paginate(10);
+
         return view('users.index', compact('users'));
     }
 
-    /**
-     * Listar solo doctores
-     */
+
+
     public function indexDoctors()
     {
         $users = User::where('role', 'doctor')->get();
         return view('users.index', compact('users'));
     }
 
-    /**
-     * Mostrar formulario de creación
-     */
     public function create()
     {
         return view('users.create');
     }
 
-    /**
-     * Guardar un nuevo usuario
-     */
     public function store(UserRequest $request)
     {
         User::create([
@@ -55,17 +48,13 @@ class UserController extends Controller
             ->with('success', 'Usuario creado correctamente.');
     }
 
-    /**
-     * Mostrar formulario de edición
-     */
+
     public function edit(User $user)
     {
         return view('users.edit', compact('user'));
     }
 
-    /**
-     * Actualizar usuario
-     */
+
     public function update(UserRequest $request, $id)
     {
         $user = User::findOrFail($id);
@@ -84,13 +73,10 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return redirect()->route('users.index')
+        return redirect()->route('users.edit', $user->id)
             ->with('success', 'Usuario actualizado correctamente.');
     }
 
-    /**
-     * Inactivar usuario (borrado lógico)
-     */
     public function destroy(User $user)
     {
         $user->status = 'inactivo';
@@ -103,9 +89,7 @@ class UserController extends Controller
             ->with('success', 'Usuario inactivado correctamente.');
     }
 
-    /**
-     * Activar / inactivar usuario
-     */
+
     public function toggleStatus(User $user)
     {
         $user->status = $user->status === 'activo' ? 'inactivo' : 'activo';
@@ -118,9 +102,7 @@ class UserController extends Controller
             ->with('success', 'Estado actualizado correctamente.');
     }
 
-    /**
-     * Registro de pacientes desde frontend
-     */
+
     public function register(Request $request)
     {
         $request->validate([

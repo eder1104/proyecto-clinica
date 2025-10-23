@@ -9,18 +9,19 @@ return new class extends Migration {
     {
         Schema::create('citas', function (Blueprint $table) {
             $table->id();
+
             $table->date('fecha');
             $table->time('hora_inicio');
             $table->time('hora_fin');
             $table->string('estado')->default('programada');
 
             $table->foreignId('paciente_id')->constrained('pacientes')->restrictOnDelete();
-            $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
-            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('cancelled_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->text('cancel_reason')->nullable();
-
             $table->unsignedBigInteger('tipo_cita_id')->nullable();
+
+            $table->string('created_by')->nullable();
+            $table->string('updated_by')->nullable();
+            $table->string('cancelled_by')->nullable();
+            $table->text('cancel_reason')->nullable();
 
             $table->softDeletes();
             $table->timestamps();

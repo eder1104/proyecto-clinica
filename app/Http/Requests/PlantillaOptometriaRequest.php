@@ -13,17 +13,18 @@ class PlantillaOptometriaRequest extends FormRequest
 
     public function rules(): array
     {
-        // Si no se marcó "consulta_completa", solo validamos el optómetra
         if (!$this->has('consulta_completa')) {
             return [
-                'optometra' => 'required|integer|exists:doctores,id',
+                'consulta_completa' => 'nullable|boolean',
+                
+                'anamnesis' => 'nullable|string',
+                'diagnostico_principal' => 'nullable|string|max:255',
+                'finalidad_consulta' => 'nullable|string|max:255',
+                'causa_motivo_atencion' => 'nullable|string|max:255',
             ];
         }
 
-        // Si está marcada, aplicamos todas las reglas completas
         return [
-            'optometra' => 'required|integer|exists:doctores,id',
-
             'consulta_completa' => 'nullable|boolean',
             'anamnesis' => 'required|string',
             'alternativa_deseada' => 'required|string|max:255',
@@ -57,8 +58,6 @@ class PlantillaOptometriaRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'optometra.required' => 'Debe seleccionar el optómetra a cargo.',
-            'optometra.exists'   => 'El optómetra seleccionado no existe.',
 
             'anamnesis.required' => 'Debe ingresar la anamnesis.',
             'alternativa_deseada.required' => 'Debe indicar la alternativa deseada.',

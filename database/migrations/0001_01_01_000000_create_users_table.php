@@ -17,8 +17,7 @@ return new class extends Migration {
             $table->string('especializacion')->nullable();
             $table->string('password');
 
-            $table->enum('role', ['admin', 'callcenter', 'admisiones', 'doctor'])
-                ->default('callcenter');
+            $table->string('role', 50)->default('callcenter');
 
             $table->enum('status', ['activo', 'inactivo'])
                 ->default('activo');

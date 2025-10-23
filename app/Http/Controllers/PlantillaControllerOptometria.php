@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Plantilla_Optometria;
 use App\Models\Cita;
-use App\Models\doctores; 
+use App\Models\doctores;
 use App\Http\Requests\PlantillaOptometriaRequest;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class PlantillaControllerOptometria extends Controller
 {
@@ -16,9 +18,8 @@ class PlantillaControllerOptometria extends Controller
 
         $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
         $citas = Cita::with('paciente')->orderBy('fecha', 'desc')->get();
-        $doctores = doctores::all();
+        $doctores = User::where('role', 'doctor')->get();
         $id = $plantilla ? $plantilla->id : null;
-        $doctores = doctores::with('user')->get();
 
         return view('plantillas.optometria', compact('id', 'plantilla', 'citas', 'cita', 'doctores'));
     }
@@ -28,10 +29,9 @@ class PlantillaControllerOptometria extends Controller
         $cita->load(['paciente', 'TipoCita']);
 
         $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
-        $doctores = doctores::all(); 
+        $doctores = User::where('role', 'doctor')->get();
 
         $TipoCita = $cita->TipoCita ?? null;
-        $doctores = doctores::with('user')->get();
 
         return view('historias.optometria_edit', compact('plantilla', 'cita', 'doctores', 'TipoCita'));
     }
@@ -39,38 +39,18 @@ class PlantillaControllerOptometria extends Controller
     public function store(PlantillaOptometriaRequest $request, $cita_id)
     {
         $cita = Cita::findOrFail($cita_id);
+        $user = Auth::user();
 
-        $request->validate([
-            'optometra' => 'required|integer|exists:doctores,id',
-            'consulta_completa' => 'nullable|boolean',
-            'anamnesis' => 'nullable|string',
-            'alternativa_deseada' => 'nullable|string|max:255',
-            'dominancia_ocular' => 'nullable|string|max:50',
-            'av_lejos_od' => 'nullable|string|max:20',
-            'av_intermedia_od' => 'nullable|string|max:20',
-            'av_cerca_od' => 'nullable|string|max:20',
-            'av_lejos_oi' => 'nullable|string|max:20',
-            'av_intermedia_oi' => 'nullable|string|max:20',
-            'av_cerca_oi' => 'nullable|string|max:20',
-            'observaciones_optometria' => 'nullable|string',
-            'tipo_lente' => 'nullable|string|max:50',
-            'especificaciones_lente' => 'nullable|string',
-            'vigencia_formula' => 'nullable|string|max:50',
-            'filtro' => 'nullable|string|max:50',
-            'tiempo_formulacion' => 'nullable|string|max:50',
-            'distancia_pupilar' => 'nullable|string|max:10',
-            'cantidad' => 'nullable|integer',
-            'diagnostico_principal' => 'nullable|string|max:255',
-            'otros_diagnosticos' => 'nullable|string',
-            'datos_adicionales' => 'nullable|string',
-            'finalidad_consulta' => 'nullable|string|max:255',
-            'causa_motivo_atencion' => 'nullable|string|max:255',
-        ]);
+        $idOptometraLogeado = $user->id;
+
+        if ($user->role !== 'doctor') {
+            return back()->withErrors(['optometra' => 'El usuario logueado no tiene el rol de doctor.'])->withInput();
+        }
 
         $data = [
             'paciente_id' => $cita->paciente_id,
             'cita_id' => $cita->id,
-            'optometra' => $request->optometra,
+            'optometra' => $idOptometraLogeado,
             'consulta_completa' => $request->has('consulta_completa') ? 1 : 0,
             'anamnesis' => $request->anamnesis,
             'alternativa_deseada' => $request->alternativa_deseada,
@@ -110,14 +90,19 @@ class PlantillaControllerOptometria extends Controller
 
     public function update(PlantillaOptometriaRequest $request, Cita $cita)
     {
-        $request->validate([
-            'optometra' => 'required|integer|exists:doctores,id',
-        ]);
+        $user = Auth::user();
+
+        $idOptometraLogeado = $user->id;
+
+        if ($user->role !== 'doctor') {
+            return back()->withErrors(['optometra' => 'El usuario logueado no tiene el rol de doctor.'])->withInput();
+        }
 
         $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
 
         $data = $request->all();
         $data['consulta_completa'] = $request->has('consulta_completa') ? 1 : 0;
+        $data['optometra'] = $idOptometraLogeado;
 
         if ($plantilla) {
             $plantilla->update($data);

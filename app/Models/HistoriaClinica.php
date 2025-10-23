@@ -20,12 +20,17 @@ class HistoriaClinica extends Model
         'diagnostico',
         'conducta',
         'created_by',
-        'updated_by'
+        'updated_by',
+    ];
+
+    protected $casts = [
+        'antecedentes' => 'array',
+        'signos_vitales' => 'array', 
     ];
 
     public function paciente()
     {
-        return $this->belongsTo(Paciente::class);
+        return $this->belongsTo(Paciente::class, 'paciente_id');
     }
 
     public function creador()

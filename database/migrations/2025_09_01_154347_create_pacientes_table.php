@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('pacientes', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('user_id')->nullable();
 
             $table->string('nombres');
             $table->string('apellidos');

@@ -14,8 +14,7 @@ class PacientesRequest extends FormRequest
 
     public function rules(): array
     {
-        $paciente = $this->route('paciente');
-        $id = is_object($paciente) ? $paciente->id : $paciente;
+        $id = $this->route('paciente') ? $this->route('paciente')->id : $this->route('id');
 
         $isUpdate = in_array($this->method(), ['PUT', 'PATCH']);
 
@@ -40,21 +39,21 @@ class PacientesRequest extends FormRequest
                 'regex:/^[0-9]+$/',
                 'min:6',
                 'max:10',
-                $isUpdate
+                $isUpdate && $id
                     ? Rule::unique('pacientes', 'documento')->ignore($id)
                     : Rule::unique('pacientes', 'documento'),
             ],
             'telefono' => [
                 'nullable',
                 'regex:/^[0-9+\s\-()]{7,20}$/',
-                'min: 9',
-                'max: 11'
+                'min:9',
+                'max:11'
             ],
             'email' => [
                 'nullable',
                 'email',
                 'max:255',
-                $isUpdate
+                $isUpdate && $id
                     ? Rule::unique('pacientes', 'email')->ignore($id)
                     : Rule::unique('pacientes', 'email'),
             ],
@@ -72,6 +71,11 @@ class PacientesRequest extends FormRequest
                 'nullable',
                 'in:M,F',
             ],
+            'tipo_documento' => [
+                'required',
+                'string',
+                'max:20'
+            ]
         ];
     }
 
@@ -95,8 +99,8 @@ class PacientesRequest extends FormRequest
             'documento.max' => 'El documento no puede superar los 10 dígitos.',
 
             'telefono.regex' => 'El teléfono tiene un formato no válido.',
-            'telefono.min' => 'El telefono no puede tener menos de 10 caracteres',
-            'telefono.max' => 'El telefono no puede tener mas de 10 caracteres',
+            'telefono.min' => 'El telefono no puede tener menos de 9 caracteres',
+            'telefono.max' => 'El telefono no puede tener mas de 11 caracteres',
 
             'email.email' => 'Debe ser un correo electrónico válido.',
             'email.unique' => 'Este correo ya está registrado.',
@@ -107,6 +111,13 @@ class PacientesRequest extends FormRequest
             'fecha_nacimiento.before' => 'La fecha de nacimiento no puede ser futura.',
 
             'sexo.in' => 'El valor del sexo debe ser M o F.',
+
+            'tipo_documento.required' => 'El tipo de documento es obligatorio.',
         ];
+    }
+
+    public function validationData()
+    {
+        return array_merge($this->all(), $this->json()->all() ?? []);
     }
 }

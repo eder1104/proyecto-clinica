@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="form-container" x-data="{ open: true }">
+    <div class="form-container" x-data="{ open: true, openRoleModal: false, selectedRole: '{{ old('role', '') }}' }">
         <div x-show="open" class="modal-overlay">
             <div class="modal-box">
                 <form action="{{ route('users.store') }}" method="POST">
@@ -67,14 +67,17 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="role" class="form-label">Rol</label>
-                        <select name="role" id="role"
-                            class="form-input @error('role') input-error @enderror" required>
-                            <option value="">Seleccione un rol</option>
-                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                            <option value="admisiones" {{ old('role') == 'admisiones' ? 'selected' : '' }}>Admisiones</option>
-                            <option value="callcenter" {{ old('role') == 'callcenter' ? 'selected' : '' }}>Callcenter</option>
-                        </select>
+                        <label for="role_display" class="form-label">Rol</label>
+                        <div class="role-selector-container">
+                            <input type="text" id="role_display"
+                                :value="selectedRole ? selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) : 'Seleccione un rol'"
+                                class="form-input" readonly
+                                :class="{ 'input-error': {{ $errors->has('role') ? 'true' : 'false' }} }">
+                            <button type="button" @click="openRoleModal = true" class="btn-open-modal">
+                                Cambiar Rol
+                            </button>
+                            <input type="hidden" name="role" :value="selectedRole">
+                        </div>
                         @error('role')
                         <p class="error-text">{{ $message }}</p>
                         @enderror
@@ -85,6 +88,26 @@
                         <button type="submit" class="btn-submit">Guardar Usuario</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <div x-show="openRoleModal" class="modal-overlay">
+            <div class="modal-box small-modal">
+                <h3 class="modal-subtitle">Seleccionar Rol</h3>
+                <div class="form-group">
+                    <label for="role_select" class="form-label">Rol</label>
+                    <select id="role_select" class="form-input" x-model="selectedRole">
+                        <option value="">Seleccione un rol</option>
+                        <option value="admin">Admin</option>
+                        <option value="admisiones">Admisiones</option>
+                        <option value="callcenter">Callcenter</option>
+                        <option value="doctor">Doctor</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" @click="openRoleModal = false" class="btn-cancel">Cerrar</button>
+                    <button type="button" @click="openRoleModal = false" class="btn-submit">Confirmar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -119,6 +142,19 @@
             padding: 2rem;
             border-radius: 0.75rem;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease-in-out;
+        }
+
+    
+        .small-modal {
+            max-width: 20rem;
+        }
+
+        .modal-subtitle {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1f2937;
         }
 
         .form-group {
@@ -130,6 +166,33 @@
             font-weight: 600;
             color: #374151;
             margin-bottom: 0.5rem;
+        }
+
+        .role-selector-container {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .role-selector-container .form-input {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+
+        .btn-open-modal {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            background: gray;
+            color: white;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-open-modal:hover {
+            background: black;
         }
 
         .form-input {
@@ -171,6 +234,8 @@
             color: #111827;
             font-weight: 500;
             text-decoration: none;
+            border: none;
+            cursor: pointer;
             transition: background 0.2s;
         }
 
@@ -184,6 +249,8 @@
             background: #2563eb;
             color: white;
             font-weight: 600;
+            border: none;
+            cursor: pointer;
             transition: background 0.2s, transform 0.1s;
         }
 
@@ -209,5 +276,4 @@
             font-size: 1.2rem;
         }
     </style>
-
 </x-app-layout>

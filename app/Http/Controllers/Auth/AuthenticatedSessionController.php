@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use App\Models\Role;
+use App\Models\User;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -18,38 +19,32 @@ class AuthenticatedSessionController extends Controller
     public function create(): View
     {
         return view('auth.login');
-    
     }
 
     /**
      * Handle an incoming authentication request.
      */
     public function store(LoginRequest $request, Role $role): RedirectResponse
-{
-    $request->authenticate();
+    {
+        $request->authenticate();
 
-    $user = Auth::user();
-    $roles = Role::all();
+        $user = Auth::user();
 
-    if ($user->status !== 'activo') {
-        Auth::logout();
-        return redirect()->route('login')->withErrors([
-            'email' => 'Tu usuario está inactivo, comunícate con el administrador.',
-        ]);
+        if ($user->status !== 'activo') {
+            Auth::logout();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Tu usuario está inactivo, comunícate con el administrador.',
+            ]);
+        }
+
+        $request->session()->regenerate();
+
+        if ($user->role === 'admin') {
+            return redirect()->intended(route('users.index', absolute: false));
+        }
+        
+        return redirect()->intended(route('citas.index', absolute: false));
     }
-
-   /*  if ($roles == $user->'$admin'){
-        return redirect(route('administracion.index'))
-    } else {
-        log("no existe el rol")
-    }; */
-    $request->session()->regenerate();
-
-    return redirect()->intended(route('pacientes.index', absolute: false));
-}
-
-
-
 
 
     /**

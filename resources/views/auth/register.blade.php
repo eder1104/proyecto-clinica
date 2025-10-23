@@ -27,6 +27,8 @@
                 <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                 <option value="admisiones" {{ old('role') == 'admisiones' ? 'selected' : '' }}>Admisiones</option>
                 <option value="callcenter" {{ old('role') == 'callcenter' ? 'selected' : '' }}>Callcenter</option>
+                <option value="doctor" {{ old('role') == 'doctor' ? 'selected' : '' }}>doctor</option>
+
             </select>
             <x-input-error :messages="$errors->get('role')" class="mt-2" />
         </div>

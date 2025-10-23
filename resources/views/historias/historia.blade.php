@@ -8,7 +8,6 @@
 
 @section('content')
 @php
-    // Asegurarnos de que las variables existen para evitar errores si se llama accidentalmente sin datos
     $paciente = $paciente ?? null;
     $citas = $citas ?? collect();
 @endphp

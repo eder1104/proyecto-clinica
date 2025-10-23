@@ -35,11 +35,6 @@ class CitaRequest extends FormRequest
                 'max:255',
                 'not_regex:/^\s*$/',
             ],
-            'admisiones_id' => [
-                'required',
-                'integer',
-                'exists:users,id',
-            ],
             'paciente_id' => [
                 'required',
                 'integer',

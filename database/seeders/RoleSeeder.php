@@ -10,7 +10,6 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        // Permisos base
         $permisoUsuarios = Permission::firstOrCreate([
             'name' => 'gestionar usuarios',
             'guard_name' => 'web'

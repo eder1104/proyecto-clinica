@@ -1,5 +1,21 @@
 @php
+use Illuminate\Support\Facades\Auth;
+
 $isEdit = isset($plantilla) && $plantilla->exists;
+
+$user = Auth::user();
+
+$idOptometra = optional($user->doctor)->id;
+
+$nombreCompletoOptometra = trim(($user->nombres ?? '') . ' ' . ($user->apellidos ?? ''));
+
+if (empty($nombreCompletoOptometra) && $idOptometra) {
+    $nombreCompletoOptometra = 'Doctor ID: ' . $idOptometra;
+}
+
+if (empty($nombreCompletoOptometra)) {
+    $nombreCompletoOptometra = 'Usuario no identificado';
+}
 @endphp
 @section('title', 'Consulta de Optometría')
 @section('content')
@@ -14,22 +30,14 @@ $isEdit = isset($plantilla) && $plantilla->exists;
         @endif
 
         <div class="form-row">
-            <div class="form-row">
-                <div class="form-group small-input">
+            <div class="form-row" style="flex-grow: 1;">
+                <div class="form-group small-input" style="flex-grow: 1;">
                     <label>Optómetra</label>
-                    <select name="optometra" class="form-control">
-                        <option value="">-- Doctor a cargo de la consulta --</option>
-                        @forelse ($doctores as $doctor)
-                        <option value="{{ $doctor->id }}"
-                            {{ old('optometra', $plantilla->optometra ?? '') == $doctor->id ? 'selected' : '' }}>
-                            {{ $doctor->user->name ?? '' }} {{ $doctor->user->apellidos ?? '' }}
-                        </option>
-                        @empty
-                        <option value="">No hay doctores disponibles</option>
-                        @endforelse
-                    </select>
+                    <p class="form-control-static" style="border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f0f0f0; color: #333; font-weight: bold;">
+                        {{ $nombreCompletoOptometra }}
+                    </p>
+                    
                     @error('optometra')
-                    <div class="invalid-feedback alerta">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
@@ -76,8 +84,8 @@ $isEdit = isset($plantilla) && $plantilla->exists;
                     <select name="av_lejos_od" class="form-control agudeza-select">
                         <option value=""></option>
                         @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
-                            <option value="{{ number_format($i, 2, '.', '') }}">{{ number_format($i, 2, '.', '') }}</option>
-                            @endfor
+                            <option value="{{ number_format($i, 2, '.', '') }}" {{ old('av_lejos_od', $plantilla->av_lejos_od ?? '') == number_format($i, 2, '.', '') ? 'selected' : '' }}>{{ number_format($i, 2, '.', '') }}</option>
+                        @endfor
                     </select>
                     <div class="color-box" data-input="av_lejos_od"></div>
                 </div>
@@ -89,8 +97,8 @@ $isEdit = isset($plantilla) && $plantilla->exists;
                     <select name="av_intermedia_od" class="form-control agudeza-select">
                         <option value=""></option>
                         @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
-                            <option value="{{ number_format($i, 2, '.', '') }}">{{ number_format($i, 2, '.', '') }}</option>
-                            @endfor
+                            <option value="{{ number_format($i, 2, '.', '') }}" {{ old('av_intermedia_od', $plantilla->av_intermedia_od ?? '') == number_format($i, 2, '.', '') ? 'selected' : '' }}>{{ number_format($i, 2, '.', '') }}</option>
+                        @endfor
                     </select>
                     <div class="color-box" data-input="av_intermedia_od"></div>
                 </div>
@@ -102,8 +110,8 @@ $isEdit = isset($plantilla) && $plantilla->exists;
                     <select name="av_cerca_od" class="form-control agudeza-select">
                         <option value=""></option>
                         @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
-                            <option value="{{ number_format($i, 2, '.', '') }}">{{ number_format($i, 2, '.', '') }}</option>
-                            @endfor
+                            <option value="{{ number_format($i, 2, '.', '') }}" {{ old('av_cerca_od', $plantilla->av_cerca_od ?? '') == number_format($i, 2, '.', '') ? 'selected' : '' }}>{{ number_format($i, 2, '.', '') }}</option>
+                        @endfor
                     </select>
                     <div class="color-box" data-input="av_cerca_od"></div>
                 </div>
@@ -117,8 +125,8 @@ $isEdit = isset($plantilla) && $plantilla->exists;
                     <select name="av_lejos_oi" class="form-control agudeza-select">
                         <option value=""></option>
                         @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
-                            <option value="{{ number_format($i, 2, '.', '') }}">{{ number_format($i, 2, '.', '') }}</option>
-                            @endfor
+                            <option value="{{ number_format($i, 2, '.', '') }}" {{ old('av_lejos_oi', $plantilla->av_lejos_oi ?? '') == number_format($i, 2, '.', '') ? 'selected' : '' }}>{{ number_format($i, 2, '.', '') }}</option>
+                        @endfor
                     </select>
                     <div class="color-box" data-input="av_lejos_oi"></div>
                 </div>
@@ -130,8 +138,8 @@ $isEdit = isset($plantilla) && $plantilla->exists;
                     <select name="av_intermedia_oi" class="form-control agudeza-select">
                         <option value=""></option>
                         @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
-                            <option value="{{ number_format($i, 2, '.', '') }}">{{ number_format($i, 2, '.', '') }}</option>
-                            @endfor
+                            <option value="{{ number_format($i, 2, '.', '') }}" {{ old('av_intermedia_oi', $plantilla->av_intermedia_oi ?? '') == number_format($i, 2, '.', '') ? 'selected' : '' }}>{{ number_format($i, 2, '.', '') }}</option>
+                        @endfor
                     </select>
                     <div class="color-box" data-input="av_intermedia_oi"></div>
                 </div>
@@ -143,8 +151,8 @@ $isEdit = isset($plantilla) && $plantilla->exists;
                     <select name="av_cerca_oi" class="form-control agudeza-select">
                         <option value=""></option>
                         @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
-                            <option value="{{ number_format($i, 2, '.', '') }}">{{ number_format($i, 2, '.', '') }}</option>
-                            @endfor
+                            <option value="{{ number_format($i, 2, '.', '') }}" {{ old('av_cerca_oi', $plantilla->av_cerca_oi ?? '') == number_format($i, 2, '.', '') ? 'selected' : '' }}>{{ number_format($i, 2, '.', '') }}</option>
+                        @endfor
                     </select>
                     <div class="color-box" data-input="av_cerca_oi"></div>
                 </div>

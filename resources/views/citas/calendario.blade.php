@@ -33,7 +33,6 @@
         const citas = JSON.parse(calendarDays.dataset.citas);
         let currentDate = new Date();
 
-        // Crear modal
         const modal = document.createElement("div");
         modal.classList.add("modal-overlay");
         modal.style.display = "none";

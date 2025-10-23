@@ -19,39 +19,38 @@ class Cita extends Model
         'hora_inicio',
         'hora_fin',
         'estado',
-        'created_by',
+        'created_by',   
         'paciente_id',
-        'updated_by',
+        'updated_by',  
         'cancelled_by',
         'cancel_reason',
         'tipo_cita_id',
     ];
 
-    protected $with = ['paciente'];
+    protected $with = ['paciente', 'tipoCita'];
 
-    // Relaciones
     public function paciente()
     {
         return $this->belongsTo(Paciente::class, 'paciente_id');
     }
 
-    public function createdBy()
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function updatedBy()
-    {
-        return $this->belongsTo(User::class, 'updated_by');
-    }
-
-    public function cancelledBy()
-    {
-        return $this->belongsTo(User::class, 'cancelled_by');
-    }
-
     public function tipoCita()
     {
         return $this->belongsTo(TipoCita::class, 'tipo_cita_id');
+    }
+
+    public function getCreadoPorAttribute()
+    {
+        return $this->created_by ?? 'No registrado';
+    }
+
+    public function getActualizadoPorAttribute()
+    {
+        return $this->updated_by ?? 'No registrado';
+    }
+
+    public function getCanceladoPorAttribute()
+    {
+        return $this->cancelled_by ?? 'No registrado';
     }
 }
