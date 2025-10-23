@@ -3,6 +3,7 @@ import Alpine from 'alpinejs'
 
 window.Alpine = Alpine
 
+// Componente para citas
 Alpine.data('citasComponent', () => ({
     open: true,
     openPaciente: false,
@@ -17,8 +18,8 @@ Alpine.data('citasComponent', () => ({
     }
 }))
 
-Alpine.start()
-
-window.navigationComponent = () => ({
+Alpine.data('navigationComponent', () => ({
     open: false,
-});
+}))
+
+Alpine.start()

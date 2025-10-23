@@ -14,11 +14,12 @@
                         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow-md transition">
                         Nuevo Paciente
                     </a>
-                    <div  class="Table_Pacientes">
+                    <div class="Table_Pacientes">
                         <table class="mt-9 w-full border border-gray-300 text-sm table_paciente">
                             <thead>
                                 <tr class="bg-gray-100">
                                     <th class="border px-4 py-2 w-16">ID</th>
+                                    <th class="border px-4 py-2 w-32">Tipo Doc.</th>
                                     <th class="border px-4 py-2 w-32">Nombres</th>
                                     <th class="border px-4 py-2 w-32">Apellidos</th>
                                     <th class="border px-4 py-2 w-24">Documento</th>
@@ -34,6 +35,27 @@
                                 @forelse ($pacientes as $paciente)
                                 <tr class="hover:bg-gray-50">
                                     <td class="border px-4 py-2 text-center">{{ $paciente->id }}</td>
+
+                                    {{-- Mostrar nombre completo del tipo de documento --}}
+                                    <td class="border px-4 py-2 text-center">
+                                        @switch($paciente->tipo_documento)
+                                            @case('CC')
+                                                Cédula de Ciudadanía
+                                                @break
+                                            @case('TI')
+                                                Tarjeta de Identidad
+                                                @break
+                                            @case('CE')
+                                                Cédula de Extranjería
+                                                @break
+                                            @case('PA')
+                                                Pasaporte
+                                                @break
+                                            @default
+                                                {{ $paciente->tipo_documento }}
+                                        @endswitch
+                                    </td>
+
                                     <td class="border px-4 py-2 truncate" title="{{ $paciente->nombres }}">{{ $paciente->nombres }}</td>
                                     <td class="border px-4 py-2 truncate" title="{{ $paciente->apellidos }}">{{ $paciente->apellidos }}</td>
                                     <td class="border px-4 py-2">{{ $paciente->documento }}</td>
@@ -62,7 +84,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="10" class="border px-4 py-2 text-center text-gray-500">
+                                    <td colspan="11" class="border px-4 py-2 text-center text-gray-500">
                                         No hay pacientes registrados
                                     </td>
                                 </tr>

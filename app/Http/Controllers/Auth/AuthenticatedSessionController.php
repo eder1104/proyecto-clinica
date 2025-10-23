@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Models\Role;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -17,16 +18,18 @@ class AuthenticatedSessionController extends Controller
     public function create(): View
     {
         return view('auth.login');
+    
     }
 
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request, Role $role): RedirectResponse
 {
     $request->authenticate();
 
     $user = Auth::user();
+    $roles = Role::all();
 
     if ($user->status !== 'activo') {
         Auth::logout();
@@ -35,9 +38,14 @@ class AuthenticatedSessionController extends Controller
         ]);
     }
 
+   /*  if ($roles == $user->'$admin'){
+        return redirect(route('administracion.index'))
+    } else {
+        log("no existe el rol")
+    }; */
     $request->session()->regenerate();
 
-    return redirect()->intended(route('dashboard', absolute: false));
+    return redirect()->intended(route('pacientes.index', absolute: false));
 }
 
 

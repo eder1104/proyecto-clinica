@@ -39,7 +39,7 @@ class PacientesRequest extends FormRequest
                 'string',
                 'regex:/^[0-9]+$/',
                 'min:6',
-                'max:15',
+                'max:10',
                 $isUpdate
                     ? Rule::unique('pacientes', 'documento')->ignore($id)
                     : Rule::unique('pacientes', 'documento'),
@@ -47,6 +47,8 @@ class PacientesRequest extends FormRequest
             'telefono' => [
                 'nullable',
                 'regex:/^[0-9+\s\-()]{7,20}$/',
+                'min: 9',
+                'max: 11'
             ],
             'email' => [
                 'nullable',
@@ -90,9 +92,11 @@ class PacientesRequest extends FormRequest
             'documento.regex' => 'El documento solo puede contener números.',
             'documento.unique' => 'Este documento ya está registrado.',
             'documento.min' => 'El documento debe tener al menos 6 dígitos.',
-            'documento.max' => 'El documento no puede superar los 15 dígitos.',
+            'documento.max' => 'El documento no puede superar los 10 dígitos.',
 
             'telefono.regex' => 'El teléfono tiene un formato no válido.',
+            'telefono.min' => 'El telefono no puede tener menos de 10 caracteres',
+            'telefono.max' => 'El telefono no puede tener mas de 10 caracteres',
 
             'email.email' => 'Debe ser un correo electrónico válido.',
             'email.unique' => 'Este correo ya está registrado.',

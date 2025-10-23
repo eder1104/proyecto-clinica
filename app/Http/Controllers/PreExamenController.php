@@ -24,10 +24,26 @@ class PreExamenController extends Controller
         $cita = Cita::findOrFail($cita_id);
 
         $request->validate([
-            'tipo_cita_id' => 'required|in:1,2',
+            'tipo_cita_id'       => 'required|in:1,2',
+            'vision_lejana_od'   => 'nullable|numeric|min:0|max:10',
+            'vision_lejana_oi'   => 'nullable|numeric|min:0|max:10',
+            'vision_cercana_od'  => 'nullable|numeric|min:0|max:10',
+            'vision_cercana_oi'  => 'nullable|numeric|min:0|max:10',
+            'test_color'         => 'nullable|numeric|min:0|max:100',
+            'test_profundidad'   => 'nullable|numeric|min:0|max:100',
+            'motilidad_ocular'   => 'nullable|string|max:100',
+            'observaciones'      => 'nullable|string|max:500',
         ], [
             'tipo_cita_id.required' => 'Debe seleccionar un tipo de cita.',
             'tipo_cita_id.in'       => 'Tipo de cita no válido.',
+            'vision_lejana_od.required' => 'Debe ingresar la visión lejana del ojo derecho.',
+            'vision_lejana_od.numeric'  => 'El valor debe ser numérico.',
+            'vision_lejana_od.max'      => 'El valor máximo permitido es 10.',
+            'vision_lejana_oi.max'      => 'El valor máximo permitido es 10.',
+            'vision_cercana_od.max'     => 'El valor máximo permitido es 10.',
+            'vision_cercana_oi.max'     => 'El valor máximo permitido es 10.',
+            'test_color.max'            => 'El test de color no debe superar 100.',
+            'test_profundidad.max'      => 'El test de profundidad no debe superar 100.',
         ]);
 
         PreExamen::create([

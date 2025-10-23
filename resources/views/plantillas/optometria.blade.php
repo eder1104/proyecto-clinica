@@ -14,24 +14,25 @@ $isEdit = isset($plantilla) && $plantilla->exists;
         @endif
 
         <div class="form-row">
-            <div class="form-group small-input">
-                <label>Optómetra</label>
-                <select name="optometra" class="form-control">
-                    <option value="">-- Doctor a cargo de la consulta --</option>
-                    @forelse ($doctores as $doctor)
-                    <option value="{{ $doctor->id }}"
-                        {{ old('optometra', $plantilla->optometra ?? '') == $doctor->id ? 'selected' : '' }}>
-                        {{ $doctor->nombres }} {{ $doctor->apellidos }}
-                    </option>
-                    @empty
-                    <option value="">No hay doctores disponibles</option>
-                    @endforelse
-                </select>
-                @error('optometra')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
+            <div class="form-row">
+                <div class="form-group small-input">
+                    <label>Optómetra</label>
+                    <select name="optometra" class="form-control">
+                        <option value="">-- Doctor a cargo de la consulta --</option>
+                        @forelse ($doctores as $doctor)
+                        <option value="{{ $doctor->id }}"
+                            {{ old('optometra', $plantilla->optometra ?? '') == $doctor->id ? 'selected' : '' }}>
+                            {{ $doctor->user->name ?? '' }} {{ $doctor->user->apellidos ?? '' }}
+                        </option>
+                        @empty
+                        <option value="">No hay doctores disponibles</option>
+                        @endforelse
+                    </select>
+                    @error('optometra')
+                    <div class="invalid-feedback alerta">{{ $message }}</div>
+                    @enderror
+                </div>
             </div>
-
 
             <div class="form-group checkbox-right">
                 <label for="consulta_completa">Consulta Completa</label>
@@ -68,29 +69,88 @@ $isEdit = isset($plantilla) && $plantilla->exists;
         </div>
 
         <h3>Agudeza Visual</h3>
-        <div class="grid-2 SelectAgudeza">
-            @php
-            $valores = [];
-            for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
-                $valores[]=number_format($i, 2, '.' , '' );
-                }
-                @endphp
-
-                @foreach (['av_lejos_od'=>'Lejos OD', 'av_lejos_oi'=>'Lejos OI', 'av_intermedia_od'=>'Intermedia OD', 'av_intermedia_oi'=>'Intermedia OI', 'av_cerca_od'=>'Cerca OD', 'av_cerca_oi'=>'Cerca OI'] as $campo => $label)
-                <div class="AgudezaVisual">
-                    <label>{{ $label }}</label>
-                    <select name="{{ $campo }}" class="form-control">
+        <div class="SelectAgudeza">
+            <div class="AgudezaVisual">
+                <label>Lejos OD</label>
+                <div class="Box_Agudeza">
+                    <select name="av_lejos_od" class="form-control agudeza-select">
                         <option value=""></option>
-                        @foreach ($valores as $valor)
-                        <option value="{{ $valor }}" {{ old($campo, $plantilla->$campo ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
-                        @endforeach
+                        @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
+                            <option value="{{ number_format($i, 2, '.', '') }}">{{ number_format($i, 2, '.', '') }}</option>
+                            @endfor
                     </select>
-                    @error($campo)
-                    <div class="invalid-feedback alerta">{{ $message }}</div>
-                    @enderror
+                    <div class="color-box" data-input="av_lejos_od"></div>
                 </div>
-                @endforeach
+            </div>
+
+            <div class="AgudezaVisual">
+                <label>Intermedia OD</label>
+                <div class="Box_Agudeza">
+                    <select name="av_intermedia_od" class="form-control agudeza-select">
+                        <option value=""></option>
+                        @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
+                            <option value="{{ number_format($i, 2, '.', '') }}">{{ number_format($i, 2, '.', '') }}</option>
+                            @endfor
+                    </select>
+                    <div class="color-box" data-input="av_intermedia_od"></div>
+                </div>
+            </div>
+
+            <div class="AgudezaVisual">
+                <label>Cerca OD</label>
+                <div class="Box_Agudeza">
+                    <select name="av_cerca_od" class="form-control agudeza-select">
+                        <option value=""></option>
+                        @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
+                            <option value="{{ number_format($i, 2, '.', '') }}">{{ number_format($i, 2, '.', '') }}</option>
+                            @endfor
+                    </select>
+                    <div class="color-box" data-input="av_cerca_od"></div>
+                </div>
+            </div>
+
+            <label for="" class="SubTitle_op">AVSC</label>
+
+            <div class="AgudezaVisual">
+                <label>Lejos OI</label>
+                <div class="Box_Agudeza">
+                    <select name="av_lejos_oi" class="form-control agudeza-select">
+                        <option value=""></option>
+                        @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
+                            <option value="{{ number_format($i, 2, '.', '') }}">{{ number_format($i, 2, '.', '') }}</option>
+                            @endfor
+                    </select>
+                    <div class="color-box" data-input="av_lejos_oi"></div>
+                </div>
+            </div>
+
+            <div class="AgudezaVisual">
+                <label>Intermedia OI</label>
+                <div class="Box_Agudeza">
+                    <select name="av_intermedia_oi" class="form-control agudeza-select">
+                        <option value=""></option>
+                        @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
+                            <option value="{{ number_format($i, 2, '.', '') }}">{{ number_format($i, 2, '.', '') }}</option>
+                            @endfor
+                    </select>
+                    <div class="color-box" data-input="av_intermedia_oi"></div>
+                </div>
+            </div>
+
+            <div class="AgudezaVisual">
+                <label>Cerca OI</label>
+                <div class="Box_Agudeza">
+                    <select name="av_cerca_oi" class="form-control agudeza-select">
+                        <option value=""></option>
+                        @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
+                            <option value="{{ number_format($i, 2, '.', '') }}">{{ number_format($i, 2, '.', '') }}</option>
+                            @endfor
+                    </select>
+                    <div class="color-box" data-input="av_cerca_oi"></div>
+                </div>
+            </div>
         </div>
+
 
         <div class="form-group">
             <label>Observaciones optometría</label>
@@ -198,6 +258,34 @@ $isEdit = isset($plantilla) && $plantilla->exists;
         </div>
     </form>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const colors = ["green", "blue", "red", "transparent"];
+
+        document.querySelectorAll(".color-box").forEach(box => {
+            box.addEventListener("click", () => {
+                let current = box.dataset.colorIndex ? parseInt(box.dataset.colorIndex) : 0;
+                current = (current + 1) % colors.length;
+                box.dataset.colorIndex = current;
+
+                const newColor = colors[current];
+                box.style.backgroundColor = newColor;
+
+                const inputName = box.dataset.input;
+                const field = document.querySelector(`[name="${inputName}"]`);
+
+                if (field) {
+                    field.style.color = (newColor === "transparent") ? "black" : newColor;
+
+                    if (field.tagName.toLowerCase() === "select") {
+                        field.style.color = (newColor === "transparent") ? "black" : newColor;
+                    }
+                }
+            });
+        });
+    });
+</script>
+
 
 <style>
     .container {
@@ -228,6 +316,19 @@ $isEdit = isset($plantilla) && $plantilla->exists;
         flex-wrap: wrap;
     }
 
+    .SubTitle_op{
+        display: flex;
+        align-items: center;
+        font-size: 25px;
+        margin-inline-start: 2%;
+        margin-inline-end: 2%;
+    }
+
+    .SelectAgudeza {
+        display: flex;
+        flex-direction: row;
+    }
+
     .form-group label {
         font-weight: bold;
         margin-bottom: 5px;
@@ -241,6 +342,7 @@ $isEdit = isset($plantilla) && $plantilla->exists;
         border: 1px solid #ccc;
         border-radius: 4px;
         width: 100%;
+        transition: color 0.3s ease;
     }
 
     textarea {
@@ -259,36 +361,82 @@ $isEdit = isset($plantilla) && $plantilla->exists;
         margin-left: auto;
     }
 
-    .SelectAgudeza {
+    .AgudezaContainer {
         display: flex;
-        justify-content: space-between;
+        flex-direction: row;
+        justify-content: center;
         align-items: center;
-        flex-wrap: nowrap;
-        width: 100%;
-        gap: 10px;
+        gap: 60px;
+        margin-top: 20px;
         margin-bottom: 20px;
     }
 
     .AgudezaVisual {
         display: flex;
+        width: 100%;
+        place-items: center;
+        flex-direction: column;
+        font-size: 15px;
+        font-style: italic;
+    }
+
+    .AgudezaColumn {
+        display: flex;
+        flex-direction: row;
         align-items: center;
-        justify-content: space-between;
-        flex: 1;
-        min-width: 130px;
-        gap: 8px;
+        gap: 15px;
     }
 
-    .AgudezaVisual label {
+    .AgudezaItem {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .AgudezaItem label {
         font-weight: bold;
-        font-size: 13px;
-        white-space: nowrap;
+        font-size: 12px;
     }
 
-    .AgudezaVisual select {
-        width: 80px;
-        padding: 6px;
+    .agudeza-select {
+        width: 100px;
+        height: 40px;
+        padding: 4px;
+        text-align: center;
+        font-weight: bold;
         border: 1px solid #ccc;
         border-radius: 4px;
+        color: #333;
+        transition: color 0.3s;
+    }
+
+    .Box_Agudeza{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .color-box {
+        width: 14px;
+        height: 14px;
+        border: 1px solid #666;
+        border-radius: 2px;
+        cursor: pointer;
+        margin-left: 4px;
+        transition: background-color 0.3s ease;
+    }
+
+    .select-green {
+        color: green !important;
+    }
+
+    .select-blue {
+        color: blue !important;
+    }
+
+    .select-red {
+        color: red !important;
     }
 
     h3 {

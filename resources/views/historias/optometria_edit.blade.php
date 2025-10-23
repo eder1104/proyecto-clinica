@@ -15,22 +15,24 @@ $isEdit = isset($plantilla) && $plantilla->exists;
         @method('PUT')
 
         <div class="form-row">
-            <div class="form-group small-input">
-                <label>Optómetra</label>
-                <select name="optometra" class="form-control">
-                    <option value="">-- Doctor a cargo de la consulta --</option>
-                    @forelse ($users->where('role', 'admisiones') as $user)
-                    <option value="{{ $user->id }}"
-                        {{ old('optometra', $plantilla->optometra ?? '') == $user->id ? 'selected' : '' }}>
-                        {{ $user->nombres }} {{ $user->apellidos }}
-                    </option>
-                    @empty
-                    <option value="">No hay optometras disponibles</option>
-                    @endforelse
-                </select>
-                @error('optometra')
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
+            <div class="form-row">
+                <div class="form-group small-input">
+                    <label>Optómetra</label>
+                    <select name="optometra" class="form-control">
+                        <option value="">-- Doctor a cargo de la consulta --</option>
+                        @forelse ($doctores as $doctor)
+                        <option value="{{ $doctor->id }}"
+                            {{ old('optometra', $plantilla->optometra ?? '') == $doctor->id ? 'selected' : '' }}>
+                            {{ $doctor->user->name ?? '' }} {{ $doctor->user->apellidos ?? '' }}
+                        </option>
+                        @empty
+                        <option value="">No hay doctores disponibles</option>
+                        @endforelse
+                    </select>
+                    @error('optometra')
+                    <div class="invalid-feedback alerta">{{ $message }}</div>
+                    @enderror
+                </div>
             </div>
 
             <div class="form-group checkbox-right">
@@ -73,35 +75,34 @@ $isEdit = isset($plantilla) && $plantilla->exists;
         <div class="grid-2 SelectAgudeza">
             @php
             $valores = [];
-            for ($i = -10.0; $i <= 10.0001; $i += 0.5) {
-                $valores[] = number_format($i, 2, '.', '');
-            }
-            @endphp
+            for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
+                $valores[]=number_format($i, 2, '.' , '' );
+                }
+                @endphp
 
-            @foreach ([
-                'av_lejos_od' => 'Lejos OD',
+                @foreach ([ 'av_lejos_od'=> 'Lejos OD',
                 'av_lejos_oi' => 'Lejos OI',
                 'av_intermedia_od' => 'Intermedia OD',
                 'av_intermedia_oi' => 'Intermedia OI',
                 'av_cerca_od' => 'Cerca OD',
                 'av_cerca_oi' => 'Cerca OI'
-            ] as $campo => $label)
-            <div class="AgudezaVisual">
-                <label>{{ $label }}</label>
-                <select name="{{ $campo }}" class="form-control">
-                    <option value=""></option>
-                    @foreach ($valores as $valor)
-                    <option value="{{ $valor }}"
-                        {{ old($campo, $plantilla->$campo ?? '') == $valor ? 'selected' : '' }}>
-                        {{ $valor }}
-                    </option>
-                    @endforeach
-                </select>
-                @error($campo)
-                <div class="invalid-feedback alerta">{{ $message }}</div>
-                @enderror
-            </div>
-            @endforeach
+                ] as $campo => $label)
+                <div class="AgudezaVisual">
+                    <label>{{ $label }}</label>
+                    <select name="{{ $campo }}" class="form-control">
+                        <option value=""></option>
+                        @foreach ($valores as $valor)
+                        <option value="{{ $valor }}"
+                            {{ old($campo, $plantilla->$campo ?? '') == $valor ? 'selected' : '' }}>
+                            {{ $valor }}
+                        </option>
+                        @endforeach
+                    </select>
+                    @error($campo)
+                    <div class="invalid-feedback alerta">{{ $message }}</div>
+                    @enderror
+                </div>
+                @endforeach
         </div>
 
         <div class="form-group">

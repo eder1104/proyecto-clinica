@@ -17,6 +17,7 @@ class Paciente extends Model
         'apellidos',
         'documento',
         'telefono',
+        'tipo_documento',
         'direccion',
         'email',
         'fecha_nacimiento',

@@ -19,7 +19,21 @@ class CalendarioController extends Controller
 
     public function citasPorDia($fecha)
     {
-        $citas = Cita::whereDate('fecha', $fecha)->get();
+        $citas = Cita::with([
+            'paciente:id,nombres,apellidos',
+            'tipoCita:id,nombre',
+        ])
+            ->whereDate('fecha', $fecha)
+            ->get([
+                'id',
+                'fecha',
+                'hora_inicio',
+                'hora_fin',
+                'estado',
+                'tipo_cita_id',
+                'paciente_id',
+                'cancel_reason',
+            ]);
 
         return response()->json($citas);
     }

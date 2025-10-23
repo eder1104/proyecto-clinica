@@ -69,6 +69,9 @@ Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones'])->group(fun
 
     Route::get('/calendario', [CalendarioController::class, 'index'])->name('calendario.index');
     Route::get('/calendario/citas/{fecha}', [CalendarioController::class, 'citasPorDia'])->name('calendario.citasPorDia');
+
+    Route::get('/api/pacientes/buscar', [PacienteController::class, 'buscar'])->name('pacientes.buscar');
+    Route::put('/api/pacientes/{id}', [PacienteController::class, 'actualizarApi'])->name('pacientes.actualizarApi');
 });
 
 Route::post('/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'store'])->name('register.store');

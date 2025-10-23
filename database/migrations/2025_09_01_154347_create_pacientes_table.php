@@ -15,6 +15,7 @@ return new class extends Migration
 
             $table->string('nombres');
             $table->string('apellidos');
+            $table->string('tipo_documento');
             $table->string('documento')->unique();
             $table->string('telefono');
             $table->string('direccion');

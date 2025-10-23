@@ -12,6 +12,16 @@
                 <form action="{{ route('preexamen.store', $cita->id) }}" method="POST" class="space-y-6">
                     @csrf
 
+                    @if ($errors->any())
+                        <div class="mb-4 bg-red-100 text-red-700 p-4 rounded-lg">
+                            <ul class="list-disc list-inside">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <h1 class="title">Examen General</h1>
 
                     @if (session('error'))

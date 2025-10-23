@@ -1,5 +1,4 @@
-<link rel="stylesheet" href="{{ asset('css/calendario.css') }}">
-
+@section('content')
 <div class="calendar-container">
     <div class="calendar-wrapper">
         <h1 class="calendar-title">Calendario de Citas</h1>
@@ -21,7 +20,8 @@
                 <div>Dom</div>
             </div>
 
-            <div id="calendarDays" class="calendar-days" data-citas="{{ $citas->pluck('fecha')->toJson() }}"></div>
+            <div id="calendarDays" class="calendar-days"
+                data-citas="{{ $citas->toJson() }}"></div>
         </div>
     </div>
 </div>
@@ -32,6 +32,53 @@
         const monthYear = document.getElementById("monthYear");
         const citas = JSON.parse(calendarDays.dataset.citas);
         let currentDate = new Date();
+
+        // Crear modal
+        const modal = document.createElement("div");
+        modal.classList.add("modal-overlay");
+        modal.style.display = "none";
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <h2>Citas del <span id="modalFecha"></span></h2>
+                <div id="modalCitas"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const modalFecha = modal.querySelector("#modalFecha");
+        const modalCitas = modal.querySelector("#modalCitas");
+        const closeModal = modal.querySelector(".modal-close");
+
+        function abrirModal(fecha) {
+            modalFecha.textContent = fecha;
+
+            const citasDia = citas.filter(c => c.fecha === fecha);
+
+            if (citasDia.length > 0) {
+                modalCitas.innerHTML = citasDia.map(c => `
+            <div class="cita-item">
+                <p><strong>Paciente:</strong> ${c.paciente ? `${c.paciente.nombres} ${c.paciente.apellidos}` : 'N/A'}</p>
+                <p><strong>Tipo de cita:</strong> ${c.tipo_cita ? c.tipo_cita.nombre : 'Sin tipo'}</p>
+                <p><strong>Hora inicio:</strong> ${c.hora_inicio || 'Sin hora'}</p>
+                <p><strong>Hora fin:</strong> ${c.hora_fin || 'Sin hora'}</p>
+                <p><strong>Estado:</strong> ${c.estado || 'Sin estado'}</p>
+                ${c.cancel_reason ? `<p><strong>Motivo cancelación:</strong> ${c.cancel_reason}</p>` : ''}
+            </div>
+            <hr>
+        `).join('');
+            } else {
+                modalCitas.innerHTML = `<p>No hay citas para esta fecha.</p>`;
+            }
+
+            modal.style.display = "flex";
+        }
+
+
+        closeModal.addEventListener("click", () => modal.style.display = "none");
+        window.addEventListener("click", (e) => {
+            if (e.target === modal) modal.style.display = "none";
+        });
 
         function renderCalendar(date) {
             calendarDays.innerHTML = "";
@@ -57,16 +104,14 @@
                 const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
                 const dayDiv = document.createElement("div");
                 dayDiv.classList.add("calendar-day");
+                dayDiv.style.cursor = "pointer";
 
-                if (citas.includes(fullDate)) {
+                if (citas.some(c => c.fecha === fullDate)) {
                     dayDiv.classList.add("active-day");
                 }
 
                 dayDiv.innerHTML = `<div class="day-number">${day}</div>`;
-                dayDiv.addEventListener("click", () => {
-                    alert(`Día seleccionado: ${fullDate}`);
-                });
-
+                dayDiv.addEventListener("click", () => abrirModal(fullDate));
                 calendarDays.appendChild(dayDiv);
             }
         }
@@ -190,4 +235,44 @@
         background: transparent;
         border: none;
     }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .modal-content {
+        background: #fff;
+        padding: 25px 35px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 12px;
+        right: 18px;
+        font-size: 22px;
+        color: #444;
+        cursor: pointer;
+    }
+
+    .modal-content h2 {
+        margin-top: 10px;
+        font-size: 1.4rem;
+        color: #065f46;
+    }
 </style>
+
+@endsection

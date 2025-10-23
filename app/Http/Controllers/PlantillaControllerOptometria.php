@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Plantilla_Optometria;
 use App\Models\Cita;
 use App\Models\doctores; 
+use App\Http\Requests\PlantillaOptometriaRequest;
 
 class PlantillaControllerOptometria extends Controller
 {
@@ -17,6 +18,7 @@ class PlantillaControllerOptometria extends Controller
         $citas = Cita::with('paciente')->orderBy('fecha', 'desc')->get();
         $doctores = doctores::all();
         $id = $plantilla ? $plantilla->id : null;
+        $doctores = doctores::with('user')->get();
 
         return view('plantillas.optometria', compact('id', 'plantilla', 'citas', 'cita', 'doctores'));
     }
@@ -29,11 +31,12 @@ class PlantillaControllerOptometria extends Controller
         $doctores = doctores::all(); 
 
         $TipoCita = $cita->TipoCita ?? null;
+        $doctores = doctores::with('user')->get();
 
         return view('historias.optometria_edit', compact('plantilla', 'cita', 'doctores', 'TipoCita'));
     }
 
-    public function store(Request $request, $cita_id)
+    public function store(PlantillaOptometriaRequest $request, $cita_id)
     {
         $cita = Cita::findOrFail($cita_id);
 
@@ -105,7 +108,7 @@ class PlantillaControllerOptometria extends Controller
             ->with('success', 'Cita actualizada correctamente.');
     }
 
-    public function update(Request $request, Cita $cita)
+    public function update(PlantillaOptometriaRequest $request, Cita $cita)
     {
         $request->validate([
             'optometra' => 'required|integer|exists:doctores,id',

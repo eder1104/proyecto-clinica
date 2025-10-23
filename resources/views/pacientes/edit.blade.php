@@ -12,94 +12,101 @@
 
                     <h2 class="modal-title">Editar Paciente</h2>
 
-                    {{-- Nombres --}}
                     <div class="form-group">
                         <label for="nombres">Nombres</label>
                         <input type="text" name="nombres" id="nombres"
-                               class="input-field @error('nombres') border-red-500 @enderror"
-                               value="{{ old('nombres', $paciente->nombres) }}" required>
+                            class="input-field @error('nombres') border-red-500 @enderror"
+                            value="{{ old('nombres', $paciente->nombres) }}" required>
                         @error('nombres')
-                            <p class="error-msg">{{ $message }}</p>
+                        <p class="error-msg">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    {{-- Apellidos --}}
                     <div class="form-group">
                         <label for="apellidos">Apellidos</label>
                         <input type="text" name="apellidos" id="apellidos"
-                               class="input-field @error('apellidos') border-red-500 @enderror"
-                               value="{{ old('apellidos', $paciente->apellidos) }}" required>
+                            class="input-field @error('apellidos') border-red-500 @enderror"
+                            value="{{ old('apellidos', $paciente->apellidos) }}" required>
                         @error('apellidos')
-                            <p class="error-msg">{{ $message }}</p>
+                        <p class="error-msg">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    {{-- Documento --}}
+                    <div class="form-group">
+                        <label for="tipo_documento">Tipo de Documento</label>
+                        <select name="tipo_documento" id="tipo_documento"
+                            class="input-field @error('tipo_documento') border-red-500 @enderror" required>
+                            <option value="">Seleccione...</option>
+                            <option value="CC" {{ old('tipo_documento') == 'CC' ? 'selected' : '' }}>Cédula de Ciudadanía</option>
+                            <option value="TI" {{ old('tipo_documento') == 'TI' ? 'selected' : '' }}>Tarjeta de Identidad</option>
+                            <option value="CE" {{ old('tipo_documento') == 'CE' ? 'selected' : '' }}>Cédula de Extranjería</option>
+                            <option value="PA" {{ old('tipo_documento') == 'PA' ? 'selected' : '' }}>Pasaporte</option>
+                        </select>
+                        @error('tipo_documento')
+                        <p class="error-msg">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <div class="form-group">
                         <label for="documento">Documento</label>
                         <input type="text" name="documento" id="documento"
-                               class="input-field @error('documento') border-red-500 @enderror"
-                               value="{{ old('documento', $paciente->documento) }}" required>
+                            class="input-field @error('documento') border-red-500 @enderror"
+                            value="{{ old('documento', $paciente->documento) }}" required>
                         @error('documento')
-                            <p class="error-msg">{{ $message }}</p>
+                        <p class="error-msg">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    {{-- Teléfono --}}
                     <div class="form-group">
                         <label for="telefono">Teléfono</label>
                         <input type="text" name="telefono" id="telefono"
-                               class="input-field @error('telefono') border-red-500 @enderror"
-                               value="{{ old('telefono', $paciente->telefono) }}">
+                            class="input-field @error('telefono') border-red-500 @enderror"
+                            value="{{ old('telefono', $paciente->telefono) }}">
                         @error('telefono')
-                            <p class="error-msg">{{ $message }}</p>
+                        <p class="error-msg">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    {{-- Correo --}}
                     <div class="form-group">
                         <label for="email">Correo</label>
                         <input type="email" name="email" id="email"
-                               class="input-field @error('email') border-red-500 @enderror"
-                               value="{{ old('email', $paciente->email) }}">
+                            class="input-field @error('email') border-red-500 @enderror"
+                            value="{{ old('email', $paciente->email) }}">
                         @error('email')
-                            <p class="error-msg">{{ $message }}</p>
+                        <p class="error-msg">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    {{-- Dirección --}}
                     <div class="form-group">
                         <label for="direccion">Dirección</label>
                         <input type="text" name="direccion" id="direccion"
-                               class="input-field @error('direccion') border-red-500 @enderror"
-                               value="{{ old('direccion', $paciente->direccion) }}">
+                            class="input-field @error('direccion') border-red-500 @enderror"
+                            value="{{ old('direccion', $paciente->direccion) }}">
                         @error('direccion')
-                            <p class="error-msg">{{ $message }}</p>
+                        <p class="error-msg">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    {{-- Fecha de nacimiento --}}
                     <div class="form-group">
                         <label for="fecha_nacimiento">Fecha de Nacimiento</label>
                         <input type="date" name="fecha_nacimiento" id="fecha_nacimiento"
-                               class="input-field @error('fecha_nacimiento') border-red-500 @enderror"
-                               value="{{ old('fecha_nacimiento', $paciente->fecha_nacimiento) }}">
+                            class="input-field @error('fecha_nacimiento') border-red-500 @enderror"
+                            value="{{ old('fecha_nacimiento', $paciente->fecha_nacimiento) }}">
                         @error('fecha_nacimiento')
-                            <p class="error-msg">{{ $message }}</p>
+                        <p class="error-msg">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    {{-- Sexo --}}
                     <div class="form-group">
                         <label for="sexo">Sexo</label>
                         <select name="sexo" id="sexo"
-                                class="input-field @error('sexo') border-red-500 @enderror">
+                            class="input-field @error('sexo') border-red-500 @enderror">
                             <option value="">Seleccione...</option>
                             <option value="M" {{ old('sexo', $paciente->sexo) === 'M' ? 'selected' : '' }}>Masculino</option>
                             <option value="F" {{ old('sexo', $paciente->sexo) === 'F' ? 'selected' : '' }}>Femenino</option>
                         </select>
                         @error('sexo')
-                            <p class="error-msg">{{ $message }}</p>
+                        <p class="error-msg">{{ $message }}</p>
                         @enderror
                     </div>
 

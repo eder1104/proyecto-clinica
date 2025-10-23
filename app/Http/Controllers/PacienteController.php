@@ -26,6 +26,7 @@ class PacienteController extends Controller
     public function store(PacientesRequest $request)
     {
         $validated = $request->validate([
+            'tipo_documento'   => 'required|string|max:20',
             'nombres'          => 'required|string|max:255',
             'apellidos'        => 'required|string|max:255',
             'documento'        => 'required|string|max:20|unique:pacientes',
@@ -37,6 +38,7 @@ class PacienteController extends Controller
         ]);
 
         Paciente::create([
+            'tipo_documento'   => $validated['tipo_documento'],
             'nombres'          => $validated['nombres'],
             'apellidos'        => $validated['apellidos'],
             'documento'        => $validated['documento'],
@@ -47,7 +49,6 @@ class PacienteController extends Controller
             'sexo'             => $validated['sexo'] ?? null,
             'created_by'       => Auth::id(),
         ]);
-        
 
         return redirect()->route('pacientes.index')->with('success', 'Paciente creado correctamente.');
     }
@@ -60,6 +61,7 @@ class PacienteController extends Controller
     public function update(PacientesRequest $request, Paciente $paciente)
     {
         $validated = $request->validate([
+            'tipo_documento'   => 'required|string|max:20',
             'nombres'          => 'required|string|max:255',
             'apellidos'        => 'required|string|max:255',
             'documento'        => 'required|string|max:50|unique:pacientes,documento,' . $paciente->id,
