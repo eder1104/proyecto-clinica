@@ -26,14 +26,13 @@ class PlantillaControllerOptometria extends Controller
 
     public function edit(Cita $cita)
     {
-        $cita->load(['paciente', 'TipoCita']);
+        $cita->load(['paciente',]);
 
         $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
         $doctores = User::where('role', 'doctor')->get();
 
-        $TipoCita = $cita->TipoCita ?? null;
 
-        return view('historias.optometria_edit', compact('plantilla', 'cita', 'doctores', 'TipoCita'));
+        return view('historias.optometria_edit', compact('plantilla', 'cita', 'doctores',));
     }
 
     public function store(PlantillaOptometriaRequest $request, $cita_id)

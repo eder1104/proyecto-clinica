@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Cita;
+use Carbon\Carbon;
 
 class CitaRequest extends FormRequest
 {
@@ -18,6 +19,7 @@ class CitaRequest extends FormRequest
             'fecha' => [
                 'required',
                 'date',
+                'after_or_equal:' . now()->toDateString(), // ✅ Evita fechas pasadas
             ],
             'hora_inicio' => [
                 'required',
@@ -48,6 +50,7 @@ class CitaRequest extends FormRequest
         return [
             'fecha.required' => 'La fecha de la cita es obligatoria.',
             'fecha.date' => 'Debe ser una fecha válida.',
+            'fecha.after_or_equal' => 'No puedes crear citas en fechas pasadas.',
             'hora_inicio.required' => 'Debe especificar la hora de inicio.',
             'hora_inicio.date_format' => 'La hora de inicio debe tener el formato HH:mm.',
             'hora_fin.required' => 'Debe especificar la hora de finalización.',
@@ -56,8 +59,6 @@ class CitaRequest extends FormRequest
             'motivo_consulta.required' => 'El motivo de consulta es obligatorio.',
             'motivo_consulta.min' => 'El motivo debe tener al menos 3 caracteres.',
             'motivo_consulta.not_regex' => 'El motivo no puede estar vacío o solo tener espacios.',
-            'admisiones_id.required' => 'Debe seleccionar un usuario de admisiones.',
-            'admisiones_id.exists' => 'El usuario de admisiones no existe.',
             'paciente_id.required' => 'Debe seleccionar un paciente.',
             'paciente_id.exists' => 'El paciente seleccionado no existe.',
         ];
@@ -75,6 +76,15 @@ class CitaRequest extends FormRequest
                 return;
             }
 
+            $fechaHoraInicio = Carbon::parse("$fecha $horaInicio");
+            $ahora = Carbon::now();
+
+            // ✅ Evita crear citas en horas pasadas del mismo día
+            if ($fechaHoraInicio->isToday() && $fechaHoraInicio->lt($ahora)) {
+                $validator->errors()->add('hora_inicio', 'No puedes crear citas en horas pasadas.');
+                return;
+            }
+
             $citas = Cita::whereDate('fecha', $fecha)
                 ->when($citaId, fn($q) => $q->where('id', '!=', $citaId))
                 ->get(['hora_inicio', 'hora_fin']);
@@ -87,10 +97,7 @@ class CitaRequest extends FormRequest
                     ($horaInicio < $finExistente) &&
                     ($horaFin > $inicioExistente)
                 ) {
-                    $validator->errors()->add(
-                        'hora_inicio',
-                        'Ya existe una cita programada en este horario.'
-                    );
+                    $validator->errors()->add('hora_inicio', 'Ya existe una cita programada en este horario.');
                     break;
                 }
             }

@@ -11,17 +11,11 @@ use App\Models\User;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Mostrar la vista de registro.
-     */
     public function create(): View
     {
         return view('auth.register');
     }
 
-    /**
-     * Manejar una solicitud de registro entrante.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -32,6 +26,9 @@ class RegisteredUserController extends Controller
             'role'      => 'required|in:admin,admisiones,callcenter,doctor',
         ]);
 
+
+        $creatorId = Auth::id() ?? 0;
+
         $user = User::create([
             'nombres'    => $request->nombres,
             'apellidos'  => $request->apellidos,
@@ -39,13 +36,11 @@ class RegisteredUserController extends Controller
             'password'   => Hash::make($request->password),
             'role'       => $request->role,
             'status'     => 'activo',
-            'created_by' => Auth::user()->nombres ?? 'Registro por sistema',
-            'updated_by' => Auth::user()->nombres ?? 'Registro por sistema',
+            'created_by' => $creatorId,
+            'updated_by' => $creatorId,
         ]);
 
-
         Auth::login($user);
-
 
         return redirect()->route('dashboard')
             ->with('success', 'Registro completado correctamente.');

@@ -42,10 +42,6 @@ class UserRequest extends FormRequest
                     ? 'unique:users,email,' . $id
                     : 'unique:users,email',
             ],
-            'role' => [
-                'required',
-                'in:admin,admisiones,callcenter,paciente',
-            ],
             'password' => [
                 $isUpdate ? 'nullable' : 'required',
                 'string',
@@ -67,8 +63,6 @@ class UserRequest extends FormRequest
             'email.required'     => 'El correo electrónico es obligatorio.',
             'email.email'        => 'Debe ser un correo electrónico válido.',
             'email.unique'       => 'Este correo ya está registrado.',
-            'role.required'      => 'El rol del usuario es obligatorio.',
-            'role.in'            => 'El rol seleccionado no es válido.',
             'password.required'  => 'La contraseña es obligatoria al crear un usuario.',
             'password.min'       => 'La contraseña debe tener al menos 8 caracteres.',
             'password.max'       => 'La contraseña no puede exceder los 64 caracteres.',

@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Cita extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+
+    protected $table = 'citas';
 
     protected $primaryKey = 'id';
     public $incrementing = true;
@@ -19,15 +20,15 @@ class Cita extends Model
         'hora_inicio',
         'hora_fin',
         'estado',
-        'created_by',   
+        'created_by',
         'paciente_id',
-        'updated_by',  
+        'updated_by',
         'cancelled_by',
         'cancel_reason',
         'tipo_cita_id',
     ];
 
-    protected $with = ['paciente', 'tipoCita'];
+    protected $with = ['paciente'];
 
     public function paciente()
     {
@@ -36,7 +37,7 @@ class Cita extends Model
 
     public function tipoCita()
     {
-        return $this->belongsTo(TipoCita::class, 'tipo_cita_id');
+        return $this->attributes['tipo_cita'] ?? 'No especificado';
     }
 
     public function getCreadoPorAttribute()

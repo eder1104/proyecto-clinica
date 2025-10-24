@@ -3,10 +3,32 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration {
     public function up(): void
     {
+        Schema::create('tipos_citas', function (Blueprint $table) {
+            $table->id();
+            $table->string('nombre');
+            $table->timestamps();
+        });
+
+        DB::table('tipos_citas')->insert([
+            [
+                'id' => 1,
+                'nombre' => 'Optometría',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 2,
+                'nombre' => 'Exámenes',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
         Schema::create('citas', function (Blueprint $table) {
             $table->id();
 
@@ -16,14 +38,13 @@ return new class extends Migration {
             $table->string('estado')->default('programada');
 
             $table->foreignId('paciente_id')->constrained('pacientes')->restrictOnDelete();
-            $table->unsignedBigInteger('tipo_cita_id')->nullable();
+            $table->foreignId('tipo_cita_id')->nullable()->constrained('tipos_citas')->nullOnDelete();
 
             $table->string('created_by')->nullable();
             $table->string('updated_by')->nullable();
             $table->string('cancelled_by')->nullable();
             $table->text('cancel_reason')->nullable();
 
-            $table->softDeletes();
             $table->timestamps();
         });
     }
@@ -31,5 +52,6 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::dropIfExists('citas');
+        Schema::dropIfExists('tipos_citas');
     }
 };

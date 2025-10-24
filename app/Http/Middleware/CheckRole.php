@@ -4,26 +4,34 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class CheckRole
 {
-    public function handle($request, Closure $next, ...$roles)
+    public function handle(Request $request, Closure $next, ...$roles)
     {
         if (!Auth::check()) {
             return redirect('login');
         }
 
-        $userRole = Auth::user()->role;
+        $user = Auth::user();
 
-        if (!in_array($userRole, $roles)) {
-            
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'error' => 'No tienes permisos para acceder a esta sección.'
-                ], 403);
-            }
+        $userRole = $user->role;
+        $userStatus = $user->status;
 
-            return redirect()->back()->with('error', 'No tienes permisos para acceder a esta sección.');
+        $hasRequiredRole = in_array($userRole, $roles);
+        $isAccountActive = $userStatus === 'activo';
+
+        if (!$isAccountActive) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect('login')->with('error', 'Tu cuenta está inactiva. Contacta al administrador.');
+        }
+
+        if (!$hasRequiredRole) {
+            return redirect()->back()->with('error', 'Tu rol actual no permite acceder a esa sección.');
         }
 
         return $next($request);

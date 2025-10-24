@@ -44,28 +44,6 @@
                 @enderror
             </div>
 
-            <div class="form-group">
-                <label for="role_display" class="form-label">Rol</label>
-                <div class="role-selector-container">
-                    
-                 
-                    <input type="text" id="role_display"
-                        :value="selectedRole ? (selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)) : 'Seleccione un rol'"
-                        class="form-input @error('role') input-error @enderror" 
-                        readonly
-                        @click="openRoleModal = true">
-                    
-                    <button type="button" @click="openRoleModal = true" class="btn-open-modal">
-                        Cambiar Rol
-                    </button>
-                    
-                    <input type="hidden" name="role" :value="selectedRole">
-                </div>
-                @error('role')
-                <p class="error-text">{{ $message }}</p>
-                @enderror
-            </div>
-
 
             <div class="flex justify-end gap-2 mt-6"> 
                 <a href="{{ route('users.index') }}"

@@ -8,6 +8,7 @@ use App\Models\Cita;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class HistoriaClinicaController extends Controller
 {
@@ -50,6 +51,29 @@ class HistoriaClinicaController extends Controller
         return view('historias.edit', compact('historia'));
     }
 
+    public function store(Request $request, Cita $cita)
+    {
+        $request->validate([
+            'motivo_consulta' => 'nullable|string',
+            'antecedentes' => 'nullable|array',
+            'signos_vitales' => 'nullable|array',
+            'diagnostico' => 'nullable|string|max:255',
+            'conducta' => 'nullable|string',
+        ]);
+
+        $usuario = Auth::user();
+
+        $data = $request->all();
+        $data['created_by'] = $usuario->id;
+        $data['updated_by'] = $usuario->id;
+        $data['paciente_id'] = $cita->paciente_id;
+
+        $historia = HistoriaClinica::create($data);
+
+        return redirect()->route('historias.edit', ['historia' => $historia->id])
+            ->with('success', 'Historia clínica creada correctamente.');
+    }
+
     public function update(Request $request, Cita $cita)
     {
         $request->validate([
@@ -58,23 +82,30 @@ class HistoriaClinicaController extends Controller
             'signos_vitales' => 'nullable|array',
             'diagnostico' => 'nullable|string|max:255',
             'conducta' => 'nullable|string',
-            'created_by' => 'nullable|integer|exists:users,id',
-            'updated_by' => 'nullable|integer|exists:users,id',
         ]);
+
+        $usuario = Auth::user();
 
         $historia = HistoriaClinica::where('paciente_id', $cita->paciente_id)->first();
 
-        if ($historia) {
-            $historia->update($request->all());
-        } else {
-            HistoriaClinica::create([
-                'paciente_id' => $cita->paciente_id,
-            ] + $request->all());
+        $data = $request->all();
+        $data['updated_by'] = $usuario->id;
+
+        if ($historia && !$historia->created_by) {
+            $data['created_by'] = $usuario->id; 
         }
 
-        return redirect()->route('historias.edit', ['historia' => $historia->id ?? HistoriaClinica::latest()->first()->id])
+        if ($historia) {
+            $historia->update($data);
+        } else {
+            $data['paciente_id'] = $cita->paciente_id;
+            $historia = HistoriaClinica::create($data);
+        }
+
+        return redirect()->route('historias.edit', ['historia' => $historia->id])
             ->with('success', 'Historia clínica actualizada correctamente.');
     }
+
 
     public function destroy(HistoriaClinica $historia)
     {
@@ -84,29 +115,6 @@ class HistoriaClinicaController extends Controller
         return redirect()->route('historias.show', $paciente_id)
             ->with('success', 'Historia clínica eliminada.');
     }
-
-
-    public function registrarDesdeCita(Cita $cita, User $user)
-    {
-        $historiaData = [
-            'paciente_id'     => $cita->paciente_id,
-            'motivo_consulta' => 'Atención en cita de optometría',
-            'antecedentes'    => [],
-            'signos_vitales'  => [],
-            'diagnostico'     => 'En espera de diagnóstico del optómetra',
-            'conducta'        => 'Se recomienda seguimiento',
-            'created_by'      => $user->id,
-            'updated_by'      => $user->id,
-        ];
-
-        HistoriaClinica::updateOrCreate(
-            ['paciente_id' => $cita->paciente_id],
-            $historiaData
-        );
-
-        return true;
-    }
-
 
     public function verPdf(Cita $cita)
     {

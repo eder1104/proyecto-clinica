@@ -25,9 +25,9 @@ return new class extends Migration {
             $table->rememberToken();
             $table->timestamps();
 
-            $table->string('created_by')->nullable();
-            $table->string('updated_by')->nullable();
-            $table->string('cancelled_by')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('cancelled_by')->nullable();
         });
     }
 

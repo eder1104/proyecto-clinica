@@ -15,19 +15,20 @@ class HistoriaClinica extends Model
     protected $fillable = [
         'paciente_id',
         'motivo_consulta',
-        'antecedentes',
-        'signos_vitales',
+        'antecedentes',    
+        'signos_vitales', 
         'diagnostico',
         'conducta',
-        'created_by',
-        'updated_by',
+        'created_by',     
+        'updated_by',      
     ];
 
     protected $casts = [
         'antecedentes' => 'array',
-        'signos_vitales' => 'array', 
+        'signos_vitales' => 'array',
     ];
 
+    // Relaciones
     public function paciente()
     {
         return $this->belongsTo(Paciente::class, 'paciente_id');
@@ -35,11 +36,21 @@ class HistoriaClinica extends Model
 
     public function creador()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by'); 
     }
 
     public function actualizador()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function getNombreCreadorAttribute()
+    {
+        return $this->creador ? $this->creador->nombres . ' ' . $this->creador->apellidos : null;
+    }
+
+    public function getNombreActualizadorAttribute()
+    {
+        return $this->actualizador ? $this->actualizador->nombres . ' ' . $this->actualizador->apellidos : null;
     }
 }

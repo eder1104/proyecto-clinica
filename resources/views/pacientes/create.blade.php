@@ -56,7 +56,6 @@
                             @enderror
                         </div>
 
-                        {{-- TELEFONO --}}
                         <div class="form-group">
                             <label for="telefono">Teléfono</label>
                             <input type="text" name="telefono" id="telefono"

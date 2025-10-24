@@ -22,14 +22,13 @@ return new class extends Migration
             $table->date('fecha_nacimiento');
             $table->enum('sexo', ['M', 'F']);
 
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->string('created_by', 100)->nullable();
+            $table->string('updated_by', 100)->nullable();
 
             $table->timestamps();
             $table->softDeletes();
         });
     }
-
     public function down(): void
     {
         Schema::table('pacientes', function (Blueprint $table) {

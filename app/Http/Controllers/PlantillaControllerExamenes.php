@@ -56,7 +56,7 @@ class PlantillaControllerExamenes extends Controller
 
     public function edit(Cita $cita)
     {
-        $cita->load(['paciente', 'TipoCita']);
+        $cita->load(['paciente', ]);
         $users = User::all();
 
         if ($cita->tipo_cita_id != 2) {

@@ -20,8 +20,6 @@ class UserController extends Controller
         return view('users.index', compact('users'));
     }
 
-
-
     public function indexDoctors()
     {
         $users = User::where('role', 'doctor')->get();
@@ -41,19 +39,17 @@ class UserController extends Controller
             'email'      => strtolower(trim($request->email)),
             'password'   => Hash::make($request->password),
             'role'       => $request->role,
-            'created_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
+            'created_by' => Auth::id(),
         ]);
 
         return redirect()->route('users.index')
-            ->with('success', 'Usuario creado correctamente.');
+            ->with('success', 'Usuario creado correctamente. ✅');
     }
-
 
     public function edit(User $user)
     {
         return view('users.edit', compact('user'));
     }
-
 
     public function update(UserRequest $request, $id)
     {
@@ -63,8 +59,7 @@ class UserController extends Controller
             'nombres'    => trim($request->nombres),
             'apellidos'  => trim($request->apellidos),
             'email'      => strtolower(trim($request->email)),
-            'role'       => $request->role,
-            'updated_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
+            'updated_by' => Auth::id(),
         ];
 
         if ($request->filled('password')) {
@@ -73,35 +68,45 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return redirect()->route('users.edit', $user->id)
-            ->with('success', 'Usuario actualizado correctamente.');
+        return redirect()->route('users.index', $user->id)
+            ->with('success', 'Usuario actualizado correctamente. ✅');
+    }
+
+    public function updateRole(Request $request, User $user)
+    {
+        $request->validate([
+            'role' => 'required|in:admin,admisiones,callcenter,doctor',
+        ]);
+
+        $user->update([
+            'role' => $request->input('role'),
+        ]);
+
+        return redirect()->route('users.index')
+            ->with('success', "El rol de {$user->nombres} fue actualizado a '{$user->role}' correctamente. ✅");
     }
 
     public function destroy(User $user)
     {
-        $user->status = 'inactivo';
-        $user->cancelled_by = Auth::check()
-            ? Auth::user()->nombres . ' ' . Auth::user()->apellidos
-            : 'Registro por sistema';
-        $user->save();
+        $user->update([
+            'cancelled_by' => Auth::id(),
+        ]);
+
+        $user->delete();
 
         return redirect()->route('users.index')
-            ->with('success', 'Usuario inactivado correctamente.');
+            ->with('success', 'Usuario eliminado correctamente. 🗑️');
     }
-
 
     public function toggleStatus(User $user)
     {
         $user->status = $user->status === 'activo' ? 'inactivo' : 'activo';
-        $user->updated_by = Auth::check()
-            ? Auth::user()->nombres . ' ' . Auth::user()->apellidos
-            : 'Registro por sistema';
+        $user->updated_by = Auth::check() ? Auth::id() : 0;
         $user->save();
 
         return redirect()->route('users.index')
-            ->with('success', 'Estado actualizado correctamente.');
+            ->with('success', 'Estado actualizado correctamente. 🔄');
     }
-
 
     public function register(Request $request)
     {
@@ -117,19 +122,63 @@ class UserController extends Controller
             'apellidos'  => $request->apellidos,
             'email'      => strtolower($request->email),
             'password'   => Hash::make($request->password),
-            'role'       => 'paciente',
+            'role'       => 'users',
             'status'     => 'activo',
-            'created_by' => Auth::check()
-                ? Auth::user()->nombres . ' ' . Auth::user()->apellidos
-                : 'Registro por sistema',
-            'updated_by' => Auth::check()
-                ? Auth::user()->nombres . ' ' . Auth::user()->apellidos
-                : 'Registro por sistema',
+            'created_by' => Auth::check() ? Auth::id() : 0,
+            'updated_by' => Auth::check() ? Auth::id() : 0,
         ]);
 
         Auth::login($user);
 
         return redirect()->route('dashboard')
-            ->with('success', 'Registro completado correctamente.');
+            ->with('success', 'Registro completado correctamente. 🥳');
+    }
+
+    public function Usuario_buscar(Request $request)
+    {
+        $query = trim($request->input('query'));
+        if (empty($query)) {
+            $users = User::paginate(15);
+        } else {
+            $users = User::where(function ($q) use ($query) {
+                $q->where('nombres', 'LIKE', "%{$query}%")
+                    ->orWhere('apellidos', 'LIKE', "%{$query}%")
+                    ->orWhere('email', 'LIKE', "%{$query}%");
+            })->paginate(10)->withQueryString();
+        }
+
+        return view('users.index', compact('users'));
+    }
+
+
+    public function buscar(Request $request)
+    {
+        $tipo = $request->query('tipo');
+        $numero = $request->query('numero');
+
+        if (!$tipo || !$numero) {
+            return response()->json(['error' => 'Faltan parámetros'], 400);
+        }
+
+        $users = User::where('tipo_documento', $tipo)
+            ->where('documento', $numero)
+            ->first();
+
+        if (!$users) {
+            return response()->json(['error' => 'Usuario no encontrado'], 404);
+        }
+
+        return response()->json([
+            'id' => $users->id,
+            'tipo_documento' => $users->tipo_documento,
+            'documento' => $users->documento,
+            'nombres' => $users->nombres,
+            'apellidos' => $users->apellidos,
+            'telefono' => $users->telefono,
+            'direccion' => $users->direccion,
+            'email' => $users->email,
+            'fecha_nacimiento' => $users->fecha_nacimiento ?? '',
+            'sexo' => $users->sexo ?? '',
+        ]);
     }
 }

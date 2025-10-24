@@ -41,26 +41,27 @@
                             <tbody>
                                 @forelse ($pacientes as $paciente)
                                 <tr class="hover:bg-gray-100 cursor-pointer"
-                                    onclick="mostrarInfoPaciente('{{ $paciente->toJson() }}')">
+                                    onclick="redirigirAEditarPaciente('{{ $paciente->id }}')">
                                     <td class="border px-4 py-2 text-center">{{ $paciente->id }}</td>
                                     <td class="border px-4 py-2">{{ $paciente->documento }}</td>
-                                    <td class="border px-4 py-2 truncate" title="{{ $paciente->nombres }} {{ $paciente->apellidos }}">
+                                    <td class="border px-4 py-2 truncate"
+                                        title="{{ $paciente->nombres }} {{ $paciente->apellidos }}">
                                         {{ $paciente->nombres }} {{ $paciente->apellidos }}
                                     </td>
                                     <td class="border px-4 py-2 flex space-x-2 justify-center">
                                         <a href="{{ route('pacientes.edit', $paciente) }}"
-                                            class="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-md shadow hover:bg-blue-700 edit">
+                                            class="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-md shadow hover:bg-blue-700 edit"
+                                            onclick="event.stopPropagation()">
                                             ✎
                                         </a>
-                                        <form action="{{ route('pacientes.destroy', $paciente) }}" method="POST"
-                                            onsubmit="return confirm('¿Seguro que quieres eliminar este paciente?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md shadow hover:bg-red-700 delete">
-                                                ❌
-                                            </button>
-                                        </form>
+                                        <button
+                                            type="button"
+                                            data-url="{{ route('pacientes.destroy', $paciente) }}"
+                                            onclick="abrirModalEliminar(event, this.dataset.url)"
+                                            class="px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md shadow hover:bg-red-700">
+                                            ❌
+                                        </button>
+
                                     </td>
                                 </tr>
                                 @empty
@@ -73,33 +74,41 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <div class="mt-4">
+                        {{ $pacientes->links() }}
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
 
-
-    <div id="modalInfoPaciente" class="modal hidden">
-        <div class="modal-content max-w-lg">
-            <h2 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">Detalles del Paciente</h2>
-
-            <div class="grid grid-cols-2 gap-y-3 gap-x-4 text-sm" id="infoPacienteContent">
-            </div>
-
-            <div class="flex justify-end space-x-3 mt-6">
-                <button type="button" onclick="cerrarModalInfo()"
-                    class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md shadow">
-                    Cerrar
-                </button>
-            </div>
+    <div id="modalEliminar" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="text-lg font-semibold mb-4 text-gray-800">Eliminar Paciente</h2>
+            <p class="text-sm text-gray-700 mb-6">¿Seguro que deseas eliminar este paciente? Esta acción no se puede deshacer.</p>
+            <form id="formEliminarPaciente" method="POST">
+                @csrf
+                @method('DELETE')
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="cerrarModalEliminar()"
+                        class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md shadow">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md shadow">
+                        Eliminar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
     <div id="modalBuscar" class="modal hidden">
         <div class="modal-content">
             <h2 class="text-lg font-semibold mb-4 text-gray-800">Buscar Paciente</h2>
-
-            <form action="{{ route('pacientes.buscar') }}" method="GET" class="space-y-4">
+            <form action="{{ route('pacientes.buscar.lista') }}" method="GET" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Nombre:</label>
                     <input type="text" name="nombre" class="w-full border-gray-300 rounded-md shadow-sm p-2"
@@ -166,10 +175,6 @@
         animation: fadeIn 0.25s ease;
     }
 
-    .modal-content.max-lg {
-        max-width: 600px;
-    }
-
     @keyframes fadeIn {
         from {
             opacity: 0;
@@ -181,13 +186,16 @@
             transform: scale(1);
         }
     }
-
-    .recargar {
-        justify-content: right;
-    }
 </style>
 
 <script>
+    const EDIT_PACIENTE_URL_TEMPLATE = '{{ route("pacientes.edit", ":id") }}';
+
+    function redirigirAEditarPaciente(pacienteId) {
+        const url = EDIT_PACIENTE_URL_TEMPLATE.replace(':id', pacienteId);
+        window.location.href = url;
+    }
+
     function abrirModalBuscar() {
         document.getElementById('modalBuscar').classList.remove('hidden');
     }
@@ -196,31 +204,15 @@
         document.getElementById('modalBuscar').classList.add('hidden');
     }
 
-    function cerrarModalInfo() {
-        document.getElementById('modalInfoPaciente').classList.add('hidden');
-    }
-
-    function mostrarInfoPaciente(paciente) {
-        const modal = document.getElementById('modalInfoPaciente');
-        const content = document.getElementById('infoPacienteContent');
-
-        function getTipoDocumento(code) {
-            switch (code) {
-                case 'CC':
-                    return 'Cédula de Ciudadanía';
-                case 'TI':
-                    return 'Tarjeta de Identidad';
-                case 'CE':
-                    return 'Cédula de Extranjería';
-                case 'PA':
-                    return 'Pasaporte';
-                default:
-                    return code;
-            }
-        }
-
+    function abrirModalEliminar(event, actionUrl) {
+        event.stopPropagation();
+        const modal = document.getElementById('modalEliminar');
+        const form = document.getElementById('formEliminarPaciente');
+        form.action = actionUrl;
         modal.classList.remove('hidden');
     }
 
-
+    function cerrarModalEliminar() {
+        document.getElementById('modalEliminar').classList.add('hidden');
+    }
 </script>

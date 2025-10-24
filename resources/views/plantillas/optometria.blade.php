@@ -18,8 +18,8 @@ if (empty($nombreCompletoOptometra)) {
 }
 @endphp
 @section('title', 'Consulta de Optometría')
-@section('content')
 @extends('layouts.app')
+@section('content')
 <div class="container">
     <h2 class="titulo">Plantilla de Consulta de Optometría</h2>
 
@@ -300,7 +300,6 @@ if (empty($nombreCompletoOptometra)) {
         max-width: 900px;
         margin: 20px auto;
         padding: 25px;
-        background: #fff;
         border-radius: 8px;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }

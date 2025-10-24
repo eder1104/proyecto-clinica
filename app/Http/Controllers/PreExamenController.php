@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\HistoriaClinica;
 use App\Models\PreExamen;
 use App\Models\Cita;
 use App\Models\User;
@@ -24,27 +25,27 @@ class PreExamenController extends Controller
         $cita = Cita::findOrFail($cita_id);
 
         $request->validate([
-            'tipo_cita_id'       => 'required|in:1,2',
-            'vision_lejana_od'   => 'nullable|numeric|min:0|max:10',
-            'vision_lejana_oi'   => 'nullable|numeric|min:0|max:10',
-            'vision_cercana_od'  => 'nullable|numeric|min:0|max:10',
-            'vision_cercana_oi'  => 'nullable|numeric|min:0|max:10',
-            'test_color'         => 'nullable|numeric|min:0|max:100',
-            'test_profundidad'   => 'nullable|numeric|min:0|max:100',
-            'motilidad_ocular'   => 'nullable|string|max:100',
-            'observaciones'      => 'nullable|string|max:500',
-        ], [
-            'tipo_cita_id.required' => 'Debe seleccionar un tipo de cita.',
-            'tipo_cita_id.in'       => 'Tipo de cita no válido.',
-            'vision_lejana_od.required' => 'Debe ingresar la visión lejana del ojo derecho.',
-            'vision_lejana_od.numeric'  => 'El valor debe ser numérico.',
-            'vision_lejana_od.max'      => 'El valor máximo permitido es 10.',
-            'vision_lejana_oi.max'      => 'El valor máximo permitido es 10.',
-            'vision_cercana_od.max'     => 'El valor máximo permitido es 10.',
-            'vision_cercana_oi.max'     => 'El valor máximo permitido es 10.',
-            'test_color.max'            => 'El test de color no debe superar 100.',
-            'test_profundidad.max'      => 'El test de profundidad no debe superar 100.',
+            'tipo_cita_id'            => 'nullable|in:1,2',
+            'vision_lejana_od'        => 'nullable|numeric|min:0|max:10',
+            'vision_lejana_oi'        => 'nullable|numeric|min:0|max:10',
+            'vision_cercana_od'       => 'nullable|numeric|min:0|max:10',
+            'vision_cercana_oi'       => 'nullable|numeric|min:0|max:10',
+            'test_color'              => 'nullable|numeric|min:0|max:100',
+            'test_profundidad'        => 'nullable|numeric|min:0|max:100',
+            'motilidad_ocular'        => 'nullable|string|max:100',
+            'observaciones'           => 'nullable|string|max:500',
+            'tension_arterial'        => 'nullable|string|max:10',
+            'frecuencia_cardiaca'     => 'nullable|string|max:10',
+            'frecuencia_respiratoria' => 'nullable|string|max:10',
+            'temperatura'             => 'nullable|string|max:10',
+            'saturacion'              => 'nullable|string|max:10',
+            'peso'                    => 'nullable|string|max:10',
+            'examen_fisico'           => 'nullable|string|max:500',
+            'diagnostico'             => 'nullable|string|max:500',
+            'antecedentes'            => 'nullable|string|max:500',
         ]);
+
+        $usuarioNombre = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
 
         PreExamen::create([
             'cita_id'            => $cita->id,
@@ -58,28 +59,54 @@ class PreExamenController extends Controller
             'observaciones'      => $request->observaciones,
         ]);
 
-        $cita->update([
-            'tipo_cita_id' => $request->tipo_cita_id,
-            'estado'       => 'asistida',
-            'updated_by'   => Auth::id(),
-        ]);
+        $usuario = Auth::user();
 
-        if ($cita->tipo_cita_id == 1) {
+        HistoriaClinica::updateOrCreate(
+            ['paciente_id' => $cita->paciente_id],
+            [
+                'motivo_consulta' => 'Atención en cita médica',
+                'antecedentes'    => $request->antecedentes,
+                'signos_vitales'  => [
+                    'tension_arterial'        => $request->tension_arterial,
+                    'frecuencia_cardiaca'     => $request->frecuencia_cardiaca,
+                    'frecuencia_respiratoria' => $request->frecuencia_respiratoria,
+                    'temperatura'             => $request->temperatura,
+                    'saturacion'              => $request->saturacion,
+                    'peso'                    => $request->peso,
+                ],
+                'diagnostico'     => $request->diagnostico ?? 'Pendiente por evaluación',
+                'conducta'        => 'Por definir',
+                'created_by'      => $usuario->nombres . ' ' . $usuario->apellidos,
+                'updated_by'      => $usuario->nombres . ' ' . $usuario->apellidos,
+            ]
+        );
+
+
+        if ($request->tipo_cita_id && !$cita->tipo_cita_id) {
+            $cita->tipo_cita_id = $request->tipo_cita_id;
+        }
+
+        $cita->estado     = 'asistida';
+        $cita->updated_by = $usuarioNombre;
+        $cita->save();
+
+        $tipo = (int) $cita->tipo_cita_id;
+
+        if ($tipo === 1) {
             return redirect()->route('plantillas.optometria', ['cita' => $cita->id]);
-        } elseif ($cita->tipo_cita_id == 2) {
+        } elseif ($tipo === 2) {
             return redirect()->route('examenes.edit', ['cita' => $cita->id]);
         }
 
-        return redirect()->back()->with('error', 'Tipo de cita no válido.');
+        return redirect()->back()->with('error', 'Tipo de cita no válido o no especificado.');
     }
 
     public function examen($id)
     {
         $cita = Cita::findOrFail($id);
-
         $cita->update([
             'estado'     => 'asistida',
-            'updated_by' => Auth::id(),
+            'updated_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
         ]);
 
         return view('citas.examen', compact('cita'));
