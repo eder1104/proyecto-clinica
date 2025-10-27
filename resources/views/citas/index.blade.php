@@ -8,10 +8,10 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     @if (session('success'))
-                        <div class="mb-4 p-3 bg-green-100 text-green-700 rounded">{{ session('success') }}</div>
+                    <div class="mb-4 p-3 bg-green-100 text-green-700 rounded">{{ session('success') }}</div>
                     @endif
                     @if (session('error'))
-                        <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">{{ session('error') }}</div>
+                    <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">{{ session('error') }}</div>
                     @endif
 
                     <a href="{{ route('citas.create') }}" class="btn">Nueva Cita</a>
@@ -56,72 +56,79 @@
                         </thead>
                         <tbody>
                             @forelse ($citas as $c)
-                                @php
-                                    $isBlocked = in_array($c->estado, [
-                                        'cancelada',
-                                        'finalizada',
-                                        'no_asistida',
-                                        'asistida',
-                                    ]);
-                                @endphp
-                                <tr>
-                                    <td>{{ $c->id }}</td>
-                                    <td>{{ date('d/m/Y', strtotime($c->fecha)) }}</td>
-                                    <td>{{ $c->hora_inicio }} - {{ $c->hora_fin }}</td>
-                                    <td>{{ optional($c->paciente)->nombres ?? 'N/A' }}
-                                        {{ optional($c->paciente)->apellidos ?? '' }}</td>
-                                    <td>{{ optional($c->createdBy)->nombres ?? 'N/A' }}
-                                        {{ optional($c->createdBy)->apellidos ?? '' }}</td>
-                                    <td>
-                                        @if ($c->estado === 'cancelada')
-                                            <span class="estado-cancelada">Cancelada</span>
-                                        @elseif($c->estado === 'finalizada')
-                                            <span class="estado-finalizada">Finalizada</span>
-                                        @elseif($c->estado === 'no_asistida')
-                                            <span class="estado-no-asistida">No asistida</span>
-                                        @elseif($c->estado === 'asistida')
-                                            <span class="estado-asistida">Asistida</span>
-                                        @else
-                                            {{ ucfirst($c->estado) }}
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if (in_array($c->estado, ['cancelada', 'finalizada', 'no_asistida']))
-                                            {{ $c->cancel_reason ?? ($c->mensaje ?? 'Sin motivo registrado') }}
-                                        @else
-                                            {{ $c->mensaje ?? '—' }}
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if (!$isBlocked)
-                                            <a href="{{ route('citas.edit', ['cita' => $c->id]) }}">Editar</a>
-                                            <form id="formEliminar{{ $c->id }}"
-                                                action="{{ route('citas.destroy', $c->id) }}" method="POST"
-                                                onsubmit="return abrirModalCancelacion(event, '{{ $c->id }}')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn-danger">Cancelar</button>
-                                            </form>
-                                        @else
-                                            <span class="btn-disabled">Sin acciones</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if (!$isBlocked)
-                                            <a href="{{ route('preexamen.create', ['cita' => $c->id]) }}"
-                                                class="btn">Tomar Atención</a>
-                                        @else
-                                            <span class="btn-disabled">No disponible</span>
-                                        @endif
-                                    </td>
-                                </tr>
+                            @php
+                            $isBlocked = in_array($c->estado, [
+                            'cancelada',
+                            'finalizada',
+                            'no_asistida',
+                            'asistida',
+                            ]);
+                            @endphp
+                            <tr>
+                                <td>{{ $c->id }}</td>
+                                <td>{{ date('d/m/Y', strtotime($c->fecha)) }}</td>
+                                <td>{{ $c->hora_inicio }} - {{ $c->hora_fin }}</td>
+                                <td>{{ optional($c->paciente)->nombres ?? 'N/A' }}
+                                    {{ optional($c->paciente)->apellidos ?? '' }}
+                                </td>
+                                <td>
+                                    @if($c->created_by)
+                                    {{ $c->created_by }}
+                                    @else
+                                    N/A
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($c->estado === 'cancelada')
+                                    <span class="estado-cancelada">Cancelada</span>
+                                    @elseif($c->estado === 'finalizada')
+                                    <span class="estado-finalizada">Finalizada</span>
+                                    @elseif($c->estado === 'no_asistida')
+                                    <span class="estado-no-asistida">No asistida</span>
+                                    @elseif($c->estado === 'asistida')
+                                    <span class="estado-asistida">Asistida</span>
+                                    @else
+                                    {{ ucfirst($c->estado) }}
+                                    @endif
+                                </td>
+                                <td>
+                                    @if (in_array($c->estado, ['cancelada', 'finalizada', 'no_asistida']))
+                                    {{ $c->cancel_reason ?? ($c->mensaje ?? 'Sin motivo registrado') }}
+                                    @else
+                                    {{ $c->mensaje ?? '—' }}
+                                    @endif
+                                </td>
+                                <td>
+                                    @if (!$isBlocked)
+                                    <a href="{{ route('citas.edit', ['cita' => $c->id]) }}">Editar</a>
+                                    <form id="formEliminar{{ $c->id }}"
+                                        action="{{ route('citas.destroy', $c->id) }}" method="POST"
+                                        onsubmit="return abrirModalCancelacion(event, '{{ $c->id }}')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-danger">Cancelar</button>
+                                    </form>
+                                    @else
+                                    <span class="btn-disabled">Sin acciones</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if (!$isBlocked)
+                                    <a href="{{ route('preexamen.create', ['cita' => $c->id]) }}"
+                                        class="btn">Tomar Atención</a>
+                                    @else
+                                    <span class="btn-disabled">No disponible</span>
+                                    @endif
+                                </td>
+                            </tr>
                             @empty
-                                <tr>
-                                    <td colspan="9" class="text-center text-gray-500">No hay citas</td>
-                                </tr>
+                            <tr>
+                                <td colspan="9" class="text-center text-gray-500">No hay citas</td>
+                            </tr>
                             @endforelse
                         </tbody>
                     </table>
+
                 </div>
             </div>
         </div>

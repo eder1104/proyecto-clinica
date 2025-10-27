@@ -4,26 +4,32 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Cita;
+use Illuminate\Support\Facades\Auth;
 
 class CalendarioController extends Controller
 {
     public function index()
     {
-        $citas = Cita::whereIn('estado', ['programada', 'modificada'])
+        if (Auth::check() && Auth::user()->role === 'admin') {
+            abort(403, 'Acceso denegado para administradores.');
+        }
+
+        $citas = Cita::whereNotNull('fecha')
             ->pluck('fecha')
             ->map(fn($f) => Carbon::parse($f)->format('Y-m-d'))
+            ->unique()
             ->toArray();
+
 
         return view('citas.calendario', compact('citas'));
     }
 
     public function citasPorDia($fecha)
     {
-        $citas = Cita::with([
-            'paciente:id,nombres,apellidos',
-            'tipoCita:id,nombre',
-        ])
-            ->whereDate('fecha', $fecha)
+        $fechaFormateada = \Carbon\Carbon::parse($fecha)->format('Y-m-d');
+
+        $citas = \App\Models\Cita::with('paciente:id,nombres,apellidos')
+            ->whereDate('fecha', $fechaFormateada)
             ->get([
                 'id',
                 'fecha',
@@ -33,7 +39,21 @@ class CalendarioController extends Controller
                 'tipo_cita_id',
                 'paciente_id',
                 'cancel_reason',
-            ]);
+            ])
+            ->map(function ($cita) {
+                switch ($cita->tipo_cita_id) {
+                    case 1:
+                        $cita->tipo_cita = ['nombre' => 'Optometría'];
+                        break;
+                    case 2:
+                        $cita->tipo_cita = ['nombre' => 'Examen'];
+                        break;
+                    default:
+                        $cita->tipo_cita = ['nombre' => 'Sin tipo'];
+                        break;
+                }
+                return $cita;
+            });
 
         return response()->json($citas);
     }

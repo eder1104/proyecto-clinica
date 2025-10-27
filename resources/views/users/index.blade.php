@@ -107,7 +107,6 @@
             </table>
         </div>
 
-        {{-- MODAL CAMBIO DE ROL --}}
         <div x-show="openRoleModal" x-cloak 
             class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75" 
             @click.away="openRoleModal = false">
@@ -143,7 +142,6 @@
             </div>
         </div>
 
-        {{-- MODAL ELIMINAR --}}
         <div x-show="openCancelModal" x-cloak 
             class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75" 
             @click.away="openCancelModal = false">
@@ -173,7 +171,6 @@
             </div>
         </div>
 
-        {{-- PAGINACIÓN --}}
         @if ($users->hasPages())
         <div class="pagination">
             @if ($users->onFirstPage())
@@ -201,7 +198,6 @@
 </div>
 @endsection
 
-{{-- MODAL DE BÚSQUEDA --}}
 <div id="modalBuscar" class="fixed inset-0 z-50 hidden items-center justify-center">
     <div onclick="cerrarModalBuscar()" class="absolute inset-0 bg-gray-900 bg-opacity-50"></div>
 

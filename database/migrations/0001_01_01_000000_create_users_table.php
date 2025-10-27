@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->string('nombres');
             $table->string('apellidos');
+            $table->string('email')->unique();
             $table->string('password');
 
             $table->string('role', 50)->default('callcenter');
