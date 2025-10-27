@@ -16,32 +16,12 @@ class CitaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'fecha' => [
-                'required',
-                'date',
-                'after_or_equal:' . now()->toDateString(), // ✅ Evita fechas pasadas
-            ],
-            'hora_inicio' => [
-                'required',
-                'date_format:H:i',
-            ],
-            'hora_fin' => [
-                'required',
-                'date_format:H:i',
-                'after:hora_inicio',
-            ],
-            'motivo_consulta' => [
-                'required',
-                'string',
-                'min:3',
-                'max:255',
-                'not_regex:/^\s*$/',
-            ],
-            'paciente_id' => [
-                'required',
-                'integer',
-                'exists:pacientes,id',
-            ],
+            'fecha' => ['sometimes', 'required', 'date', 'after_or_equal:' . now()->toDateString()],
+            'hora_inicio' => ['sometimes', 'required', 'date_format:H:i'],
+            'hora_fin' => ['sometimes', 'required', 'date_format:H:i', 'after:hora_inicio'],
+            'motivo_consulta' => ['sometimes', 'required', 'string', 'min:3', 'max:255', 'not_regex:/^\s*$/'],
+            'paciente_id' => ['sometimes', 'required', 'integer', 'exists:pacientes,id'],
+            'tipo_cita_id' => ['sometimes', 'required', 'integer', 'in:1,2'],
         ];
     }
 
@@ -61,25 +41,25 @@ class CitaRequest extends FormRequest
             'motivo_consulta.not_regex' => 'El motivo no puede estar vacío o solo tener espacios.',
             'paciente_id.required' => 'Debe seleccionar un paciente.',
             'paciente_id.exists' => 'El paciente seleccionado no existe.',
+            'tipo_cita_id.required' => 'Debe seleccionar un tipo de cita.',
+            'tipo_cita_id.in' => 'El tipo de cita seleccionado no es válido.',
         ];
     }
 
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $fecha      = $this->input('fecha');
+            $fecha = $this->input('fecha');
             $horaInicio = $this->input('hora_inicio');
-            $horaFin    = $this->input('hora_fin');
-            $citaId     = $this->route('cita');
+            $horaFin = $this->input('hora_fin');
 
-            if (!$fecha || !$horaInicio || !$horaFin) {
-                return;
-            }
+            $citaId = $this->route('cita') ? $this->route('cita')->id : null;
+
+            if (!$fecha || !$horaInicio || !$horaFin) return;
 
             $fechaHoraInicio = Carbon::parse("$fecha $horaInicio");
             $ahora = Carbon::now();
 
-            // ✅ Evita crear citas en horas pasadas del mismo día
             if ($fechaHoraInicio->isToday() && $fechaHoraInicio->lt($ahora)) {
                 $validator->errors()->add('hora_inicio', 'No puedes crear citas en horas pasadas.');
                 return;
@@ -89,14 +69,8 @@ class CitaRequest extends FormRequest
                 ->when($citaId, fn($q) => $q->where('id', '!=', $citaId))
                 ->get(['hora_inicio', 'hora_fin']);
 
-            foreach ($citas as $cita) {
-                $inicioExistente = $cita->hora_inicio;
-                $finExistente    = $cita->hora_fin;
-
-                if (
-                    ($horaInicio < $finExistente) &&
-                    ($horaFin > $inicioExistente)
-                ) {
+            foreach ($citas as $citaExistente) {
+                if (($horaInicio < $citaExistente->hora_fin) && ($horaFin > $citaExistente->hora_inicio)) {
                     $validator->errors()->add('hora_inicio', 'Ya existe una cita programada en este horario.');
                     break;
                 }

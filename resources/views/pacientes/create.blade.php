@@ -15,7 +15,7 @@
                             <label for="nombres">Nombres</label>
                             <input type="text" name="nombres" id="nombres"
                                 class="input-field @error('nombres') border-red-500 @enderror"
-                                value="{{ old('nombres') }}" required>
+                                value="{{ old('nombres') }}" required autocomplete="given-name">
                             @error('nombres')
                             <p class="error-msg">{{ $message }}</p>
                             @enderror
@@ -25,7 +25,7 @@
                             <label for="apellidos">Apellidos</label>
                             <input type="text" name="apellidos" id="apellidos"
                                 class="input-field @error('apellidos') border-red-500 @enderror"
-                                value="{{ old('apellidos') }}" required>
+                                value="{{ old('apellidos') }}" required autocomplete="family-name">
                             @error('apellidos')
                             <p class="error-msg">{{ $message }}</p>
                             @enderror
@@ -50,7 +50,7 @@
                             <label for="documento">Documento</label>
                             <input type="text" name="documento" id="documento"
                                 class="input-field @error('documento') border-red-500 @enderror"
-                                value="{{ old('documento') }}" required>
+                                value="{{ old('documento') }}" required autocomplete="off">
                             @error('documento')
                             <p class="error-msg">{{ $message }}</p>
                             @enderror
@@ -60,7 +60,7 @@
                             <label for="telefono">Teléfono</label>
                             <input type="text" name="telefono" id="telefono"
                                 class="input-field @error('telefono') border-red-500 @enderror"
-                                value="{{ old('telefono') }}">
+                                value="{{ old('telefono') }}" autocomplete="tel">
                             @error('telefono')
                             <p class="error-msg">{{ $message }}</p>
                             @enderror
@@ -70,7 +70,7 @@
                             <label for="email">Correo</label>
                             <input type="email" name="email" id="email"
                                 class="input-field @error('email') border-red-500 @enderror"
-                                value="{{ old('email') }}">
+                                value="{{ old('email') }}" autocomplete="email">
                             @error('email')
                             <p class="error-msg">{{ $message }}</p>
                             @enderror
@@ -80,7 +80,7 @@
                             <label for="direccion">Dirección</label>
                             <input type="text" name="direccion" id="direccion"
                                 class="input-field @error('direccion') border-red-500 @enderror"
-                                value="{{ old('direccion') }}">
+                                value="{{ old('direccion') }}" autocomplete="street-address">
                             @error('direccion')
                             <p class="error-msg">{{ $message }}</p>
                             @enderror
