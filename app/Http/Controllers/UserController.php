@@ -39,7 +39,7 @@ class UserController extends Controller
             'email'      => strtolower(trim($request->email)),
             'password'   => Hash::make($request->password),
             'role'       => $request->role,
-            'created_by' => Auth::id(),
+            'created_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
         ]);
 
         return redirect()->route('users.index')
@@ -51,7 +51,7 @@ class UserController extends Controller
         return view('users.edit', compact('user'));
     }
 
-    public function update(UserRequest $request, $id)
+    public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
 
@@ -59,7 +59,7 @@ class UserController extends Controller
             'nombres'    => trim($request->nombres),
             'apellidos'  => trim($request->apellidos),
             'email'      => strtolower(trim($request->email)),
-            'updated_by' => Auth::id(),
+            'updated_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
         ];
 
         if ($request->filled('password')) {

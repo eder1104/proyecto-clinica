@@ -22,9 +22,9 @@ return new class extends Migration {
             $table->rememberToken();
             $table->timestamps();
 
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->unsignedBigInteger('updated_by')->nullable();
-            $table->unsignedBigInteger('cancelled_by')->nullable();
+            $table->string('created_by', 255)->nullable();
+            $table->string('updated_by', 255)->nullable();
+            $table->string('cancelled_by', 255)->nullable();
         });
     }
 
