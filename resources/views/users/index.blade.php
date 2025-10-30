@@ -7,13 +7,16 @@
 @endsection
 
 @section('content')
-<div class="max-w-5xl mx-auto py-6 px-4" 
+<div class="max-w-5xl mx-auto py-6 px-4"
     x-data="{ 
         openRoleModal: false, 
         openCancelModal: false,
+        openConfirmSelfModal: false,
         selectedRole: '', 
+        tempRole: '',
         currentUserId: null,
         currentUserName: '',
+        authUserId: {{ Auth::id() }},
 
         openChangeRoleModal(userId, currentRole) {
             this.currentUserId = userId;
@@ -25,6 +28,20 @@
             this.currentUserId = userId;
             this.currentUserName = userName;
             this.openCancelModal = true;
+        },
+
+        handleRoleChange(newRole) {
+            if (this.currentUserId === this.authUserId) {
+                this.tempRole = newRole;
+                this.openConfirmSelfModal = true;
+            } else {
+                this.selectedRole = newRole;
+            }
+        },
+
+        confirmSelfChange() {
+            this.selectedRole = this.tempRole;
+            this.openConfirmSelfModal = false;
         }
     }">
 
@@ -107,8 +124,8 @@
             </table>
         </div>
 
-        <div x-show="openRoleModal" x-cloak 
-            class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75" 
+        <div x-show="openRoleModal" x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75"
             @click.away="openRoleModal = false">
 
             <div class="bg-white w-full max-w-sm rounded-lg shadow-2xl p-6 transform transition-all duration-300 ease-out" @click.stop>
@@ -120,7 +137,11 @@
 
                     <div class="form-group">
                         <label for="role_select_modal" class="block text-sm font-medium text-gray-700">Rol</label>
-                        <select id="role_select_modal" name="role" class="w-full border-gray-300 rounded-md shadow-sm p-2 mt-1" x-model="selectedRole" required>
+                        <select id="role_select_modal" name="role"
+                            class="w-full border-gray-300 rounded-md shadow-sm p-2 mt-1"
+                            x-model="selectedRole"
+                            @change="handleRoleChange($event.target.value)"
+                            required>
                             <option value="admin">Admin</option>
                             <option value="admisiones">Admisiones</option>
                             <option value="callcenter">Callcenter</option>
@@ -142,8 +163,20 @@
             </div>
         </div>
 
-        <div x-show="openCancelModal" x-cloak 
-            class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75" 
+        <div x-show="openConfirmSelfModal" x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full text-center">
+                <h3 class="text-lg font-semibold mb-4">Confirmar cambio de rol</h3>
+                <p class="text-gray-700 mb-6">¿Estás seguro de cambiar tu propio rol? Esto puede modificar tu acceso inmediato.</p>
+                <div class="flex justify-center gap-3">
+                    <button @click="confirmSelfChange()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Sí, cambiar</button>
+                    <button @click="openConfirmSelfModal=false" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="openCancelModal" x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75"
             @click.away="openCancelModal = false">
 
             <div class="bg-white w-full max-w-sm rounded-lg shadow-2xl p-6 transform transition-all duration-300 ease-out" @click.stop>
@@ -231,6 +264,7 @@
         justify-content: center;
         margin: 15px 0;
     }
+
     .pagination a,
     .pagination span {
         color: #333;
@@ -240,19 +274,23 @@
         margin: 0 2px;
         border-radius: 4px;
     }
+
     .pagination a:hover {
         background-color: #f0f0f0;
     }
+
     .pagination a.active {
         background-color: #4a90e2;
         color: white;
         border-color: #4a90e2;
     }
+
     .editar {
         height: 2.6em;
         align-items: center;
         display: flex;
     }
+
     [x-cloak] {
         display: none !important;
     }
@@ -264,6 +302,7 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
     }
+
     function cerrarModalBuscar() {
         const modal = document.getElementById('modalBuscar');
         modal.classList.remove('flex');

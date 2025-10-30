@@ -102,7 +102,6 @@ class PacienteController extends Controller
         return view('pacientes.show', compact('paciente', 'historias'));
     }
 
-    // 🔍 MÉTODO NUEVO: Buscar paciente por tipo y número de documento (usado por el modal)
     public function buscar(Request $request)
     {
         if (!$request->ajax()) {
@@ -127,7 +126,6 @@ class PacienteController extends Controller
         return response()->json($paciente);
     }
 
-    // 🧩 MÉTODO NUEVO: Actualizar paciente desde el modal
     public function actualizarApi(Request $request, $id)
     {
         try {

@@ -72,8 +72,8 @@ class UserRequest extends FormRequest
             'password.max'       => 'La contraseña no puede exceder los 64 caracteres.',
             'password.confirmed' => 'Las contraseñas no coinciden.',
             'password.regex'     => 'Debe incluir mayúsculas, minúsculas, números y símbolos.',
-            'role.required' => 'Debe seleccionar un rol para el usuario.',
-            'role.in' => 'El rol seleccionado no es válido.',
+            'role.required'      => 'Debe seleccionar un rol para el usuario.',
+            'role.in'            => 'El rol seleccionado no es válido.',
         ];
     }
 }

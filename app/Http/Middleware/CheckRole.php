@@ -15,7 +15,6 @@ class CheckRole
         }
 
         $user = Auth::user();
-
         $userRole = $user->role;
         $userStatus = $user->status;
 
@@ -28,6 +27,19 @@ class CheckRole
             $request->session()->regenerateToken();
 
             return redirect('login')->with('error', 'Tu cuenta está inactiva. Contacta al administrador.');
+        }
+
+        $rolesCitas = ['doctor', 'admisiones', 'callcenter'];
+
+        if (in_array($userRole, $rolesCitas)) {
+            if (
+                !$request->is('citas*') &&
+                !$request->is('pacientes*') &&
+                !$request->is('historias*')
+            ) {
+                return redirect()->route('citas.index')
+                    ->with('info', 'Tu rol ha cambiado. Ahora estás viendo la vista de citas.');
+            }
         }
 
         if (!$hasRequiredRole) {
