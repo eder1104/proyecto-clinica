@@ -8,9 +8,15 @@ use App\Http\Controllers\{
     CitaController,
     PacienteController,
     HistoriaClinicaController,
+    Auth\RegisteredUserController,
     PreExamenController,
-    CalendarioController
+    CalendarioController,
+    ConsentimientoController,
+    BitacoraAuditoriaController,
+    PlantillaControllerRetina,
 };
+use App\Http\Middleware\Bitacora;
+use App\Http\Middleware\CheckRole;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('welcome'));
@@ -19,7 +25,7 @@ Route::get('/dashboard', fn() => view('dashboard'))
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', Bitacora::class])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -27,7 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/pacientes/{id}/actualizar', [PacienteController::class, 'actualizarApi'])->name('pacientes.actualizarApi');
 });
 
-Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones'])->group(function () {
+Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones', Bitacora::class])->group(function () {
     Route::get('pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
     Route::get('pacientes/crear', [PacienteController::class, 'create'])->name('pacientes.create');
     Route::post('pacientes', [PacienteController::class, 'store'])->name('pacientes.store');
@@ -79,7 +85,7 @@ Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones'])->group(fun
     Route::get('/calendario/citas/{fecha}', [CalendarioController::class, 'citasPorDia'])->name('calendario.citasPorDia');
 });
 
-Route::middleware(['auth', 'checkrole:admin'])->group(function () {
+Route::middleware(['auth', 'checkrole:admin', Bitacora::class])->group(function () {
     Route::get('/administracion', fn() => view('administracion'))->name('administracion');
     Route::resource('users', UserController::class)->except(['show']);
     Route::patch('/users/{user}', [UserController::class, 'toggleStatus'])->name('users.toggle');
@@ -87,6 +93,25 @@ Route::middleware(['auth', 'checkrole:admin'])->group(function () {
     Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update.role');
 });
 
-Route::post('/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'store'])->name('register.store');
+Route::middleware(['auth', 'checkrole:doctor,admisiones', Bitacora::class])->group(function () {
+    Route::get('/citas/{cita}/consentimiento', [ConsentimientoController::class, 'index'])->name('citas.consentimiento');
+    Route::post('/consentimientos', [ConsentimientoController::class, 'store'])->name('consentimientos.store');
+});
 
+Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
+
+Route::middleware(['auth', 'checkrole:admin, admisiones', Bitacora::class])->group(function () {
+    Route::get('/citas/CalendarioEspecialista', [CitaController::class, 'CalendarioEspecialista'])->name('citas.CalendarioEspecialista');
+    Route::get('/buscar-doctor/{tipo}/{numero}', [CitaController::class, 'buscarDoctor']);
+    Route::get('/calendario-especialista/{doctorId}/{mes}', [CitaController::class, 'obtenerCalendario']);
+    Route::post('/calendario-especialista/update', [CitaController::class, 'actualizarEstado']);
+    Route::get('/bitacora', [BitacoraAuditoriaController::class, 'index'])->name('citas.bitacora');
+});
+
+Route::get('/citas/{cita}/retina', [App\Http\Controllers\PlantillaControllerRetina::class, 'index'])->name('retina.index');
+
+
+Route::get('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'index'])->name('retina.index');
+Route::post('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'store'])->name('retina.store');
 require __DIR__ . '/auth.php';
+

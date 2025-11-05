@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\PlantillaConsentimiento;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -18,7 +19,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             DoctorSeeder::class, 
-            PacienteSeeder::class, 
+            PacienteSeeder::class,
+            PlantillaConsentimientoSeeder::class,
         ]);
     }
 }

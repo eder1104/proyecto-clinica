@@ -27,24 +27,26 @@ return new class extends Migration {
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'id' => 3,
+                'nombre' => 'Retina',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
 
         Schema::create('citas', function (Blueprint $table) {
             $table->id();
-
             $table->date('fecha');
             $table->time('hora_inicio');
             $table->time('hora_fin');
             $table->string('estado')->default('programada');
-
             $table->foreignId('paciente_id')->constrained('pacientes')->restrictOnDelete();
             $table->foreignId('tipo_cita_id')->nullable()->constrained('tipos_citas')->nullOnDelete();
-
             $table->string('created_by')->nullable();
             $table->string('updated_by')->nullable();
             $table->string('cancelled_by')->nullable();
             $table->text('cancel_reason')->nullable();
-
             $table->timestamps();
         });
     }

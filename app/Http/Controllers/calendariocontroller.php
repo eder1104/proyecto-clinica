@@ -28,7 +28,7 @@ class CalendarioController extends Controller
     {
         $fechaFormateada = \Carbon\Carbon::parse($fecha)->format('Y-m-d');
 
-        $citas = \App\Models\Cita::with('paciente:id,nombres,apellidos')
+        $citas = Cita::with('paciente:id,nombres,apellidos')
             ->whereDate('fecha', $fechaFormateada)
             ->get([
                 'id',

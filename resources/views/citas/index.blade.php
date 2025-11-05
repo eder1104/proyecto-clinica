@@ -38,6 +38,7 @@
 
                         <button type="submit" class="btn">Buscar</button>
                         <a href="{{ route('citas.index') }}" class="btn-gray">Limpiar</a>
+
                     </form>
 
                     <table class="table">
@@ -114,8 +115,9 @@
                                 </td>
                                 <td>
                                     @if (!$isBlocked)
-                                    <a href="{{ route('preexamen.create', ['cita' => $c->id]) }}"
-                                        class="btn">Tomar Atención</a>
+                                    <button type="button" class="btn" onclick="abrirModalConsentimiento('{{ $c->id }}')">
+                                        Tomar Atención
+                                    </button>
                                     @else
                                     <span class="btn-disabled">No disponible</span>
                                     @endif
@@ -133,7 +135,7 @@
             </div>
         </div>
 
-        @include('citas.calendario')
+        @include('citas.consentimiento')
     </div>
 
     <div id="modalCancelacion" class="modal" style="display:none;">
@@ -179,6 +181,13 @@
             form.appendChild(input)
             form.submit()
         }
+
+        function abrirModalConsentimiento(citaId) {
+            const modal = document.getElementById('consentimientoModal');
+            modal.style.display = 'flex';
+            document.getElementById('cita_id').value = citaId;
+        }
+
     </script>
 
     <style>
