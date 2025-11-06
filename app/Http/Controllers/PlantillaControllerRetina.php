@@ -6,15 +6,18 @@ use App\Models\Retina;
 use Illuminate\Http\Request;
 use App\Models\Cita;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+
 
 class PlantillaControllerRetina extends Controller
 {
-    public function index()
+    public function index(Cita $cita)
     {
         $retinas = Retina::all();
         $citas = Cita::with('paciente')->orderBy('fecha', 'desc')->get();
-        return view('plantillas.retina', compact('retinas', 'citas'));
+        return view('plantillas.retina', compact('retinas', 'citas', 'cita'));
     }
+
 
     public function store(Request $request, Cita $cita)
     {

@@ -16,7 +16,7 @@
                         </svg>
                     </button>
 
-                    <div class="absolute left-0 mt-5 w-52 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out pointer-events-none group-hover:pointer-events-auto z-50">
+                    <div class="absolute left-0 top-full mt-1 w-52 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100 transition-all duration-300 ease-out pointer-events-none group-hover:pointer-events-auto z-50">
                         <a href="{{ route('users.index') }}" class="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-t-xl transition-colors duration-150">
                             {{ __('Usuarios') }}
                         </a>
@@ -24,15 +24,15 @@
                 </div>
 
                 <div class="hidden sm:flex sm:items-center sm:ml-10 relative group">
-                    <button class="inline-flex items-center px-3 py-2 text-sm font-semibold {{ request()->routeIs('citas.CalendarioEspecialista') || request()->routeIs('citas.bitacora') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-700 hover:text-blue-600' }} focus:outline-none transition-colors duration-200">
+                    <button class="inline-flex items-center px-3 py-2 text-sm font-semibold {{ request()->routeIs('doctor.agenda') || request()->routeIs('citas.bitacora') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-700 hover:text-blue-600' }} focus:outline-none transition-colors duration-200">
                         {{ __('Especialista') }}
                         <svg class="ml-1 h-4 w-4 transition-transform duration-200 group-hover:rotate-180" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
 
-                    <div class="absolute left-0 mt-5 w-60 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out pointer-events-none group-hover:pointer-events-auto z-50">
-                        <a href="{{ route('citas.CalendarioEspecialista') }}" class="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-t-xl transition-colors duration-150">
+                    <div class="absolute left-0 top-full mt-1 w-60 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100 transition-all duration-300 ease-out pointer-events-none group-hover:pointer-events-auto z-50">
+                        <a href="{{ route('doctor.agenda') }}" class="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-t-xl transition-colors duration-150">
                             {{ __('Agenda Médica Oftalmológica') }}
                         </a>
                         <a href="{{ route('citas.bitacora') }}" class="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">

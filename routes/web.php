@@ -14,6 +14,9 @@ use App\Http\Controllers\{
     ConsentimientoController,
     BitacoraAuditoriaController,
     PlantillaControllerRetina,
+    CitasParcialController,
+    CalendarioEspecialistaController,
+    DoctorAgendaController
 };
 use App\Http\Middleware\Bitacora;
 use App\Http\Middleware\CheckRole;
@@ -100,18 +103,23 @@ Route::middleware(['auth', 'checkrole:doctor,admisiones', Bitacora::class])->gro
 
 Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
 
-Route::middleware(['auth', 'checkrole:admin, admisiones', Bitacora::class])->group(function () {
-    Route::get('/citas/CalendarioEspecialista', [CitaController::class, 'CalendarioEspecialista'])->name('citas.CalendarioEspecialista');
-    Route::get('/buscar-doctor/{tipo}/{numero}', [CitaController::class, 'buscarDoctor']);
-    Route::get('/calendario-especialista/{doctorId}/{mes}', [CitaController::class, 'obtenerCalendario']);
-    Route::post('/calendario-especialista/update', [CitaController::class, 'actualizarEstado']);
+Route::middleware(['auth', 'checkrole:admin,admisiones', Bitacora::class])->group(function () {
     Route::get('/bitacora', [BitacoraAuditoriaController::class, 'index'])->name('citas.bitacora');
+
+    Route::get('/agenda-doctores', [DoctorAgendaController::class, 'index'])->name('doctor.agenda');
+
+    Route::get('/calendario-especialista', [CalendarioEspecialistaController::class, 'index'])->name('citas.CalendarioEspecialista');
+    Route::get('/calendario-especialista/{doctorId}/{mes}', [CalendarioEspecialistaController::class, 'obtenerCalendario'])->name('calendario.obtener');
+    Route::post('/calendario-especialista/update', [CalendarioEspecialistaController::class, 'actualizarEstado'])->name('calendario.update');
+
+    Route::get('/vista-parcial/{doctorId}/{fecha}', [CitasParcialController::class, 'index'])->name('citas.parcial');
+    Route::post('/parcialidades', [CitasParcialController::class, 'store'])->name('citas.parcial.store');
+
+    Route::put('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'update'])->name('citas.parcial.update');
+    Route::delete('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'destroy'])->name('citas.parcial.destroy');
 });
-
-Route::get('/citas/{cita}/retina', [App\Http\Controllers\PlantillaControllerRetina::class, 'index'])->name('retina.index');
-
 
 Route::get('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'index'])->name('retina.index');
 Route::post('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'store'])->name('retina.store');
-require __DIR__ . '/auth.php';
 
+require __DIR__ . '/auth.php';

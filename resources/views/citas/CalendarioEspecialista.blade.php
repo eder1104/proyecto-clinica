@@ -1,16 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="calendar-container">
+<div class="calendar-container" data-doctor-id="{{ $doctor->id }}">
     <div class="calendar-wrapper">
-        <h1 class="calendar-title">Calendario de Disponibilidad</h1>
+        <h1 class="calendar-title">Agenda Medica Oftalmologica</h1>
 
-        <div class="doctor-select">
-            <label>Buscar Doctor (por cédula):</label>
-            <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-                <input type="text" id="numeroDocumento" class="form-control" placeholder="Número de cédula" style="padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-                <button id="buscarDoctor" class="btn-buscar">Buscar</button>
-            </div>
+        <div class="doctor-info-container">
+            <h3 class="doctor-name">Dr. {{ $doctor->nombres }}</h3>
+            <p class="doctor-doc">Documento: {{ $doctor->numero_documento }}</p>
+            <a href="{{ route('doctor.agenda') }}" class="btn-volver">Volver a la lista</a>
         </div>
 
         <div class="calendar-box">
@@ -37,35 +35,12 @@
 
 <script>
     let currentDate = new Date();
-    let selectedDoctor = null;
+
+    const calendarContainer = document.querySelector('.calendar-container');
+    const selectedDoctor = calendarContainer.dataset.doctorId;
+
     const calendarDaysDiv = document.getElementById("calendarDays");
     const monthYear = document.getElementById("monthYear");
-    const buscarDoctor = document.getElementById("buscarDoctor");
-    const numeroDocumento = document.getElementById("numeroDocumento");
-
-    buscarDoctor.addEventListener("click", () => {
-        const numero = numeroDocumento.value.trim();
-
-        if (!numero) {
-            alert("Ingrese el número de cédula del doctor");
-            return;
-        }
-
-        fetch(`/buscar-doctor/${numero}`)
-            .then(res => {
-                if (!res.ok) throw new Error("No se encontró el doctor");
-                return res.json();
-            })
-            .then(data => {
-                if (data.id) {
-                    selectedDoctor = data.id;
-                    renderCalendar(currentDate);
-                } else {
-                    alert("Doctor no encontrado");
-                }
-            })
-            .catch(() => alert("Error al buscar el doctor"));
-    });
 
     function renderCalendar(date) {
         calendarDaysDiv.innerHTML = "";
@@ -81,79 +56,97 @@
             year: "numeric"
         }).toUpperCase();
 
-        if (!selectedDoctor) {
-            for (let i = 0; i < startDay; i++) {
-                const emptyDiv = document.createElement("div");
-                emptyDiv.classList.add("calendar-day", "empty-day");
-                calendarDaysDiv.appendChild(emptyDiv);
-            }
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayDiv = document.createElement("div");
-                dayDiv.classList.add("calendar-day", "disponible");
-                dayDiv.innerHTML = `<div class="day-number">${day}</div>`;
-                calendarDaysDiv.appendChild(dayDiv);
-            }
-            return;
+        for (let i = 0; i < startDay; i++) {
+            const emptyDiv = document.createElement("div");
+            emptyDiv.classList.add("calendar-day", "empty-day");
+            calendarDaysDiv.appendChild(emptyDiv);
         }
 
-        fetch(`/calendario-especialista/${selectedDoctor}/${year}-${String(month + 1).padStart(2, "0")}`)
+        for (let day = 1; day <= daysInMonth; day++) {
+            const fecha = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+            const dayDiv = document.createElement("div");
+            dayDiv.classList.add("calendar-day", "disponible");
+
+            dayDiv.innerHTML = `<div class="day-number">${day}</div>
+    <select class="estado-select" data-fecha="${fecha}">
+        <option value="Disponible" selected>Disponible</option>
+        <option value="Parcial">Parcial</option>
+        <option value="Bloqueado">Bloqueado</option>
+    </select>`;
+            calendarDaysDiv.appendChild(dayDiv);
+        }
+
+        const mesStr = `${year}-${String(month + 1).padStart(2, "0")}`;
+        fetch(`/calendario-especialista/${selectedDoctor}/${mesStr}`)
             .then(res => res.json())
             .then(data => {
-                const estadosDias = data;
-
-                for (let i = 0; i < startDay; i++) {
-                    const emptyDiv = document.createElement("div");
-                    emptyDiv.classList.add("calendar-day", "empty-day");
-                    calendarDaysDiv.appendChild(emptyDiv);
-                }
-
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const fecha = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-                    const estado = estadosDias[fecha] || "Disponible";
-
-                    const dayDiv = document.createElement("div");
-                    dayDiv.classList.add("calendar-day", estado.toLowerCase());
-                    dayDiv.innerHTML = `
-                        <div class="day-number">${day}</div>
-                        <select class="estado-select" data-fecha="${fecha}">
-                            <option value="Disponible" ${estado === "Disponible" ? "selected" : ""}>Disponible</option>
-                            <option value="Parcial" ${estado === "Parcial" ? "selected" : ""}>Parcial</option>
-                            <option value="Bloqueado" ${estado === "Bloqueado" ? "selected" : ""}>Bloqueado</option>
-                        </select>
-                    `;
-                    calendarDaysDiv.appendChild(dayDiv);
-                }
-
                 document.querySelectorAll(".estado-select").forEach(select => {
-                    select.addEventListener("change", e => {
-                        const fecha = e.target.dataset.fecha;
-                        const nuevoEstado = e.target.value;
+                    const fecha = select.dataset.fecha;
+                    if (data[fecha]) {
+                        select.value = data[fecha];
+                        updateDayColor(select);
 
-                        fetch("/calendario-especialista/update", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                                },
-                                body: JSON.stringify({
-                                    doctor_id: selectedDoctor,
-                                    fecha,
-                                    estado: nuevoEstado
-                                })
-                            })
-                            .then(res => res.json())
-                            .then(() => renderCalendar(currentDate))
-                            .catch(() => alert("Error al actualizar estado"));
-                    });
+                        if (data[fecha] === 'Parcial') {
+                            const dayDiv = select.closest(".calendar-day");
+                            dayDiv.style.cursor = 'pointer';
+
+                            dayDiv.addEventListener("click", (e) => {
+                                if (e.target.classList.contains('estado-select')) {
+                                    return;
+                                }
+                                window.location.href = `/vista-parcial/${selectedDoctor}/${fecha}`;
+                            });
+                        }
+                    }
                 });
+            })
+            .catch(() => console.error("Error al obtener la disponibilidad."));
+
+        document.querySelectorAll(".estado-select").forEach(select => {
+            select.addEventListener("input", e => {
+                const fecha = e.target.dataset.fecha;
+                const nuevoEstado = e.target.value;
+
+                if (nuevoEstado === 'Parcial') {
+                    window.location.href = `/vista-parcial/${selectedDoctor}/${fecha}`;
+                    return;
+                }
+
+                updateDayColor(e.target);
+
+                fetch("/calendario-especialista/update", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({
+                            doctor_id: selectedDoctor,
+                            fecha,
+                            estado: nuevoEstado
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        }
+                    })
+                    .catch(() => console.error("Error al actualizar el estado."));
             });
+        });
+    }
+
+    function updateDayColor(selectElement) {
+        const dayDiv = selectElement.closest(".calendar-day");
+        dayDiv.classList.remove("disponible", "parcial", "bloqueado");
+        dayDiv.classList.add(selectElement.value.toLowerCase());
     }
 
     document.getElementById("prevMonth").addEventListener("click", () => {
         currentDate.setMonth(currentDate.getMonth() - 1);
         renderCalendar(currentDate);
     });
-
     document.getElementById("nextMonth").addEventListener("click", () => {
         currentDate.setMonth(currentDate.getMonth() + 1);
         renderCalendar(currentDate);
@@ -182,18 +175,41 @@
         color: #374151;
     }
 
-    .doctor-select {
-        text-align: center;
+    .doctor-info-container {
+        padding: 15px 20px;
+        background-color: #f3f4f6;
+        border-radius: 8px;
         margin-bottom: 20px;
+        text-align: center;
     }
 
-    .btn-buscar {
-        background: #2563eb;
+    .doctor-name {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #111827;
+        margin: 0 0 5px 0;
+    }
+
+    .doctor-doc {
+        color: #4b5563;
+        margin: 0 0 15px 0;
+    }
+
+    .btn-volver {
+        display: inline-block;
+        text-decoration: none;
+        background: #6b7280;
         color: white;
         padding: 8px 15px;
         border: none;
         border-radius: 6px;
         cursor: pointer;
+        font-size: 0.9rem;
+        transition: background-color 0.2s;
+    }
+
+    .btn-volver:hover {
+        background: #4b5563;
     }
 
     .calendar-box {
@@ -230,20 +246,26 @@
     }
 
     .calendar-day {
-        padding: 18px 0;
+        position: relative;
+        height: 100px;
         border-radius: 10px;
-        cursor: pointer;
         transition: 0.2s;
         font-weight: 600;
         display: flex;
-        flex-direction: column;
+        justify-content: center;
         align-items: center;
-        gap: 5px;
+    }
+
+    .day-number {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        font-weight: bold;
     }
 
     .calendar-day.disponible {
-        background: #e0f2fe;
-        color: #0369a1;
+        background: #d1fae5;
+        color: #065f46;
     }
 
     .calendar-day.parcial {
@@ -254,13 +276,40 @@
     .calendar-day.bloqueado {
         background: #fecaca;
         color: #991b1b;
+        border: 2px solid #dc2626;
     }
 
     .estado-select {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
         border-radius: 6px;
         padding: 4px;
         border: 1px solid #ccc;
         font-size: 0.9rem;
+        background-color: #f9fafb;
+        cursor: pointer;
+    }
+
+    .estado-select:disabled {
+        background-color: #e5e7eb;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .estado-select option[value="Disponible"] {
+        background-color: #22c55e;
+        color: white;
+    }
+
+    .estado-select option[value="Bloqueado"] {
+        background-color: #dc2626;
+        color: white;
+    }
+
+    .estado-select option[value="Parcial"] {
+        background-color: #facc15;
+        color: black;
     }
 </style>
 @endsection

@@ -20,7 +20,10 @@ class BitacoraAuditoriaController extends Controller
 
     public function index()
     {
-        $registros = BitacoraAuditoria::orderBy('fecha_hora', 'desc')->get();
+        $registros = BitacoraAuditoria::with('usuario')
+            ->orderBy('fecha_hora', 'desc')
+            ->paginate(20);
+
         return view('citas.bitacora', compact('registros'));
     }
 }

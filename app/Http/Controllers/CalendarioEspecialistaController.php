@@ -4,45 +4,67 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Doctores;
-use Carbon\Carbon;
+use App\Models\CalendarioDisponibilidad;
+use App\Models\DoctorParcialidad;
+use App\Models\User;
+use App\Http\Controllers\BitacoraAuditoriaController;
+use Illuminate\Support\Facades\Auth;
 
 class CalendarioEspecialistaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('citas.CalendarioEspecialista');
-    }
-
-    public function buscarDoctor($numero)
-    {
-        $doctor = Doctores::with('user')->where('documento', $numero)->first();
-
-        if ($doctor) {
-            return response()->json([
-                'id' => $doctor->id,
-                'nombre' => $doctor->user->nombres . ' ' . $doctor->user->apellidos
-            ]);
+        if (!$request->has('doctorId')) {
+            abort(404, 'Doctor no especificado.');
         }
 
-        return response()->json(['error' => 'Doctor no encontrado'], 404);
+        $doctor = User::find($request->doctorId);
+
+        if (!$doctor || $doctor->role !== 'doctor') {
+            abort(404, 'Doctor no encontrado.');
+        }
+
+        $doctorProfile = Doctores::where('user_id', $doctor->id)->first();
+        $doctor->numero_documento = $doctorProfile ? $doctorProfile->documento : 'N/A';
+
+        return view('citas.CalendarioEspecialista', compact('doctor'));
     }
 
     public function obtenerCalendario($doctorId, $mes)
     {
+        $user_id = $doctorId;
+
+        $doctorProfile = Doctores::where('user_id', $user_id)->first();
+
+        if (!$doctorProfile) {
+            return response()->json([]);
+        }
+
+        $doctor_table_id = $doctorProfile->id;
+
+        $fechaInicio = "$mes-01";
+        $fechaFin = date('Y-m-t', strtotime($fechaInicio));
+
+        $disponibilidadGuardada = CalendarioDisponibilidad::where('doctor_id', $doctor_table_id)
+            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->pluck('estado', 'fecha')
+            ->toArray();
+
+        $parcialidadesGuardadas = DoctorParcialidad::where('doctor_id', $doctor_table_id)
+            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->pluck('id', 'fecha')
+            ->toArray();
+
+        $diasMes = (int)date('t', strtotime($fechaInicio));
         $dias = [];
-        $fechaInicio = new \DateTime("$mes-01");
-        $diasMes = (int)$fechaInicio->format('t');
 
         for ($d = 1; $d <= $diasMes; $d++) {
             $fecha = sprintf('%s-%02d', $mes, $d);
-            $diaSemana = (new \DateTime($fecha))->format('w');
 
-            if ($diaSemana == 0) {
-                $dias[$fecha] = 'Bloqueado';
-            } elseif ($diaSemana == 3) {
+            if (isset($parcialidadesGuardadas[$fecha])) {
                 $dias[$fecha] = 'Parcial';
             } else {
-                $dias[$fecha] = 'Disponible';
+                $dias[$fecha] = $disponibilidadGuardada[$fecha] ?? 'Disponible';
             }
         }
 
@@ -52,11 +74,45 @@ class CalendarioEspecialistaController extends Controller
     public function actualizarEstado(Request $request)
     {
         $validated = $request->validate([
-            'doctor_id' => 'required|integer',
-            'fecha' => 'required|date',
-            'estado' => 'required|string'
+            'doctor_id' => 'required|integer|exists:users,id',
+            'fecha' => 'required|date_format:Y-m-d',
+            'estado' => 'required|string|in:Disponible,Bloqueado'
         ]);
 
-        return response()->json(['success' => true, 'data' => $validated]);
+        $user_id = $validated['doctor_id'];
+
+        $doctorProfile = Doctores::where('user_id', $user_id)->first();
+
+        if (!$doctorProfile) {
+            return response()->json(['success' => false, 'message' => 'Perfil de doctor no encontrado para el usuario.'], 404);
+        }
+
+        $doctor_table_id = $doctorProfile->id;
+
+        $disponibilidad = CalendarioDisponibilidad::firstOrNew(
+            [
+                'doctor_id' => $doctor_table_id,
+                'fecha' => $validated['fecha'],
+            ]
+        );
+
+        $disponibilidad->estado = $validated['estado'];
+        $disponibilidad->save();
+
+        if ($validated['estado'] !== 'Parcial') {
+            DoctorParcialidad::where('doctor_id', $doctor_table_id)
+                ->where('fecha', $validated['fecha'])
+                ->delete();
+        }
+
+        BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'agenda',
+            'editar',
+            $disponibilidad->getKey(),
+            $validated
+        );
+
+        return response()->json(['success' => true]);
     }
 }

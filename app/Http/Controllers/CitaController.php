@@ -6,9 +6,11 @@ use App\Http\Requests\CitaRequest;
 use App\Models\Cita;
 use App\Models\Paciente;
 use App\Models\PlantillaConsentimiento;
+use App\Models\ConsentimientoPaciente;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+
 use Carbon\Carbon;
 use App\Services\AgendaService;
 use Carbon\CarbonPeriod;
@@ -43,7 +45,25 @@ class CitaController extends Controller
             }
         }
 
-        return view('citas.index', compact('citas'));
+        $pacientes = Paciente::select('id', 'nombres', 'apellidos')
+            ->orderBy('apellidos', 'asc')
+            ->get();
+
+        $plantillas = PlantillaConsentimiento::select('id', 'titulo')
+            ->where('activo', true)
+            ->orderBy('titulo', 'asc')
+            ->get();
+
+        $consentimientos = ConsentimientoPaciente::with(['paciente', 'plantilla'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('citas.index', compact(
+            'citas',
+            'pacientes',
+            'plantillas',
+            'consentimientos'
+        ));
     }
 
     public function create()
@@ -177,34 +197,5 @@ class CitaController extends Controller
 
         return redirect()->route('citas.index')
             ->with('success', 'Cita finalizada correctamente.');
-    }
-
-    public function CalendarioEspecialista(Request $request, User $doctor)
-    {
-        $doctor = null;
-
-        if ($request->filled(['tipo', 'numero'])) {
-            $doctor = User::where('role', 'doctor')
-                ->where('tipo_documento', $request->tipo)
-                ->where('documento', $request->numero)
-                ->first();
-        }
-
-        return view('citas.CalendarioEspecialista', compact('doctor'));
-    }
-
-
-    public function buscarDoctor($tipo, $numero)
-    {
-        $doctor = User::where('role', 'doctor')
-            ->where('tipo_documento', $tipo)
-            ->where('numero_documento', $numero)
-            ->first();
-
-        if ($doctor) {
-            return response()->json(['id' => $doctor->id, 'nombre' => $doctor->nombres . ' ' . $doctor->apellidos]);
-        }
-
-        return response()->json(['error' => 'No encontrado'], 404);
     }
 }
