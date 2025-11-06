@@ -339,7 +339,6 @@ if (empty($nombreCompletoOptometra)) {
     }
 
     .SubTitle_op{
-        /* Modificado para que se alinee en el centro de la fila de Agudeza Visual */
         display: flex;
         align-items: center;
         font-size: 25px;
@@ -352,15 +351,13 @@ if (empty($nombreCompletoOptometra)) {
     }
 
     .SelectAgudeza {
-        /* Estructura Grid de 7 columnas para OD(3) - AVSC(1) - OI(3) */
         display: grid;
         grid-template-columns: repeat(3, 1fr) auto repeat(3, 1fr);
-        gap: 5px 15px; /* Espacio vertical y horizontal */
+        gap: 5px 15px;
         margin-bottom: 20px;
         align-items: flex-start;
     }
     
-    /* Clase auxiliar para la nueva estructura de grid */
     .grid-7-column {
         display: grid;
         grid-template-columns: repeat(3, 1fr) auto repeat(3, 1fr);

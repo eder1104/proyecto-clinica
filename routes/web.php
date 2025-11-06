@@ -29,8 +29,6 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('/pacientes/buscar', [PacienteController::class, 'buscar'])->name('pacientes.buscar');
-    Route::put('/pacientes/{id}/actualizar', [PacienteController::class, 'actualizarApi'])->name('pacientes.actualizarApi');
 });
 
 Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones', Bitacora::class])->group(function () {
@@ -41,6 +39,8 @@ Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones', Bitacora::c
     Route::get('pacientes/{paciente}/edit', [PacienteController::class, 'edit'])->name('pacientes.edit');
     Route::put('pacientes/{paciente}', [PacienteController::class, 'update'])->name('pacientes.update');
     Route::delete('pacientes/{paciente}', [PacienteController::class, 'destroy'])->name('pacientes.destroy');
+    Route::get('/pacientes/buscar', [PacienteController::class, 'buscar'])->name('pacientes.buscar');
+    Route::put('/pacientes/{id}/actualizar', [PacienteController::class, 'actualizarApi'])->name('pacientes.actualizarApi');
     Route::get('/pacientes/buscar/lista', [PacienteController::class, 'Paciente_buscar'])->name('pacientes.buscar.lista');
 
     Route::get('citas', [CitaController::class, 'index'])->name('citas.index');

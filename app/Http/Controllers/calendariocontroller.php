@@ -4,29 +4,43 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Cita;
+use App\Services\AgendaService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class CalendarioController extends Controller
 {
-    public function index()
+    protected $agenda;
+
+    public function __construct(AgendaService $agenda)
+    {
+        $this->agenda = $agenda;
+    }
+
+    public function index(Request $request)
     {
         if (Auth::check() && Auth::user()->role === 'admin') {
-            abort(403, 'Acceso denegado para administradores.');
         }
 
-        $citas = Cita::whereNotNull('fecha')
-            ->pluck('fecha')
-            ->map(fn($f) => Carbon::parse($f)->format('Y-m-d'))
-            ->unique()
-            ->toArray();
+        $date = Carbon::now();
+        $firstOfMonth = $date->copy()->firstOfMonth();
+        $lastOfMonth = $date->copy()->lastOfMonth();
 
+        $dias = [];
+        for ($d = $firstOfMonth->copy(); $d->lte($lastOfMonth); $d->addDay()) {
+            $fecha = $d->format('Y-m-d');
+            $dias[] = [
+                'fecha' => $fecha,
+                'estado' => $this->agenda->estadoDelDia($fecha)
+            ];
+        }
 
-        return view('citas.calendario', compact('citas'));
+        return view('citas.calendario', compact('dias'));
     }
 
     public function citasPorDia($fecha)
     {
-        $fechaFormateada = \Carbon\Carbon::parse($fecha)->format('Y-m-d');
+        $fechaFormateada = Carbon::parse($fecha)->format('Y-m-d');
 
         $citas = Cita::with('paciente:id,nombres,apellidos')
             ->whereDate('fecha', $fechaFormateada)
@@ -56,5 +70,25 @@ class CalendarioController extends Controller
             });
 
         return response()->json($citas);
+    }
+
+    public function crearBloqueo(Request $request)
+    {
+        $data = $request->validate([
+            'fecha' => 'required|date',
+            'hora_inicio' => 'required|date_format:H:i',
+            'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
+            'motivo' => 'nullable|string|max:255'
+        ]);
+
+        \App\Models\BloqueoAgenda::create([
+            'fecha' => $data['fecha'],
+            'hora_inicio' => $data['hora_inicio'] . ':00',
+            'hora_fin' => $data['hora_fin'] . ':00',
+            'motivo' => $data['motivo'] ?? null,
+            'creado_por' => Auth::id()
+        ]);
+
+        return back()->with('success', 'Bloqueo creado correctamente.');
     }
 }

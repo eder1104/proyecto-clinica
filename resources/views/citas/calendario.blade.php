@@ -21,7 +21,9 @@
             </div>
 
             <div id="calendarDays" class="calendar-days"
-                data-citas='@json($citas)'></div>
+                data-dias='@json($dias)'>
+            </div>
+
         </div>
     </div>
 </div>
@@ -43,7 +45,7 @@
     document.addEventListener("DOMContentLoaded", () => {
         const calendarDaysDiv = document.getElementById("calendarDays");
         const monthYear = document.getElementById("monthYear");
-        const initialCitas = JSON.parse(calendarDaysDiv.dataset.citas || '[]');
+        const diasData = JSON.parse(calendarDaysDiv.dataset.dias || '[]');
         let currentDate = new Date();
         let citasCached = {};
 
@@ -138,9 +140,13 @@
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const daysInMonth = lastDay.getDate();
-            const startDay = (firstDay.getDay() + 6) % 7;
+            const startDay = (firstDay.getDay() + 6) % 7; // convertir para que lunes=0
 
-            const datesWithCitas = new Set(initialCitas.map(c => c.fecha));
+            // construir mapa fecha -> estado
+            const diasEstado = {};
+            diasData.forEach(d => {
+                diasEstado[d.fecha] = d.estado;
+            });
 
             monthYear.textContent = date.toLocaleString("es-ES", {
                 month: "long",
@@ -159,11 +165,17 @@
                 dayDiv.classList.add("calendar-day");
                 dayDiv.style.cursor = "pointer";
 
-                if (datesWithCitas.has(fullDate)) {
-                    dayDiv.classList.add("active-day");
+                const estado = diasEstado[fullDate];
+
+                if (estado === "activo") {
+                    dayDiv.classList.add("day-activo");
+                } else if (estado === "bloqueado") {
+                    dayDiv.classList.add("day-bloqueado");
+                } else if (estado === "parcial") {
+                    dayDiv.classList.add("day-parcial");
                 }
 
-                dayDiv.innerHTML = `<div class="day-number">${day}</div>`;
+                dayDiv.innerHTML = `<div class="day-number">${day}</div>${estado ? `<span class="day-status">${estado}</span>` : ''}`;
                 dayDiv.addEventListener("click", () => abrirModal(fullDate));
                 calendarDaysDiv.appendChild(dayDiv);
             }
@@ -271,6 +283,11 @@
         color: #4b5563;
         transition: all 0.2s ease;
         cursor: pointer;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
     .calendar-day:hover {
@@ -278,11 +295,35 @@
         transform: scale(1.03);
     }
 
-    .active-day {
-        background-color: #a7f3d0 !important;
-        border-color: #6ee7b7 !important;
+    .day-number {
+        font-size: 1.05rem;
+        margin-bottom: 6px;
+    }
+
+    .day-status {
+        display: block;
+        font-size: 0.75rem;
+        margin-top: 5px;
+        text-transform: capitalize;
+        font-weight: 600;
+    }
+
+    .day-activo {
+        background-color: #d1fae5 !important;
+        border-color: #10b981 !important;
         color: #065f46 !important;
-        font-weight: 700 !important;
+    }
+
+    .day-bloqueado {
+        background-color: #fecaca !important;
+        border-color: #f87171 !important;
+        color: #7f1d1d !important;
+    }
+
+    .day-parcial {
+        background-color: #fef9c3 !important;
+        border-color: #facc15 !important;
+        color: #78350f !important;
     }
 
     .empty-day {

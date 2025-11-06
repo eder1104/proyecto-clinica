@@ -6,7 +6,6 @@
     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
 >
     <div class="bg-white w-full max-w-lg rounded-lg shadow-lg relative p-6">
-        <!-- Botón de cerrar -->
         <button 
             @click="show = false" 
             class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold"

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -39,7 +38,7 @@ class UserController extends Controller
             'email'      => strtolower(trim($request->email)),
             'password'   => Hash::make($request->password),
             'role'       => $request->role,
-            'created_by' => Auth::id(),
+            'created_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
         ]);
 
         return redirect()->route('users.index')
@@ -51,15 +50,31 @@ class UserController extends Controller
         return view('users.edit', compact('user'));
     }
 
-    public function update(UserRequest $request, $id)
+    public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
+
+        $request->validate([
+            'nombres'   => ['required', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/'],
+            'apellidos' => ['required', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/'],
+            'email'     => ['required', 'email', 'unique:users,email,' . $id],
+            'password'  => ['nullable', 'min:8'],
+        ], [
+            'nombres.required'   => 'El campo nombres es obligatorio.',
+            'nombres.regex'      => 'El nombre solo puede contener letras y espacios.',
+            'apellidos.required' => 'El campo apellidos es obligatorio.',
+            'apellidos.regex'    => 'El apellido solo puede contener letras y espacios.',
+            'email.required'     => 'El campo correo es obligatorio.',
+            'email.email'        => 'El formato del correo no es válido.',
+            'email.unique'       => 'Este correo ya está registrado.',
+            'password.min'       => 'La contraseña debe tener al menos 8 caracteres.',
+        ]);
 
         $data = [
             'nombres'    => trim($request->nombres),
             'apellidos'  => trim($request->apellidos),
             'email'      => strtolower(trim($request->email)),
-            'updated_by' => Auth::id(),
+            'updated_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
         ];
 
         if ($request->filled('password')) {
@@ -68,7 +83,7 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return redirect()->route('users.index', $user->id)
+        return redirect()->route('users.index')
             ->with('success', 'Usuario actualizado correctamente. ✅');
     }
 
@@ -77,6 +92,15 @@ class UserController extends Controller
         $request->validate([
             'role' => 'required|in:admin,admisiones,callcenter,doctor',
         ]);
+
+        $authUser = Auth::user();
+
+        if ($authUser->id === $user->id && !$request->has('confirm')) {
+            return response()->json([
+                'showModal' => true,
+                'message' => '¿Estás seguro de cambiar tu propio rol? Esto podría afectar tus permisos actuales.',
+            ]);
+        }
 
         $user->update([
             'role' => $request->input('role'),
@@ -108,32 +132,6 @@ class UserController extends Controller
             ->with('success', 'Estado actualizado correctamente. 🔄');
     }
 
-    public function register(Request $request)
-    {
-        $request->validate([
-            'nombres'   => 'required|string|max:255',
-            'apellidos' => 'required|string|max:255',
-            'email'     => 'required|string|email|max:255|unique:users',
-            'password'  => 'required|string|min:8|confirmed',
-        ]);
-
-        $user = User::create([
-            'nombres'    => $request->nombres,
-            'apellidos'  => $request->apellidos,
-            'email'      => strtolower($request->email),
-            'password'   => Hash::make($request->password),
-            'role'       => 'users',
-            'status'     => 'activo',
-            'created_by' => Auth::check() ? Auth::id() : 0,
-            'updated_by' => Auth::check() ? Auth::id() : 0,
-        ]);
-
-        Auth::login($user);
-
-        return redirect()->route('dashboard')
-            ->with('success', 'Registro completado correctamente. 🥳');
-    }
-
     public function Usuario_buscar(Request $request)
     {
         $query = trim($request->input('query'));
@@ -149,7 +147,6 @@ class UserController extends Controller
 
         return view('users.index', compact('users'));
     }
-
 
     public function buscar(Request $request)
     {

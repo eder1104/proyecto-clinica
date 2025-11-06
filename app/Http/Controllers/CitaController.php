@@ -10,10 +10,12 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Services\AgendaService;
+use Carbon\CarbonPeriod;
 
 class CitaController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, AgendaService $agendaService)
     {
         $estado = $request->get('estado');
         $fecha = $request->get('fecha');
@@ -22,16 +24,6 @@ class CitaController extends Controller
             ->orderBy('fecha', 'desc')
             ->orderBy('hora_inicio', 'asc');
 
-        $pacientes = Paciente::select('id', 'nombres', 'apellidos')
-            ->orderBy('apellidos', 'asc')
-            ->get();
-
-        $plantillas = PlantillaConsentimiento::select('id', 'titulo', 'version')
-            ->where('activo', true)
-            ->orderBy('titulo', 'asc')
-            ->get();
-
-        // 🔹 Filtros opcionales
         if (!empty($estado)) {
             $query->where('estado', $estado);
         }
@@ -41,24 +33,17 @@ class CitaController extends Controller
         }
 
         $citas = $query->get();
-
         $now = Carbon::now();
 
         foreach ($citas as $cita) {
             $horaFin = Carbon::parse($cita->fecha . ' ' . $cita->hora_fin);
-
-            if (
-                $cita->estado != 'cancelada' &&
-                $cita->estado != 'finalizada' &&
-                $cita->estado != 'no_asistida' &&
-                $now->greaterThan($horaFin)
-            ) {
+            if (!in_array($cita->estado, ['cancelada', 'finalizada', 'no_asistida']) && $now->greaterThan($horaFin)) {
                 $cita->estado = 'no_asistida';
                 $cita->save();
             }
         }
 
-        return view('citas.index', compact('citas', 'pacientes', 'plantillas'));
+        return view('citas.index', compact('citas'));
     }
 
     public function create()
@@ -73,12 +58,9 @@ class CitaController extends Controller
         return view('citas.create', compact('pacientes', 'admisiones', 'tipos_citas'));
     }
 
-
-
-
-    public function store(CitaRequest $request)
-    {
-        $validated = $request->validated();
+   public function store(CitaRequest $request)
+{
+    $validated = $request->validated();
 
         $validated['created_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
         $validated['estado'] = 'programada';

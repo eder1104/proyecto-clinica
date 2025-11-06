@@ -1,8 +1,6 @@
 @php
 use Illuminate\Support\Facades\Auth;
 
-$isEdit = isset($plantilla) && $plantilla->exists;
-
 $user = Auth::user();
 
 $idOptometra = optional($user->doctor)->id;
