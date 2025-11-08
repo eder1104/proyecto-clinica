@@ -4,6 +4,7 @@
     </x-slot>
 
     <div class="py-6 max-w-7xl mx-auto sm:px-6 lg:px-8">
+
         <div id="tabla" class="tab-content active">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
@@ -38,7 +39,6 @@
 
                         <button type="submit" class="btn">Buscar</button>
                         <a href="{{ route('citas.index') }}" class="btn-gray">Limpiar</a>
-
                     </form>
 
                     <table class="table">
@@ -115,7 +115,8 @@
                                 </td>
                                 <td>
                                     @if (!$isBlocked)
-                                    <button type="button" class="btn" onclick="abrirModalConsentimiento('{{ $c->id }}')">
+                                    <button type="button" class="btn"
+                                        onclick="abrirModalConsentimiento('{{ $c->id }}', '{{ $c->paciente_id }}')">
                                         Tomar Atención
                                     </button>
                                     @else
@@ -135,7 +136,10 @@
             </div>
         </div>
 
-        @include('citas.consentimiento')
+        <div id="calendario" class="tab-content" style="display: none;">
+            @include('citas.calendario')
+        </div>
+
     </div>
 
     <div id="modalCancelacion" class="modal" style="display:none;">
@@ -150,7 +154,46 @@
         </div>
     </div>
 
+    @include('citas.consentimiento')
+
     <script>
+        function abrirModalConsentimiento(citaId, pacienteId) {
+            const modalElement = document.getElementById('consentimientoModal');
+            const modal = new bootstrap.Modal(modalElement);
+
+            const citaIdInput = document.getElementById('cita_id');
+            const pacienteSelect = document.getElementById('consentimiento_paciente_id');
+
+            if (citaIdInput) {
+                citaIdInput.value = citaId;
+            }
+
+            if (pacienteId && pacienteSelect) {
+                pacienteSelect.value = pacienteId;
+                pacienteSelect.disabled = true;
+            }
+
+            modal.show();
+        }
+
+        const modalConsentimientoElement = document.getElementById('consentimientoModal');
+        if (modalConsentimientoElement) {
+            modalConsentimientoElement.addEventListener('hidden.bs.modal', function() {
+                const pacienteSelect = document.getElementById('consentimiento_paciente_id');
+                if (pacienteSelect) {
+                    pacienteSelect.disabled = false;
+                }
+            });
+        }
+
+        function cambiarTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabId).style.display = 'block';
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
         let citaIdAEliminar = null
 
         function abrirModalCancelacion(event, id) {
@@ -181,16 +224,36 @@
             form.appendChild(input)
             form.submit()
         }
-
-        function abrirModalConsentimiento(citaId) {
-            const modal = document.getElementById('consentimientoModal');
-            modal.style.display = 'flex';
-            document.getElementById('cita_id').value = citaId;
-        }
-
     </script>
 
     <style>
+        .tab-btn {
+            padding: 8px 16px;
+            margin-bottom: -1px;
+            border: 1px solid transparent;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #6b7280;
+        }
+
+        .tab-btn.active {
+            border-color: #e5e7eb;
+            border-bottom-color: #fff;
+            color: #1d4ed8;
+            background-color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -208,6 +271,8 @@
         .modal-content {
             background-color: #fff;
             margin: 10% auto;
+            display: flex;
+            justify-content: center;
             padding: 25px 35px;
             border-radius: 12px;
             width: 90%;

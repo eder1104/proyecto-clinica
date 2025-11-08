@@ -22,7 +22,7 @@ class DoctorSeeder extends Seeder
                 'documento'      => '1012456789',
                 'telefono'       => '3004567890',
                 'email'          => 'laura.gonzalez@example.com',
-                'especializacion'=> 'Optometría',
+                'especializacion' => 'Optometría',
             ],
             [
                 'nombres'        => 'Carlos',
@@ -30,7 +30,7 @@ class DoctorSeeder extends Seeder
                 'documento'      => '1012456790',
                 'telefono'       => '3009876543',
                 'email'          => 'carlos.ramirez@example.com',
-                'especializacion'=> 'Oftalmología',
+                'especializacion' => 'Oftalmología',
             ],
             [
                 'nombres'        => 'Ana',
@@ -38,7 +38,7 @@ class DoctorSeeder extends Seeder
                 'documento'      => '1012456791',
                 'telefono'       => '3124567890',
                 'email'          => 'ana.martinez@example.com',
-                'especializacion'=> 'Optometría Pediátrica',
+                'especializacion' => 'Optometría Pediátrica',
             ],
             [
                 'nombres'        => 'Jorge',
@@ -46,7 +46,7 @@ class DoctorSeeder extends Seeder
                 'documento'      => '1012456792',
                 'telefono'       => '3102345678',
                 'email'          => 'jorge.castro@example.com',
-                'especializacion'=> 'Cirugía Ocular',
+                'especializacion' => 'Cirugía Ocular',
             ],
             [
                 'nombres'        => 'Diana',
@@ -54,7 +54,7 @@ class DoctorSeeder extends Seeder
                 'documento'      => '1012456793',
                 'telefono'       => '3019876543',
                 'email'          => 'diana.fernandez@example.com',
-                'especializacion'=> 'Baja Visión',
+                'especializacion' => 'Baja Visión',
             ],
         ];
 

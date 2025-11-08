@@ -126,7 +126,6 @@ class PacienteController extends Controller
         return response()->json($paciente);
     }
 
-    // 🧩 MÉTODO NUEVO: Actualizar paciente desde el modal
     public function actualizarApi(Request $request, $id)
     {
         try {

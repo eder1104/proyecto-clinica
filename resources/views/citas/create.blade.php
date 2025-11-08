@@ -143,10 +143,21 @@
                 document.getElementById('sexo').value = data.sexo ?? '';
             };
 
-            const limpiarCamposPaciente = () => {
+            const limpiarCamposCompletos = () => {
                 pacienteIdInput.value = '';
                 document.getElementById('tipo_documento').value = 'CC';
                 document.getElementById('numero_documento').value = '';
+                document.getElementById('nombres').value = '';
+                document.getElementById('apellidos').value = '';
+                document.getElementById('telefono').value = '';
+                document.getElementById('direccion').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('fecha_nacimiento').value = '';
+                document.getElementById('sexo').value = 'M';
+            };
+
+            const limpiarResultados = () => {
+                pacienteIdInput.value = '';
                 document.getElementById('nombres').value = '';
                 document.getElementById('apellidos').value = '';
                 document.getElementById('telefono').value = '';
@@ -165,18 +176,29 @@
                 timeout = setTimeout(async () => {
                     const numero = numeroInput.value.trim();
                     const tipo = tipoInput.value;
-                    if (!numero) return limpiarCamposPaciente();
+
+                    if (!numero) {
+                        limpiarCamposCompletos();
+                        return;
+                    }
 
                     try {
                         const response = await fetch(`{{ route('pacientes.buscar') }}?tipo=${tipo}&numero=${numero}`, {
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
                             credentials: 'same-origin'
                         });
                         const data = await response.json();
-                        if (!response.ok || !data.id) return limpiarCamposPaciente();
+
+                        if (!response.ok || !data.id) {
+                            limpiarResultados();
+                            return;
+                        }
+
                         actualizarCamposPaciente(data);
                     } catch (error) {
-                        limpiarCamposPaciente();
+                        limpiarResultados();
                     }
                 }, 500);
             });

@@ -21,9 +21,9 @@
             </div>
 
             <div id="calendarDays" class="calendar-days"
-                data-dias='@json($dias)'>
+                data-dias='@json($dias)'
+                data-citas-url="{{ route('calendario.citasPorDia', ['fecha' => '__DATE__']) }}">
             </div>
-
         </div>
     </div>
 </div>
@@ -31,13 +31,9 @@
 <div id="modalCitasDia" class="modal-overlay">
     <div class="modal-content">
         <span class="modal-close">&times;</span>
-        <h2>Citas del <span id="modalFechaDisplay"></span></h2>
-
-        <select id="selectCita" class="form-control">
-            <option value="">Seleccione una cita</option>
-        </select>
-
-        <div id="detalleCita" class="cita-item"></div>
+        <h2 style="color:#10b981;">Citas del <span id="modalFechaDisplay"></span></h2>
+        <div id="modalBloqueoInfo" class="alert-bloqueo" style="display:none;"></div>
+        <div id="listadoCitasDia"></div>
     </div>
 </div>
 
@@ -46,35 +42,60 @@
         const calendarDaysDiv = document.getElementById("calendarDays");
         const monthYear = document.getElementById("monthYear");
         const diasData = JSON.parse(calendarDaysDiv.dataset.dias || '[]');
+        const citasUrlTemplate = calendarDaysDiv.dataset.citasUrl;
         let currentDate = new Date();
         let citasCached = {};
 
         const modal = document.getElementById("modalCitasDia");
         const modalFechaDisplay = document.getElementById("modalFechaDisplay");
-        const selectCita = document.getElementById("selectCita");
-        const detalleCita = document.getElementById("detalleCita");
+        const modalBloqueoInfo = document.getElementById("modalBloqueoInfo");
         const closeModal = modal.querySelector(".modal-close");
+        const listadoCitasDia = document.getElementById("listadoCitasDia");
 
-        const createReadOnlySelect = (label, value) => `
-        <div class="form-group-read-only">
-            <label>${label}:</label>
-            <select disabled><option selected>${value || 'N/A'}</option></select>
-        </div>`;
+        const diasInfo = {};
+        diasData.forEach(d => diasInfo[d.fecha] = d);
 
         window.abrirModal = async (fecha) => {
             modalFechaDisplay.textContent = fecha;
-            selectCita.innerHTML = `<option value="">Cargando citas...</option>`;
-            detalleCita.style.display = "none";
-            detalleCita.innerHTML = "";
-            modal.style.display = "flex";
+            listadoCitasDia.innerHTML = '';
 
-            const citas = citasCached[fecha] || await fetchCitas(fecha);
-            fillSelect(citas);
+            const infoDia = diasInfo[fecha];
+            if (infoDia && infoDia.estado === 'bloqueado') {
+                modalBloqueoInfo.style.display = 'block';
+                modalBloqueoInfo.innerHTML = `⚠️ Día bloqueado por: ${infoDia.doctor || 'Doctor no especificado'}`;
+                listadoCitasDia.innerHTML = `<div class="bloqueado-aviso">Día completamente bloqueado</div>`;
+            } else {
+                modalBloqueoInfo.style.display = 'none';
+                const citas = await fetchCitas(fecha);
+                if (!citas.length) {
+                    listadoCitasDia.innerHTML = `<div class="no-citas">No hay citas registradas para esta fecha</div>`;
+                } else {
+                    listadoCitasDia.innerHTML = "";
+                    citas.forEach((c) => {
+                        const horaInicio = c.hora_inicio?.slice(0, 5) || 'Sin hora';
+                        const horaFin = c.hora_fin?.slice(0, 5) || 'Sin hora';
+                        const tipo = c.tipo_cita?.nombre || 'Sin tipo';
+                        const paciente = c.paciente ? `${c.paciente.nombres} ${c.paciente.apellidos}` : 'Sin paciente';
+                        const item = document.createElement('div');
+                        item.className = "card-cita";
+                        item.innerHTML = `
+                            <div><b>Hora:</b> ${horaInicio} - ${horaFin}</div>
+                            <div><b>Tipo:</b> ${tipo}</div>
+                            <div><b>Paciente:</b> ${paciente}</div>
+                            <div><b>Estado:</b> ${c.estado}</div>
+                        `;
+                        listadoCitasDia.appendChild(item);
+                    });
+                }
+            }
+            modal.style.display = "flex";
         };
 
         const fetchCitas = async (fecha) => {
             try {
-                const res = await fetch(`/calendario/citas/${fecha}`);
+                if (citasCached[fecha]) return citasCached[fecha];
+                const url = citasUrlTemplate.replace('__DATE__', fecha);
+                const res = await fetch(url);
                 const citas = await res.json();
                 citasCached[fecha] = citas;
                 return citas;
@@ -83,114 +104,49 @@
             }
         };
 
-        const fillSelect = (citas) => {
-            selectCita.citasData = citas;
-
-            if (!citas || !citas.length) {
-                selectCita.innerHTML = `<option value="">No hay citas para esta fecha</option>`;
-            } else {
-                selectCita.innerHTML = `<option value="" selected>Seleccione una cita (${citas.length} disponibles)</option>`;
-                citas.forEach((c, i) => {
-                    const hora = c.hora_inicio ? c.hora_inicio.slice(0, 5) : "Sin hora";
-                    const estado = c.estado || 'N/A';
-                    const tipoCita = c.tipo_cita ? c.tipo_cita.nombre : 'Sin Tipo';
-                    const paciente = c.paciente ?
-                        `${c.paciente.nombres.split(' ')[0]} ${c.paciente.apellidos.split(' ')[0]}` :
-                        'Sin paciente';
-
-                    const displayText = `[${estado}] ${hora} - ${tipoCita} (${paciente})`;
-
-                    selectCita.innerHTML += `<option value="${i}">${displayText}</option>`;
-                });
-            }
-        }
-
-        selectCita.onchange = () => {
-            const c = selectCita.citasData[selectCita.value];
-
-            if (!c) {
-                detalleCita.style.display = "none";
-                detalleCita.innerHTML = "";
-                return;
-            }
-
-            detalleCita.style.display = "block";
-
-            const tipoCita = c.tipo_cita ? c.tipo_cita.nombre : 'N/A';
-            const pacienteNombre = c.paciente ? c.paciente.nombres + ' ' + c.paciente.apellidos : 'N/A';
-
-            detalleCita.innerHTML =
-                createReadOnlySelect('Fecha', c.fecha) +
-                createReadOnlySelect('Hora inicio', c.hora_inicio ? c.hora_inicio.slice(0, 5) : 'N/A') +
-                createReadOnlySelect('Hora fin', c.hora_fin ? c.hora_fin.slice(0, 5) : 'N/A') +
-                createReadOnlySelect('Tipo de cita', tipoCita) +
-                createReadOnlySelect('Paciente', pacienteNombre) +
-                (c.cancel_reason ? createReadOnlySelect('Motivo cancelación', c.cancel_reason) : '');
+        closeModal.onclick = () => modal.style.display = "none";
+        window.onclick = (e) => {
+            if (e.target === modal) modal.style.display = "none";
         };
 
-        closeModal.addEventListener("click", () => modal.style.display = "none");
-        window.addEventListener("click", (e) => {
-            if (e.target === modal) modal.style.display = "none";
-        });
-
-        function renderCalendar(date) {
+        const renderCalendar = (date) => {
             calendarDaysDiv.innerHTML = "";
-            const year = date.getFullYear();
-            const month = date.getMonth();
+            const year = date.getFullYear(),
+                month = date.getMonth();
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
-            const daysInMonth = lastDay.getDate();
-            const startDay = (firstDay.getDay() + 6) % 7; // convertir para que lunes=0
-
-            // construir mapa fecha -> estado
-            const diasEstado = {};
-            diasData.forEach(d => {
-                diasEstado[d.fecha] = d.estado;
-            });
-
+            const startDay = (firstDay.getDay() + 6) % 7;
             monthYear.textContent = date.toLocaleString("es-ES", {
                 month: "long",
                 year: "numeric"
             }).toUpperCase();
 
-            for (let i = 0; i < startDay; i++) {
-                const emptyDiv = document.createElement("div");
-                emptyDiv.classList.add("calendar-day", "empty-day");
-                calendarDaysDiv.appendChild(emptyDiv);
-            }
+            for (let i = 0; i < startDay; i++) calendarDaysDiv.appendChild(document.createElement("div"));
 
-            for (let day = 1; day <= daysInMonth; day++) {
-                const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+            for (let d = 1; d <= lastDay.getDate(); d++) {
+                const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
                 const dayDiv = document.createElement("div");
                 dayDiv.classList.add("calendar-day");
-                dayDiv.style.cursor = "pointer";
+                const info = diasInfo[fullDate];
+                let diaEstado = info?.estado || "disponible";
+                if (diaEstado === "bloqueado") dayDiv.classList.add("day-bloqueado");
+                else if (diaEstado === "parcial") dayDiv.classList.add("day-parcial");
+                else if (diaEstado === "cita" || diaEstado === "disponible") dayDiv.classList.add("day-activo");
 
-                const estado = diasEstado[fullDate];
-
-                if (estado === "activo") {
-                    dayDiv.classList.add("day-activo");
-                } else if (estado === "bloqueado") {
-                    dayDiv.classList.add("day-bloqueado");
-                } else if (estado === "parcial") {
-                    dayDiv.classList.add("day-parcial");
-                }
-
-                dayDiv.innerHTML = `<div class="day-number">${day}</div>${estado ? `<span class="day-status">${estado}</span>` : ''}`;
-                dayDiv.addEventListener("click", () => abrirModal(fullDate));
+                dayDiv.innerHTML = `<div class="day-number">${d}</div><span class="day-status">${diaEstado === "disponible" ? "disponible" : diaEstado}</span>`;
+                dayDiv.onclick = () => abrirModal(fullDate);
                 calendarDaysDiv.appendChild(dayDiv);
             }
-        }
+        };
 
-        document.getElementById("prevMonth").addEventListener("click", () => {
+        document.getElementById("prevMonth").onclick = () => {
             currentDate.setMonth(currentDate.getMonth() - 1);
             renderCalendar(currentDate);
-        });
-
-        document.getElementById("nextMonth").addEventListener("click", () => {
+        };
+        document.getElementById("nextMonth").onclick = () => {
             currentDate.setMonth(currentDate.getMonth() + 1);
             renderCalendar(currentDate);
-        });
-
+        };
         renderCalendar(currentDate);
     });
 </script>
@@ -288,6 +244,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        text-align: center;
     }
 
     .calendar-day:hover {
@@ -326,11 +283,6 @@
         color: #78350f !important;
     }
 
-    .empty-day {
-        background: transparent;
-        border: none;
-    }
-
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -352,6 +304,10 @@
         max-width: 400px;
         width: 90%;
         position: relative;
+        margin: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .modal-close {
@@ -362,11 +318,6 @@
         color: #9ca3af;
         cursor: pointer;
         font-weight: bold;
-        transition: color 0.2s;
-    }
-
-    .modal-close:hover {
-        color: #374151;
     }
 
     .modal-content h2 {
@@ -377,16 +328,50 @@
         padding-bottom: 10px;
     }
 
-    #selectCita {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        background-color: #f9fafb;
+    #listadoCitasDia {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 12px;
+        margin-bottom: 10px;
+    }
+
+    .card-cita {
+        padding: 12px 15px;
+        border-radius: 7px;
+        background: #e0f6ec;
+        border: 1px solid #10b981;
         font-size: 1rem;
-        color: #374151;
+        color: #222;
+        font-weight: 500;
         cursor: pointer;
-        margin-bottom: 15px;
+    }
+
+    .card-cita:hover {
+        background: #d1fae5;
+    }
+
+    .cita-estado {
+        float: right;
+        color: #065f46;
+        font-size: 0.88em;
+    }
+
+    .bloqueado-aviso {
+        padding: 14px 18px;
+        background-color: #fdecea;
+        border: 1px solid #f87171;
+        border-radius: 8px;
+        color: #b91c1c;
+        font-size: 1em;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .no-citas {
+        padding: 10px 0 0 0;
+        color: #374151;
+        text-align: center;
     }
 
     #detalleCita {
@@ -395,10 +380,6 @@
         background-color: #f3f4f6;
         border-radius: 8px;
         border: 1px solid #e5e7eb;
-    }
-
-    .form-group-read-only {
-        margin-bottom: 10px;
     }
 
     .form-group-read-only label {
@@ -419,10 +400,16 @@
         font-weight: 500;
     }
 
-    .form-group-read-only select:disabled {
-        opacity: 1;
-        cursor: default;
+    .alert-bloqueo {
+        padding: 12px 15px;
+        background-color: #fef2f2;
+        border: 1px solid #f87171;
+        border-radius: 8px;
+        color: #b91c1c;
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin-bottom: 10px;
+        text-align: center;
     }
 </style>
-
 @endsection

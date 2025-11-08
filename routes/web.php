@@ -16,7 +16,8 @@ use App\Http\Controllers\{
     PlantillaControllerRetina,
     CitasParcialController,
     CalendarioEspecialistaController,
-    DoctorAgendaController
+    DoctorAgendaController,
+    CatalogoController,
 };
 use App\Http\Middleware\Bitacora;
 use App\Http\Middleware\CheckRole;
@@ -34,17 +35,21 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::get('citas/{cita}/examen', [PreExamenController::class, 'examen'])->name('citas.examen');
+
 Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones', Bitacora::class])->group(function () {
     Route::get('pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
     Route::get('pacientes/crear', [PacienteController::class, 'create'])->name('pacientes.create');
     Route::post('pacientes', [PacienteController::class, 'store'])->name('pacientes.store');
+
+    Route::get('/pacientes/buscar', [PacienteController::class, 'buscar'])->name('pacientes.buscar');
+    Route::get('/pacientes/buscar/lista', [PacienteController::class, 'Paciente_buscar'])->name('pacientes.buscar.lista');
+
     Route::get('pacientes/{paciente}', [PacienteController::class, 'show'])->name('pacientes.show');
     Route::get('pacientes/{paciente}/edit', [PacienteController::class, 'edit'])->name('pacientes.edit');
     Route::put('pacientes/{paciente}', [PacienteController::class, 'update'])->name('pacientes.update');
     Route::delete('pacientes/{paciente}', [PacienteController::class, 'destroy'])->name('pacientes.destroy');
-    Route::get('/pacientes/buscar', [PacienteController::class, 'buscar'])->name('pacientes.buscar');
     Route::put('/pacientes/{id}/actualizar', [PacienteController::class, 'actualizarApi'])->name('pacientes.actualizarApi');
-    Route::get('/pacientes/buscar/lista', [PacienteController::class, 'Paciente_buscar'])->name('pacientes.buscar.lista');
 
     Route::get('citas', [CitaController::class, 'index'])->name('citas.index');
     Route::get('citas/create', [CitaController::class, 'create'])->name('citas.create');
@@ -60,10 +65,10 @@ Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones', Bitacora::c
     Route::get('citas/{cita}/atencion_update', [CitaController::class, 'atencion_update'])->name('citas.atencion_update');
 
     Route::prefix('citas/{cita}')->group(function () {
+        Route::get('preexamen', [PreExamenController::class, 'index'])->name('preexamen.index');
         Route::get('preexamen/create', [PreExamenController::class, 'create'])->name('preexamen.create');
         Route::post('preexamen', [PreExamenController::class, 'store'])->name('preexamen.store');
         Route::get('preexamen/show', [PreExamenController::class, 'show'])->name('preexamen.show');
-        Route::get('preexamen/examen', [PreExamenController::class, 'examen'])->name('preexamen.examen');
 
         Route::post('examenes/store', [PlantillaControllerExamenes::class, 'store'])->name('examenes.store');
         Route::get('examenes/edit', [PlantillaControllerExamenes::class, 'edit'])->name('examenes.edit');
@@ -97,7 +102,7 @@ Route::middleware(['auth', 'checkrole:admin', Bitacora::class])->group(function 
 });
 
 Route::middleware(['auth', 'checkrole:doctor,admisiones', Bitacora::class])->group(function () {
-    Route::get('/citas/{cita}/consentimiento', [ConsentimientoController::class, 'index'])->name('citas.consentimiento');
+    Route::get('/consentimientos/lista', [ConsentimientoController::class, 'index'])->name('citas.consentimiento');
     Route::post('/consentimientos', [ConsentimientoController::class, 'store'])->name('consentimientos.store');
 });
 
@@ -121,5 +126,6 @@ Route::middleware(['auth', 'checkrole:admin,admisiones', Bitacora::class])->grou
 
 Route::get('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'index'])->name('retina.index');
 Route::post('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'store'])->name('retina.store');
+Route::get('/catalogos/buscar', [CatalogoController::class, 'buscar'])->name('catalogos.buscar');
 
 require __DIR__ . '/auth.php';

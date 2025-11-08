@@ -22,19 +22,17 @@ class AgendaService
         $carbonFecha = Carbon::parse($fecha);
         $diaSemana = (int) $carbonFecha->dayOfWeek;
 
-  
         $plantilla = PlantillaHorario::where('dia_semana', $diaSemana)
             ->where('activo', true)
             ->first();
 
         if (! $plantilla) {
-            return []; 
+            return [];
         }
 
         $inicio = Carbon::createFromFormat('H:i:s', $plantilla->hora_inicio);
         $fin = Carbon::createFromFormat('H:i:s', $plantilla->hora_fin);
 
-      
         $period = new CarbonPeriod($inicio, $this->slotMinutes . ' minutes', $fin);
         $slots = [];
         $prev = null;
@@ -77,19 +75,18 @@ class AgendaService
         return $slots;
     }
 
-  
     public function estadoDelDia(string $fecha): string
     {
         $slots = $this->generarSlotsDelDia($fecha);
 
         if (empty($slots)) {
-            return 'bloqueado';
+            return 'disponible';
         }
 
         $total = count($slots);
         $ocupados = collect($slots)->filter(fn($s) => $s['estado'] === 'ocupado' || $s['estado'] === 'bloqueado')->count();
 
-        if ($ocupados === 0) return 'activo';
+        if ($ocupados === 0) return 'disponible';
         if ($ocupados >= $total) return 'bloqueado';
         return 'parcial';
     }

@@ -15,6 +15,8 @@ return new class extends Migration
             $table->foreignId('plantilla_id')->constrained('plantillas_consentimiento')->onDelete('cascade');
             $table->string('nombre_firmante')->nullable();
             $table->string('firma')->nullable();
+            $table->timestamp('fecha_firma')->nullable();
+
             $table->boolean('activo')->default(true);
             $table->timestamps();
         });

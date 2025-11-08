@@ -7,6 +7,7 @@ use App\Models\Cita;
 use App\Services\AgendaService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Models\CalendarioDisponibilidad;
 
 class CalendarioController extends Controller
 {
@@ -19,30 +20,102 @@ class CalendarioController extends Controller
 
     public function index(Request $request)
     {
-        if (Auth::check() && Auth::user()->role === 'admin') {
-        }
+        $dias = $this->obtenerDatosCalendario();
+        return view('citas.calendario', compact('dias'));
+    }
 
+    public function obtenerDatosCalendario()
+    {
         $date = Carbon::now();
         $firstOfMonth = $date->copy()->firstOfMonth();
         $lastOfMonth = $date->copy()->lastOfMonth();
 
+        $estadosDoctor = CalendarioDisponibilidad::with('doctor.user:id,nombres')
+            ->whereBetween('fecha', [$firstOfMonth->format('Y-m-d'), $lastOfMonth->format('Y-m-d')])
+            ->whereIn('estado', ['bloqueado', 'parcial'])
+            ->get();
+
+        $mapaEstados = [];
+        foreach ($estadosDoctor as $estado) {
+            $fecha = $estado->fecha;
+            $prioridad = $estado->estado === 'bloqueado' ? 2 : 1;
+            $nombreDoctor = ($estado->doctor && $estado->doctor->user) ? explode(' ', $estado->doctor->user->nombres)[0] : '??';
+            $nombreCompleto = 'Dr. ' . $nombreDoctor;
+
+            if (!isset($mapaEstados[$fecha])) {
+                $mapaEstados[$fecha] = [
+                    'estado' => $estado->estado,
+                    'doctores' => [$nombreCompleto],
+                    'prioridad' => $prioridad
+                ];
+            } else {
+                if ($prioridad > $mapaEstados[$fecha]['prioridad']) {
+                    $mapaEstados[$fecha]['estado'] = $estado->estado;
+                    $mapaEstados[$fecha]['doctores'] = [$nombreCompleto];
+                    $mapaEstados[$fecha]['prioridad'] = $prioridad;
+                } elseif ($prioridad === $mapaEstados[$fecha]['prioridad']) {
+                    if (!in_array($nombreCompleto, $mapaEstados[$fecha]['doctores'])) {
+                        $mapaEstados[$fecha]['doctores'][] = $nombreCompleto;
+                    }
+                }
+            }
+        }
+
+        $citasRegistradas = Cita::whereBetween('fecha', [$firstOfMonth, $lastOfMonth])
+            ->get(['fecha']);
+
+        foreach ($citasRegistradas as $cita) {
+            $fecha = Carbon::parse($cita->fecha)->format('Y-m-d');
+            if (!isset($mapaEstados[$fecha])) {
+                $mapaEstados[$fecha] = [
+                    'estado' => 'cita',
+                    'doctores' => ['Citas registradas']
+                ];
+            } else {
+                if (!in_array('Citas registradas', $mapaEstados[$fecha]['doctores'])) {
+                    $mapaEstados[$fecha]['doctores'][] = 'Citas registradas';
+                }
+            }
+        }
+
         $dias = [];
         for ($d = $firstOfMonth->copy(); $d->lte($lastOfMonth); $d->addDay()) {
             $fecha = $d->format('Y-m-d');
+            $estadoFinal = 'disponible';
+            $doctorNombre = null;
+
+            $estadoBase = $this->agenda->estadoDelDia($fecha);
+            if ($estadoBase === 'parcial' || $estadoBase === 'bloqueado') {
+                $estadoFinal = $estadoBase;
+            }
+
+            if (isset($mapaEstados[$fecha])) {
+                $estadoFinal = $mapaEstados[$fecha]['estado'];
+                $doctores = $mapaEstados[$fecha]['doctores'];
+                if (count($doctores) > 1) {
+                    $ultimoDoctor = array_pop($doctores);
+                    $doctorNombre = implode(', ', $doctores) . ' y ' . $ultimoDoctor;
+                } else {
+                    $doctorNombre = $doctores[0];
+                }
+            }
+
             $dias[] = [
                 'fecha' => $fecha,
-                'estado' => $this->agenda->estadoDelDia($fecha)
+                'estado' => $estadoFinal,
+                'doctor' => $doctorNombre
             ];
         }
-
-        return view('citas.calendario', compact('dias'));
+        return $dias;
     }
 
     public function citasPorDia($fecha)
     {
+        $citas = \App\Models\Cita::whereDate('fecha', $fecha)->get();
+        dd($citas);
         $fechaFormateada = Carbon::parse($fecha)->format('Y-m-d');
 
-        $citas = Cita::with('paciente:id,nombres,apellidos')
+        $citas = Cita::with(['paciente:id,nombres,apellidos'])
             ->whereDate('fecha', $fechaFormateada)
             ->get([
                 'id',
@@ -53,23 +126,16 @@ class CalendarioController extends Controller
                 'tipo_cita_id',
                 'paciente_id',
                 'cancel_reason',
-            ])
-            ->map(function ($cita) {
-                switch ($cita->tipo_cita_id) {
-                    case 1:
-                        $cita->tipo_cita = ['nombre' => 'Optometría'];
-                        break;
-                    case 2:
-                        $cita->tipo_cita = ['nombre' => 'Examen'];
-                        break;
-                    default:
-                        $cita->tipo_cita = ['nombre' => 'Sin tipo'];
-                        break;
-                }
-                return $cita;
-            });
+            ]);
 
-        return response()->json($citas);
+        $result = $citas->map(function ($cita) {
+            $citaData = $cita->toArray();
+            $citaData['tipo_cita'] = ['nombre' => $cita->tipo_cita_nombre];
+            unset($citaData['tipo_cita_id']);
+            return $citaData;
+        });
+
+        return response()->json($result);
     }
 
     public function crearBloqueo(Request $request)

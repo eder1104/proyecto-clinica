@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             DoctorSeeder::class, 
             PacienteSeeder::class,
             PlantillaConsentimientoSeeder::class,
+            CatalogosOftalmologicosSeeder::class,
         ]);
     }
 }

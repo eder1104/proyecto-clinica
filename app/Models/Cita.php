@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Cita extends Model
 {
@@ -30,14 +31,23 @@ class Cita extends Model
 
     protected $with = ['paciente'];
 
-    public function paciente()
+    public function paciente(): BelongsTo
     {
         return $this->belongsTo(Paciente::class, 'paciente_id');
     }
 
-    public function tipoCita()
+    public function getTipoCitaNombreAttribute(): string
     {
-        return $this->attributes['tipo_cita'] ?? 'No especificado';
+        switch ($this->tipo_cita_id) {
+            case 1:
+                return 'Optometría';
+            case 2:
+                return 'Exámenes';
+            case 3:
+                return 'Retina';
+            default:
+                return 'Sin tipo';
+        }
     }
 
     public function getCreadoPorAttribute()

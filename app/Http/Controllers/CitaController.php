@@ -10,10 +10,10 @@ use App\Models\ConsentimientoPaciente;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
 use Carbon\Carbon;
 use App\Services\AgendaService;
 use Carbon\CarbonPeriod;
+use App\Http\Controllers\CalendarioController;
 
 class CitaController extends Controller
 {
@@ -58,11 +58,14 @@ class CitaController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $dias = app(CalendarioController::class)->obtenerDatosCalendario();
+
         return view('citas.index', compact(
             'citas',
             'pacientes',
             'plantillas',
-            'consentimientos'
+            'consentimientos',
+            'dias'
         ));
     }
 
@@ -78,9 +81,9 @@ class CitaController extends Controller
         return view('citas.create', compact('pacientes', 'admisiones', 'tipos_citas'));
     }
 
-   public function store(CitaRequest $request)
-{
-    $validated = $request->validated();
+    public function store(CitaRequest $request)
+    {
+        $validated = $request->validated();
 
         $validated['created_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
         $validated['estado'] = 'programada';
@@ -192,10 +195,10 @@ class CitaController extends Controller
         }
 
         $cita->update([
-            'estado'     => 'finalizada',
+            'estado'   => 'finalizada',
         ]);
 
-        return redirect()->route('citas.index')
+        return redirect()->route('citas.examen')
             ->with('success', 'Cita finalizada correctamente.');
     }
 }

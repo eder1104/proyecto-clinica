@@ -12,6 +12,8 @@
                 <form action="{{ route('preexamen.store', $cita->id) }}" method="POST" class="space-y-6">
                     @csrf
 
+                    <input type="hidden" name="redirect_to_url" value="{{ route('citas.atencion', $cita->id) }}">
+
                     @if ($errors->any())
                     <div class="mb-4 bg-red-100 text-red-700 p-4 rounded-lg">
                         <ul class="list-disc list-inside">
@@ -76,8 +78,7 @@
                         <div class="col-span-2">
                             <label class="block text-gray-700 font-medium mb-1">Antecedentes</label>
                             <textarea name="antecedentes" rows="3"
-                                class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 p-2.5 bg-gray-50 shadow-sm resize-none"
-                                >{{ old('antecedentes', $cita->antecedentes ?? '') }}</textarea>
+                                class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 p-2.5 bg-gray-50 shadow-sm resize-none">{{ old('antecedentes', $cita->antecedentes ?? '') }}</textarea>
                         </div>
 
 
