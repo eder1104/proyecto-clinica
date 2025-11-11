@@ -231,8 +231,8 @@
     }
 
     .calendar-day {
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
+        background: #FF6F59;
+        border: 4px solid red;
         border-radius: 10px;
         padding: 18px 0;
         font-weight: 600;

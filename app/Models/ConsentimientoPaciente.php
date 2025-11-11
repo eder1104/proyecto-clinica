@@ -12,11 +12,14 @@ class ConsentimientoPaciente extends Model
     protected $table = 'consentimientos_paciente';
 
     protected $fillable = [
+        'cita_id',
         'paciente_id',
+        'doctor_id',
         'plantilla_id',
         'nombre_firmante',
+        'firma',
         'fecha_firma',
-        'imagen_firma',
+        'activo',
     ];
 
     public function paciente()
@@ -26,6 +29,16 @@ class ConsentimientoPaciente extends Model
 
     public function plantilla()
     {
-        return $this->belongsTo(ConsentimientoPaciente::class, 'plantilla_id');
+        return $this->belongsTo(PlantillaConsentimiento::class, 'plantilla_id');
+    }
+
+    public function cita()
+    {
+        return $this->belongsTo(Cita::class, 'cita_id');
+    }
+
+    public function doctor()
+    {
+        return $this->belongsTo(User::class, 'doctor_id');
     }
 }

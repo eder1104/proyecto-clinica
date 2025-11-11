@@ -31,6 +31,10 @@ class Cita extends Model
 
     protected $with = ['paciente'];
 
+    protected $casts = [
+        'fecha' => 'date',
+    ];
+
     public function paciente(): BelongsTo
     {
         return $this->belongsTo(Paciente::class, 'paciente_id');

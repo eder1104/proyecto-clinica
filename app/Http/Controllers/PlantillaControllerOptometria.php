@@ -35,57 +35,53 @@ class PlantillaControllerOptometria extends Controller
         return view('historias.optometria_edit', compact('plantilla', 'cita', 'doctores',));
     }
 
-    public function store(PlantillaOptometriaRequest $request, $cita_id)
-    {
-        $cita = Cita::findOrFail($cita_id);
-        $user = Auth::user();
+   public function store(PlantillaOptometriaRequest $request, $cita_id)
+{
+    $cita = Cita::findOrFail($cita_id);
+    $user = Auth::user();
 
-        $idOptometraLogeado = $user->id;
-
-        if ($user->role !== 'doctor') {
-            return back()->withErrors(['optometra' => 'El usuario logueado no tiene el rol de doctor.'])->withInput();
-        }
-
-        $data = [
-            'paciente_id' => $cita->paciente_id,
-            'cita_id' => $cita->id,
-            'optometra' => $idOptometraLogeado,
-            'consulta_completa' => $request->has('consulta_completa') ? 1 : 0,
-            'anamnesis' => $request->anamnesis,
-            'alternativa_deseada' => $request->alternativa_deseada,
-            'dominancia_ocular' => $request->dominancia_ocular,
-            'av_lejos_od' => $request->av_lejos_od,
-            'av_intermedia_od' => $request->av_intermedia_od,
-            'av_cerca_od' => $request->av_cerca_od,
-            'av_lejos_oi' => $request->av_lejos_oi,
-            'av_intermedia_oi' => $request->av_intermedia_oi,
-            'av_cerca_oi' => $request->av_cerca_oi,
-            'observaciones_optometria' => $request->observaciones_optometria,
-            'tipo_lente' => $request->tipo_lente,
-            'especificaciones_lente' => $request->especificaciones_lente,
-            'vigencia_formula' => $request->vigencia_formula,
-            'filtro' => $request->filtro,
-            'tiempo_formulacion' => $request->tiempo_formulacion,
-            'distancia_pupilar' => $request->distancia_pupilar,
-            'cantidad' => $request->cantidad,
-            'diagnostico_principal' => $request->diagnostico_principal,
-            'otros_diagnosticos' => $request->otros_diagnosticos,
-            'datos_adicionales' => $request->datos_adicionales,
-            'finalidad_consulta' => $request->finalidad_consulta,
-            'causa_motivo_atencion' => $request->causa_motivo_atencion,
-        ];
-
-        Plantilla_Optometria::updateOrCreate(
-            ['cita_id' => $cita->id],
-            $data
-        );
-
-        $cita->update(['estado' => 'finalizada']);
-
-        return redirect()
-            ->route('historias.cita', ['paciente' => $cita->paciente_id])
-            ->with('success', 'Cita actualizada correctamente.');
+    if ($user->role !== 'doctor') {
+        return back()->withErrors(['optometra' => 'El usuario logueado no tiene el rol de doctor.'])->withInput();
     }
+
+    $data = [
+        'paciente_id' => $cita->paciente_id,
+        'cita_id' => $cita->id,
+        'optometra' => $user->id,
+        'consulta_completa' => $request->has('consulta_completa') ? 1 : 0,
+        'anamnesis' => $request->anamnesis,
+        'alternativa_deseada' => $request->alternativa_deseada,
+        'dominancia_ocular' => $request->dominancia_ocular,
+        'av_lejos_od' => $request->av_lejos_od,
+        'av_intermedia_od' => $request->av_intermedia_od,
+        'av_cerca_od' => $request->av_cerca_od,
+        'av_lejos_oi' => $request->av_lejos_oi,
+        'av_intermedia_oi' => $request->av_intermedia_oi,
+        'av_cerca_oi' => $request->av_cerca_oi,
+        'observaciones_optometria' => $request->observaciones_optometria,
+        'tipo_lente' => $request->tipo_lente,
+        'especificaciones_lente' => $request->especificaciones_lente,
+        'vigencia_formula' => $request->vigencia_formula,
+        'filtro' => $request->filtro,
+        'tiempo_formulacion' => $request->tiempo_formulacion,
+        'distancia_pupilar' => $request->distancia_pupilar,
+        'cantidad' => $request->cantidad,
+        'diagnostico_principal' => $request->diagnostico_principal,
+        'otros_diagnosticos' => $request->otros_diagnosticos,
+        'datos_adicionales' => $request->datos_adicionales,
+        'finalidad_consulta' => $request->finalidad_consulta,
+        'causa_motivo_atencion' => $request->causa_motivo_atencion,
+    ];
+
+    Plantilla_Optometria::create($data);
+
+    $cita->update(['estado' => 'finalizada']);
+
+    return redirect()
+        ->route('historias.cita', ['paciente' => $cita->paciente_id])
+        ->with('success', 'Cita finalizada y plantilla registrada correctamente.');
+}
+
 
     public function update(PlantillaOptometriaRequest $request, Cita $cita)
     {

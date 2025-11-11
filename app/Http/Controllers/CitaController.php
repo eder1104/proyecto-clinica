@@ -12,7 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Services\AgendaService;
-use Carbon\CarbonPeriod;
 use App\Http\Controllers\CalendarioController;
 
 class CitaController extends Controller
@@ -38,35 +37,22 @@ class CitaController extends Controller
         $now = Carbon::now();
 
         foreach ($citas as $cita) {
-            $horaFin = Carbon::parse($cita->fecha . ' ' . $cita->hora_fin);
+            $fechaCita = Carbon::parse($cita->fecha)->format('Y-m-d');
+            $horaFin = Carbon::parse($fechaCita . ' ' . $cita->hora_fin);
             if (!in_array($cita->estado, ['cancelada', 'finalizada', 'no_asistida']) && $now->greaterThan($horaFin)) {
                 $cita->estado = 'no_asistida';
                 $cita->save();
             }
         }
 
-        $pacientes = Paciente::select('id', 'nombres', 'apellidos')
-            ->orderBy('apellidos', 'asc')
-            ->get();
+        $pacientes = Paciente::select('id', 'nombres', 'apellidos')->orderBy('apellidos', 'asc')->get();
+        $plantillas = PlantillaConsentimiento::select('id', 'titulo')->where('activo', true)->orderBy('titulo', 'asc')->get();
+        $consentimientos = ConsentimientoPaciente::with(['paciente', 'plantilla'])->orderBy('created_at', 'desc')->get();
 
-        $plantillas = PlantillaConsentimiento::select('id', 'titulo')
-            ->where('activo', true)
-            ->orderBy('titulo', 'asc')
-            ->get();
+        $calendarioController = app(CalendarioController::class);
+        $dias = $calendarioController->obtenerDatosCalendario();
 
-        $consentimientos = ConsentimientoPaciente::with(['paciente', 'plantilla'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        $dias = app(CalendarioController::class)->obtenerDatosCalendario();
-
-        return view('citas.index', compact(
-            'citas',
-            'pacientes',
-            'plantillas',
-            'consentimientos',
-            'dias'
-        ));
+        return view('citas.index', compact('citas', 'pacientes', 'plantillas', 'consentimientos', 'dias'));
     }
 
     public function create()
@@ -84,7 +70,6 @@ class CitaController extends Controller
     public function store(CitaRequest $request)
     {
         $validated = $request->validated();
-
         $validated['created_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
         $validated['estado'] = 'programada';
 
@@ -103,7 +88,8 @@ class CitaController extends Controller
 
     public function edit(Cita $cita)
     {
-        $horaFin = Carbon::parse($cita->fecha . ' ' . $cita->hora_fin);
+        $fechaCita = Carbon::parse($cita->fecha)->format('Y-m-d');
+        $horaFin = Carbon::parse($fechaCita . ' ' . $cita->hora_fin);
         $isBlocked = in_array($cita->estado, ['cancelada', 'finalizada', 'no_asistida', 'asistida']) || Carbon::now()->greaterThan($horaFin);
 
         if ($isBlocked) {
@@ -122,36 +108,27 @@ class CitaController extends Controller
 
     public function update(CitaRequest $request, Cita $cita)
     {
-        $horaFin = Carbon::parse($cita->fecha . ' ' . $cita->hora_fin);
+        $fechaCita = Carbon::parse($cita->fecha)->format('Y-m-d');
+        $horaFin = Carbon::parse($fechaCita . ' ' . $cita->hora_fin);
         $isBlocked = in_array($cita->estado, ['cancelada', 'finalizada', 'no_asistida', 'asistida']) || Carbon::now()->greaterThan($horaFin);
 
         if ($isBlocked) {
-            return redirect()->route('citas.index')
-                ->with('error', 'No se puede actualizar esta cita. Está bloqueada.');
+            return redirect()->route('citas.index')->with('error', 'No se puede actualizar esta cita. Está bloqueada.');
         }
 
-        $data = $request->only([
-            'fecha',
-            'hora_inicio',
-            'hora_fin',
-            'paciente_id',
-            'tipo_cita_id',
-            'motivo_consulta'
-        ]);
-
+        $data = $request->only(['fecha', 'hora_inicio', 'hora_fin', 'paciente_id', 'tipo_cita_id', 'motivo_consulta']);
         $data['updated_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
         $data['estado'] = 'modificada';
 
         $cita->update($data);
 
-        return redirect()->route('citas.index')
-            ->with('success', 'Cita actualizada correctamente.');
+        return redirect()->route('citas.index')->with('success', 'Cita actualizada correctamente.');
     }
-
 
     public function destroy(Cita $cita, Request $request)
     {
-        $horaFin = Carbon::parse($cita->fecha . ' ' . $cita->hora_fin);
+        $fechaCita = Carbon::parse($cita->fecha)->format('Y-m-d');
+        $horaFin = Carbon::parse($fechaCita . ' ' . $cita->hora_fin);
         $isBlocked = in_array($cita->estado, ['cancelada', 'finalizada', 'no_asistida', 'asistida']) || Carbon::now()->greaterThan($horaFin);
 
         if ($isBlocked) {
@@ -159,46 +136,77 @@ class CitaController extends Controller
         }
 
         $motivo = $request->input('delete_reason');
-
         if (!$motivo) {
-            return redirect()->route('citas.index')
-                ->with('error', 'Debe ingresar una razón para cancelar la cita.');
+            return redirect()->route('citas.index')->with('error', 'Debe ingresar una razón para cancelar la cita.');
         }
 
         $cita->update([
-            'estado'        => 'cancelada',
-            'cancelled_by'  => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
+            'estado' => 'cancelada',
+            'cancelled_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
             'cancel_reason' => $motivo,
         ]);
 
-        return redirect()->route('citas.index')
-            ->with('success', 'Cita cancelada correctamente.');
+        return redirect()->route('citas.index')->with('success', 'Cita cancelada correctamente.');
     }
 
     public function cancelar($id)
     {
-        session([
-            'show_cancel_modal' => true,
-            'cita_id' => $id,
-        ]);
-
+        session(['show_cancel_modal' => true, 'cita_id' => $id]);
         return redirect()->route('citas.index');
     }
 
     public function finalizar(Cita $cita)
     {
-        $horaFin = Carbon::parse($cita->fecha . ' ' . $cita->hora_fin);
+        $fechaCita = Carbon::parse($cita->fecha)->format('Y-m-d');
+        $horaFin = Carbon::parse($fechaCita . ' ' . $cita->hora_fin);
         $isBlocked = in_array($cita->estado, ['cancelada', 'finalizada', 'no_asistida', 'asistida']) || Carbon::now()->greaterThan($horaFin);
 
         if ($isBlocked) {
             return redirect()->route('citas.index')->with('error', 'No se puede finalizar esta cita. Está bloqueada.');
         }
 
-        $cita->update([
-            'estado'   => 'finalizada',
-        ]);
+        $cita->update(['estado' => 'finalizada']);
+        return redirect()->route('citas.preexamen')->with('success', 'Cita finalizada correctamente.');
+    }
 
-        return redirect()->route('citas.examen')
-            ->with('success', 'Cita finalizada correctamente.');
+    public function preExamen(Cita $cita)
+    {
+        $paciente = $cita->paciente;
+        $consentimientos = ConsentimientoPaciente::where('cita_id', $cita->id)->get();
+        return view('citas.preexamen', compact('cita', 'paciente', 'consentimientos'));
+    }
+
+    public function obtenerCitasPorFecha($fecha)
+    {
+        $citas = Cita::with('paciente')
+            ->whereDate('fecha', $fecha)
+            ->orderBy('hora_inicio', 'asc')
+            ->get()
+            ->map(function ($cita) {
+                return [
+                    'id' => $cita->id,
+                    'paciente' => $cita->paciente ? $cita->paciente->nombres . ' ' . $cita->paciente->apellidos : 'Sin paciente',
+                    'hora_inicio' => $cita->hora_inicio,
+                    'hora_fin' => $cita->hora_fin,
+                    'estado' => ucfirst($cita->estado),
+                    'tipo_cita' => $cita->tipo_cita_nombre,
+                    'motivo' => $cita->cancel_reason ?? '—',
+                    'creado_por' => $cita->creado_por,
+                ];
+            });
+
+        return response()->json($citas);
+    }
+
+    public function atencion(Cita $cita)
+    {
+        switch ($cita->tipo_cita_id) {
+            case 1:
+                return redirect()->route('plantillas.optometria', ['cita' => $cita->id]);
+            case 2:
+                return redirect()->route('examenes.show', ['cita' => $cita->id]);
+            default:
+                return redirect()->route('citas.index')->with('error', 'Tipo de cita no válido.');
+        }
     }
 }

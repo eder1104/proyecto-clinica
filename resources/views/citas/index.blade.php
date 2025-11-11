@@ -115,14 +115,14 @@
                                 </td>
                                 <td>
                                     @if (!$isBlocked)
-                                    <button type="button" class="btn"
-                                        onclick="abrirModalConsentimiento('{{ $c->id }}', '{{ $c->paciente_id }}')">
+                                    <a href="{{ route('consentimientos.create', ['cita_id' => $c->id, 'paciente_id' => $c->paciente_id]) }}" class="btn">
                                         Tomar Atención
-                                    </button>
+                                    </a>
                                     @else
                                     <span class="btn-disabled">No disponible</span>
                                     @endif
                                 </td>
+
                             </tr>
                             @empty
                             <tr>
@@ -154,7 +154,6 @@
         </div>
     </div>
 
-    @include('citas.consentimiento')
 
     <script>
         function abrirModalConsentimiento(citaId, pacienteId) {

@@ -18,16 +18,14 @@ use App\Http\Controllers\{
     CalendarioEspecialistaController,
     DoctorAgendaController,
     CatalogoController,
+    ReporteAgendaController
 };
 use App\Http\Middleware\Bitacora;
 use App\Http\Middleware\CheckRole;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('welcome'));
-
-Route::get('/dashboard', fn() => view('dashboard'))
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::get('/dashboard', fn() => view('dashboard'))->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', Bitacora::class])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -41,10 +39,8 @@ Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones', Bitacora::c
     Route::get('pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
     Route::get('pacientes/crear', [PacienteController::class, 'create'])->name('pacientes.create');
     Route::post('pacientes', [PacienteController::class, 'store'])->name('pacientes.store');
-
     Route::get('/pacientes/buscar', [PacienteController::class, 'buscar'])->name('pacientes.buscar');
     Route::get('/pacientes/buscar/lista', [PacienteController::class, 'Paciente_buscar'])->name('pacientes.buscar.lista');
-
     Route::get('pacientes/{paciente}', [PacienteController::class, 'show'])->name('pacientes.show');
     Route::get('pacientes/{paciente}/edit', [PacienteController::class, 'edit'])->name('pacientes.edit');
     Route::put('pacientes/{paciente}', [PacienteController::class, 'update'])->name('pacientes.update');
@@ -65,10 +61,9 @@ Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones', Bitacora::c
     Route::get('citas/{cita}/atencion_update', [CitaController::class, 'atencion_update'])->name('citas.atencion_update');
 
     Route::prefix('citas/{cita}')->group(function () {
-        Route::get('preexamen', [PreExamenController::class, 'index'])->name('preexamen.index');
-        Route::get('preexamen/create', [PreExamenController::class, 'create'])->name('preexamen.create');
-        Route::post('preexamen', [PreExamenController::class, 'store'])->name('preexamen.store');
-        Route::get('preexamen/show', [PreExamenController::class, 'show'])->name('preexamen.show');
+        Route::get('preexamen/{cita_id}/create', [PreExamenController::class, 'create'])->name('preexamen.create');
+        Route::post('preexamen/{cita_id}', [PreExamenController::class, 'store'])->name('preexamen.store');
+        Route::get('preexamen/{id}/examen', [PreExamenController::class, 'examen'])->name('citas.examen');
 
         Route::post('examenes/store', [PlantillaControllerExamenes::class, 'store'])->name('examenes.store');
         Route::get('examenes/edit', [PlantillaControllerExamenes::class, 'edit'])->name('examenes.edit');
@@ -101,31 +96,39 @@ Route::middleware(['auth', 'checkrole:admin', Bitacora::class])->group(function 
     Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update.role');
 });
 
-Route::middleware(['auth', 'checkrole:doctor,admisiones', Bitacora::class])->group(function () {
-    Route::get('/consentimientos/lista', [ConsentimientoController::class, 'index'])->name('citas.consentimiento');
-    Route::post('/consentimientos', [ConsentimientoController::class, 'store'])->name('consentimientos.store');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/consentimientos', [ConsentimientoController::class, 'create'])
+        ->name('consentimientos.create');
+
+    Route::post('/consentimientos', [ConsentimientoController::class, 'store'])
+        ->name('consentimientos.store');
 });
+
 
 Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
 
 Route::middleware(['auth', 'checkrole:admin,admisiones', Bitacora::class])->group(function () {
     Route::get('/bitacora', [BitacoraAuditoriaController::class, 'index'])->name('citas.bitacora');
-
     Route::get('/agenda-doctores', [DoctorAgendaController::class, 'index'])->name('doctor.agenda');
-
     Route::get('/calendario-especialista', [CalendarioEspecialistaController::class, 'index'])->name('citas.CalendarioEspecialista');
     Route::get('/calendario-especialista/{doctorId}/{mes}', [CalendarioEspecialistaController::class, 'obtenerCalendario'])->name('calendario.obtener');
     Route::post('/calendario-especialista/update', [CalendarioEspecialistaController::class, 'actualizarEstado'])->name('calendario.update');
-
     Route::get('/vista-parcial/{doctorId}/{fecha}', [CitasParcialController::class, 'index'])->name('citas.parcial');
     Route::post('/parcialidades', [CitasParcialController::class, 'store'])->name('citas.parcial.store');
-
     Route::put('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'update'])->name('citas.parcial.update');
     Route::delete('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'destroy'])->name('citas.parcial.destroy');
 });
 
+Route::get('/catalogos', function () {
+    return view('citas.catalogos');
+})->name('catalogos.index');
+
+
+
 Route::get('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'index'])->name('retina.index');
 Route::post('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'store'])->name('retina.store');
 Route::get('/catalogos/buscar', [CatalogoController::class, 'buscar'])->name('catalogos.buscar');
+Route::get('/preexamen/create/{cita_id}', [PreExamenController::class, 'create'])->name('preexamen.create');
+Route::get('/citas/reporte', [ReporteAgendaController::class, 'index'])->name('citas.reporte');
 
 require __DIR__ . '/auth.php';

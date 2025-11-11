@@ -8,11 +8,11 @@ $idOptometra = optional($user->doctor)->id;
 $nombreCompletoOptometra = trim(($user->nombres ?? '') . ' ' . ($user->apellidos ?? ''));
 
 if (empty($nombreCompletoOptometra) && $idOptometra) {
-    $nombreCompletoOptometra = 'Doctor ID: ' . $idOptometra;
+$nombreCompletoOptometra = 'Doctor ID: ' . $idOptometra;
 }
 
 if (empty($nombreCompletoOptometra)) {
-    $nombreCompletoOptometra = 'Usuario no identificado';
+$nombreCompletoOptometra = 'Usuario no identificado';
 }
 @endphp
 @section('title', 'Consulta de Optometría')
@@ -21,12 +21,8 @@ if (empty($nombreCompletoOptometra)) {
 <div class="container">
     <h2 class="titulo">Plantilla de Consulta de Optometría</h2>
 
-    <form action="{{ $isEdit ? route('optometria.update', ['cita' => $cita->id]) : route('optometria.store', ['cita' => $cita->id]) }}" method="POST">
+    <form action="{{ route('optometria.store', ['cita' => $cita->id]) }}" method="POST">
         @csrf
-        @if($isEdit)
-        @method('PUT')
-        @endif
-
         <div class="form-row">
             <div class="form-row" style="flex-grow: 1;">
                 <div class="form-group small-input" style="flex-grow: 1;">
@@ -34,7 +30,7 @@ if (empty($nombreCompletoOptometra)) {
                     <p class="form-control-static" style="border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f0f0f0; color: #333; font-weight: bold;">
                         {{ $nombreCompletoOptometra }}
                     </p>
-                    
+
                     @error('optometra')
                     @enderror
                 </div>
@@ -83,7 +79,7 @@ if (empty($nombreCompletoOptometra)) {
                         <option value=""></option>
                         @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
                             <option value="{{ number_format($i, 2, '.', '') }}" {{ old('av_lejos_od', $plantilla->av_lejos_od ?? '') == number_format($i, 2, '.', '') ? 'selected' : '' }}>{{ number_format($i, 2, '.', '') }}</option>
-                        @endfor
+                            @endfor
                     </select>
                     <div class="color-box" data-input="av_lejos_od"></div>
                 </div>
@@ -96,7 +92,7 @@ if (empty($nombreCompletoOptometra)) {
                         <option value=""></option>
                         @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
                             <option value="{{ number_format($i, 2, '.', '') }}" {{ old('av_intermedia_od', $plantilla->av_intermedia_od ?? '') == number_format($i, 2, '.', '') ? 'selected' : '' }}>{{ number_format($i, 2, '.', '') }}</option>
-                        @endfor
+                            @endfor
                     </select>
                     <div class="color-box" data-input="av_intermedia_od"></div>
                 </div>
@@ -109,7 +105,7 @@ if (empty($nombreCompletoOptometra)) {
                         <option value=""></option>
                         @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
                             <option value="{{ number_format($i, 2, '.', '') }}" {{ old('av_cerca_od', $plantilla->av_cerca_od ?? '') == number_format($i, 2, '.', '') ? 'selected' : '' }}>{{ number_format($i, 2, '.', '') }}</option>
-                        @endfor
+                            @endfor
                     </select>
                     <div class="color-box" data-input="av_cerca_od"></div>
                 </div>
@@ -124,7 +120,7 @@ if (empty($nombreCompletoOptometra)) {
                         <option value=""></option>
                         @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
                             <option value="{{ number_format($i, 2, '.', '') }}" {{ old('av_lejos_oi', $plantilla->av_lejos_oi ?? '') == number_format($i, 2, '.', '') ? 'selected' : '' }}>{{ number_format($i, 2, '.', '') }}</option>
-                        @endfor
+                            @endfor
                     </select>
                     <div class="color-box" data-input="av_lejos_oi"></div>
                 </div>
@@ -137,7 +133,7 @@ if (empty($nombreCompletoOptometra)) {
                         <option value=""></option>
                         @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
                             <option value="{{ number_format($i, 2, '.', '') }}" {{ old('av_intermedia_oi', $plantilla->av_intermedia_oi ?? '') == number_format($i, 2, '.', '') ? 'selected' : '' }}>{{ number_format($i, 2, '.', '') }}</option>
-                        @endfor
+                            @endfor
                     </select>
                     <div class="color-box" data-input="av_intermedia_oi"></div>
                 </div>
@@ -150,7 +146,7 @@ if (empty($nombreCompletoOptometra)) {
                         <option value=""></option>
                         @for ($i = -10.0; $i <= 10.0001; $i +=0.5)
                             <option value="{{ number_format($i, 2, '.', '') }}" {{ old('av_cerca_oi', $plantilla->av_cerca_oi ?? '') == number_format($i, 2, '.', '') ? 'selected' : '' }}>{{ number_format($i, 2, '.', '') }}</option>
-                        @endfor
+                            @endfor
                     </select>
                     <div class="color-box" data-input="av_cerca_oi"></div>
                 </div>
@@ -260,7 +256,7 @@ if (empty($nombreCompletoOptometra)) {
         </div>
 
         <div class="boton-guardar">
-            <button type="submit">{{ $isEdit ? 'Actualizar' : 'Guardar' }}</button>
+            <button type="submit">Guardar</button>
         </div>
     </form>
 </div>
@@ -321,7 +317,7 @@ if (empty($nombreCompletoOptometra)) {
         flex-wrap: wrap;
     }
 
-    .SubTitle_op{
+    .SubTitle_op {
         display: flex;
         align-items: center;
         font-size: 25px;
@@ -416,7 +412,7 @@ if (empty($nombreCompletoOptometra)) {
         transition: color 0.3s;
     }
 
-    .Box_Agudeza{
+    .Box_Agudeza {
         display: flex;
         flex-direction: row;
         align-items: center;

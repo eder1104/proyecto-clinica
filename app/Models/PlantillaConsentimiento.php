@@ -12,18 +12,9 @@ class PlantillaConsentimiento extends Model
     protected $table = 'plantillas_consentimiento';
 
     protected $fillable = [
-        'version',
         'titulo',
-        'texto_consentimiento',
+        'texto',
+        'version',
         'activo',
     ];
-
-    protected $casts = [
-        'activo' => 'boolean',
-    ];
-
-    public function consentimientosPaciente()
-    {
-        return $this->hasMany(ConsentimientoPaciente::class, 'plantilla_id');
-    }
 }

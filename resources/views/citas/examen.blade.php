@@ -13,6 +13,7 @@
                     @csrf
 
                     <input type="hidden" name="redirect_to_url" value="{{ route('citas.atencion', $cita->id) }}">
+                    <input type="hidden" name="plantilla_id" value="{{ $cita->plantilla_id ?? 1 }}">
 
                     @if ($errors->any())
                     <div class="mb-4 bg-red-100 text-red-700 p-4 rounded-lg">
@@ -81,7 +82,6 @@
                                 class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 p-2.5 bg-gray-50 shadow-sm resize-none">{{ old('antecedentes', $cita->antecedentes ?? '') }}</textarea>
                         </div>
 
-
                         <div class="col-span-2">
                             <label class="block text-gray-700 font-medium mb-1">Examen físico</label>
                             <textarea name="examen_fisico" rows="3"
@@ -93,8 +93,6 @@
                             <textarea name="diagnostico" rows="3"
                                 class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 p-2.5 bg-gray-50 shadow-sm resize-none">{{ old('diagnostico', $cita->diagnostico ?? '') }}</textarea>
                         </div>
-
-
                     </div>
 
                     <div class="flex justify-end space-x-3 mt-6">

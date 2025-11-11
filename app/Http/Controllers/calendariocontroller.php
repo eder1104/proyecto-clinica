@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Cita;
-use App\Services\AgendaService;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 use App\Models\CalendarioDisponibilidad;
+use App\Models\BloqueoAgenda;
+use App\Services\AgendaService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CalendarioController extends Controller
 {
@@ -26,9 +27,9 @@ class CalendarioController extends Controller
 
     public function obtenerDatosCalendario()
     {
-        $date = Carbon::now();
-        $firstOfMonth = $date->copy()->firstOfMonth();
-        $lastOfMonth = $date->copy()->lastOfMonth();
+        $hoy = Carbon::now();
+        $firstOfMonth = $hoy->copy()->firstOfMonth()->startOfDay();
+        $lastOfMonth = $hoy->copy()->lastOfMonth()->endOfDay();
 
         $estadosDoctor = CalendarioDisponibilidad::with('doctor.user:id,nombres')
             ->whereBetween('fecha', [$firstOfMonth->format('Y-m-d'), $lastOfMonth->format('Y-m-d')])
@@ -37,9 +38,9 @@ class CalendarioController extends Controller
 
         $mapaEstados = [];
         foreach ($estadosDoctor as $estado) {
-            $fecha = $estado->fecha;
+            $fecha = Carbon::parse($estado->fecha)->format('Y-m-d');
             $prioridad = $estado->estado === 'bloqueado' ? 2 : 1;
-            $nombreDoctor = ($estado->doctor && $estado->doctor->user) ? explode(' ', $estado->doctor->user->nombres)[0] : '??';
+            $nombreDoctor = ($estado->doctor && $estado->doctor->user) ? explode(' ', trim($estado->doctor->user->nombres))[0] : '??';
             $nombreCompleto = 'Dr. ' . $nombreDoctor;
 
             if (!isset($mapaEstados[$fecha])) {
@@ -61,7 +62,8 @@ class CalendarioController extends Controller
             }
         }
 
-        $citasRegistradas = Cita::whereBetween('fecha', [$firstOfMonth, $lastOfMonth])
+        $citasRegistradas = Cita::whereBetween('fecha', [$firstOfMonth->format('Y-m-d'), $lastOfMonth->format('Y-m-d')])
+            ->where('estado', 'activa')
             ->get(['fecha']);
 
         foreach ($citasRegistradas as $cita) {
@@ -69,7 +71,8 @@ class CalendarioController extends Controller
             if (!isset($mapaEstados[$fecha])) {
                 $mapaEstados[$fecha] = [
                     'estado' => 'cita',
-                    'doctores' => ['Citas registradas']
+                    'doctores' => ['Citas registradas'],
+                    'prioridad' => 0
                 ];
             } else {
                 if (!in_array('Citas registradas', $mapaEstados[$fecha]['doctores'])) {
@@ -83,6 +86,7 @@ class CalendarioController extends Controller
             $fecha = $d->format('Y-m-d');
             $estadoFinal = 'disponible';
             $doctorNombre = null;
+            $cantidadCitas = Cita::whereDate('fecha', $fecha)->where('estado', 'activa')->count();
 
             $estadoBase = $this->agenda->estadoDelDia($fecha);
             if ($estadoBase === 'parcial' || $estadoBase === 'bloqueado') {
@@ -103,20 +107,21 @@ class CalendarioController extends Controller
             $dias[] = [
                 'fecha' => $fecha,
                 'estado' => $estadoFinal,
-                'doctor' => $doctorNombre
+                'doctor' => $doctorNombre,
+                'citas_activas' => $cantidadCitas
             ];
         }
+
         return $dias;
     }
 
     public function citasPorDia($fecha)
     {
-        $citas = \App\Models\Cita::whereDate('fecha', $fecha)->get();
-        dd($citas);
         $fechaFormateada = Carbon::parse($fecha)->format('Y-m-d');
 
         $citas = Cita::with(['paciente:id,nombres,apellidos'])
             ->whereDate('fecha', $fechaFormateada)
+            ->where('estado', 'activa')
             ->get([
                 'id',
                 'fecha',
@@ -147,7 +152,7 @@ class CalendarioController extends Controller
             'motivo' => 'nullable|string|max:255'
         ]);
 
-        \App\Models\BloqueoAgenda::create([
+        BloqueoAgenda::create([
             'fecha' => $data['fecha'],
             'hora_inicio' => $data['hora_inicio'] . ':00',
             'hora_fin' => $data['hora_fin'] . ':00',

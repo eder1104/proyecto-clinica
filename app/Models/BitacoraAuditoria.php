@@ -98,12 +98,12 @@ class BitacoraAuditoria extends Model
     {
         return match (Str::lower($this->accion)) {
             'crear' => 'Creó',
-            'post' => 'Creó (POST)',
+            'post' => 'Creó ',
             'editar' => 'Editó',
-            'put' => 'Editó (PUT)',
-            'patch' => 'Editó (PATCH)',
+            'put' => 'Editó ',
+            'patch' => 'Editó ',
             'eliminar' => 'Eliminó',
-            'delete' => 'Eliminó (DELETE)',
+            'delete' => 'Eliminó ',
             default => ucfirst($this->accion),
         };
     }
