@@ -9,7 +9,7 @@ class DoctorAgendaController extends Controller
 {
     public function index()
     {
-        $doctores = User::where('role', 'doctor')->get();
+        $doctores = User::where('role', 'doctor')->paginate(10);
         return view('citas.DoctorAgenda', compact('doctores'));
     }
 }

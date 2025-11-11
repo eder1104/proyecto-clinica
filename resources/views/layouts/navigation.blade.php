@@ -24,7 +24,7 @@
                 </div>
 
                 <div class="hidden sm:flex sm:items-center sm:ml-10 relative group">
-                    <button class="inline-flex items-center px-3 py-2 text-sm font-semibold {{ request()->routeIs('doctor.agenda') || request()->routeIs('citas.bitacora') || request()->routeIs('citas.reporte') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-700 hover:text-blue-600' }} focus:outline-none transition-colors duration-200">
+                    <button class="inline-flex items-center px-3 py-2 text-sm font-semibold {{ request()->routeIs('doctor.agenda') || request()->routeIs('citas.reporte') ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-700 hover:text-blue-600' }} focus:outline-none transition-colors duration-200">
                         {{ __('Especialista') }}
                         <svg class="ml-1 h-4 w-4 transition-transform duration-200 group-hover:rotate-180" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -35,13 +35,16 @@
                         <a href="{{ route('doctor.agenda') }}" class="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-t-xl transition-colors duration-150">
                             {{ __('Agenda Médica Oftalmológica') }}
                         </a>
-                        <a href="{{ route('citas.bitacora') }}" class="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">
-                            {{ __('Bitacora') }}
-                        </a>
                         <a href="{{ route('citas.reporte') }}" class="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-b-xl transition-colors duration-150">
                             {{ __('Agenda del Día') }}
                         </a>
                     </div>
+                </div>
+
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link :href="route('citas.bitacora')" :active="request()->routeIs('citas.bitacora')">
+                        {{ __('Bitácora') }}
+                    </x-nav-link>
                 </div>
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
@@ -71,7 +74,7 @@
                             <div>{{ Auth::user()->nombres }}</div>
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4 transition-transform duration-200 group-hover:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
                             </div>
                         </button>
@@ -113,6 +116,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                 {{ __('users') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('citas.bitacora')" :active="request()->routeIs('citas.bitacora')">
+                {{ __('Bitácora') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('citas.index')" :active="request()->routeIs('citas.*')">
                 {{ __('Citas Médicas') }}
