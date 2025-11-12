@@ -11,6 +11,7 @@ class CatalogosOftalmologicosSeeder extends Seeder
 {
     public function run(): void
     {
+        // ===  ===
         $diagnosticos = [
             ['nombre' => 'Degeneración Macular Asociada a la Edad (DMAE)', 'codigo' => 'H35.3'],
             ['nombre' => 'Retinopatía Diabética', 'codigo' => 'H36.0'],
@@ -19,8 +20,13 @@ class CatalogosOftalmologicosSeeder extends Seeder
             ['nombre' => 'Edema Macular', 'codigo' => 'H35.0'],
         ];
 
+        $contador = 1;
         foreach ($diagnosticos as $diagnostico) {
-            DiagnosticoOftalmologico::firstOrCreate($diagnostico);
+            DiagnosticoOftalmologico::firstOrCreate([
+                'nombre' => $diagnostico['nombre'],
+                'codigo' => $diagnostico['codigo'],
+                'serial' => 'DIA' . str_pad($contador++, 3, '0', STR_PAD_LEFT),
+            ]);
         }
 
         $procedimientos = [
@@ -30,8 +36,13 @@ class CatalogosOftalmologicosSeeder extends Seeder
             ['nombre' => 'Fotocoagulación láser', 'codigo' => '67145'],
         ];
 
+        $contador = 1;
         foreach ($procedimientos as $procedimiento) {
-            ProcedimientoOftalmologico::firstOrCreate($procedimiento);
+            ProcedimientoOftalmologico::firstOrCreate([
+                'nombre' => $procedimiento['nombre'],
+                'codigo' => $procedimiento['codigo'],
+                'serial' => 'PRO' . str_pad($contador++, 3, '0', STR_PAD_LEFT),
+            ]);
         }
 
         $alergias = [
@@ -40,8 +51,13 @@ class CatalogosOftalmologicosSeeder extends Seeder
             ['nombre' => 'Yodo povidona', 'tipo' => 'Sustancia'],
         ];
 
+        $contador = 1;
         foreach ($alergias as $alergia) {
-            Alergia::firstOrCreate($alergia);
+            Alergia::firstOrCreate([
+                'nombre' => $alergia['nombre'],
+                'tipo' => $alergia['tipo'],
+                'serial' => 'ALE' . str_pad($contador++, 3, '0', STR_PAD_LEFT),
+            ]);
         }
     }
 }

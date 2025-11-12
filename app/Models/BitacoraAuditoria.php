@@ -107,4 +107,9 @@ class BitacoraAuditoria extends Model
             default => ucfirst($this->accion),
         };
     }
+
+    public function historialCambios()
+    {
+        return $this->hasMany(HistorialCambio::class, 'bitacora_id');
+    }
 }

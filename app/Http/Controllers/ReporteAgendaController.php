@@ -10,42 +10,36 @@ use Carbon\Carbon;
 
 class ReporteAgendaController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $fecha = $request->input('fecha', Carbon::today()->toDateString());
-        $horaInicio = '06:00:00';
-        $horaFin = '20:00:00';
+        $fecha = Carbon::today()->toDateString();
 
-        $citas = Cita::where('fecha', $fecha)
-            ->whereTime('hora_inicio', '>=', $horaInicio)
-            ->whereTime('hora_fin', '<=', $horaFin)
+        $citas = Cita::with(['paciente'])
+            ->whereDate('fecha', $fecha)
+            ->orderBy('hora_inicio', 'asc')
             ->get();
 
         $programadas = $citas->where('estado', 'programada')->count();
-        $canceladas = $citas->where('estado', 'cancelada')->count();
-        $atendidas = $citas->where('estado', 'atendida')->count();
+        $canceladas  = $citas->where('estado', 'cancelada')->count();
+        $atendidas   = $citas->where('estado', 'atendida')->count();
 
-        $bloqueos = BloqueoAgenda::whereDate('fecha', $fecha)->get();
+        $bloqueos = BloqueoAgenda::with('doctor')
+            ->whereDate('fecha', $fecha)
+            ->get();
 
         $doctores = User::role('doctor')->get();
 
-        $doctoresBloqueadosIds = $bloqueos->pluck('creado_por')->toArray();
+        $bloqueadosIds = $bloqueos->pluck('creado_por')->filter()->unique()->values()->all();
 
-        $doctoresDisponibles = $doctores->filter(function ($d) use ($doctoresBloqueadosIds) {
-            return !in_array($d->id, $doctoresBloqueadosIds);
-        });
-
-        $totalHorarios = $doctoresDisponibles->count();
-
+        $totalHorarios = $doctores->count();
+        $bloqueados = count($bloqueadosIds);
         $ocupados = $citas->count();
-        $bloqueados = $bloqueos->count();
 
         $bloqueosConDoctor = $bloqueos->map(function ($bloqueo) {
-            $doctor = User::find($bloqueo->creado_por);
             return [
-                'nombre_doctor' => $doctor ? $doctor->nombres . ' ' . $doctor->apellidos : 'Desconocido',
+                'nombre_doctor' => $bloqueo->doctor ? "{$bloqueo->doctor->nombres} {$bloqueo->doctor->apellidos}" : 'Desconocido',
                 'fecha' => $bloqueo->fecha,
-                'motivo' => $bloqueo->motivo ?? null,
+                'motivo' => $bloqueo->motivo ?? 'No especificado',
             ];
         });
 

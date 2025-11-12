@@ -18,7 +18,7 @@ use App\Http\Controllers\{
     CalendarioEspecialistaController,
     DoctorAgendaController,
     CatalogoController,
-    ReporteAgendaController
+    ReporteAgendaController,
 };
 use App\Http\Middleware\Bitacora;
 use App\Http\Middleware\CheckRole;
@@ -119,10 +119,6 @@ Route::middleware(['auth', 'checkrole:admin,admisiones', Bitacora::class])->grou
     Route::delete('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'destroy'])->name('citas.parcial.destroy');
 });
 
-Route::get('/catalogos', function () {
-    return view('citas.catalogos');
-})->name('catalogos.index');
-
 
 
 Route::get('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'index'])->name('retina.index');
@@ -130,5 +126,7 @@ Route::post('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'store'])
 Route::get('/catalogos/buscar', [CatalogoController::class, 'buscar'])->name('catalogos.buscar');
 Route::get('/preexamen/create/{cita_id}', [PreExamenController::class, 'create'])->name('preexamen.create');
 Route::get('/citas/reporte', [ReporteAgendaController::class, 'index'])->name('citas.reporte');
+Route::get('/catalogos', function () {return view('citas.catalogos');})->name('catalogos.index');
+
 
 require __DIR__ . '/auth.php';
