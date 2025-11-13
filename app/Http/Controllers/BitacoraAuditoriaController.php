@@ -24,16 +24,17 @@ class BitacoraAuditoriaController extends Controller
     }
 
     public static function registrarCambio($bitacoraId, $registroId, $datosAnteriores = null, $datosNuevos = null)
-    {
-        $cambio = new HistorialCambio();
-        $cambio->bitacora_id = $bitacoraId;
-        $cambio->registro_afectado = $registroId;
-        $cambio->datos_anteriores = $datosAnteriores ? json_encode($datosAnteriores) : null;
-        $cambio->datos_nuevos = $datosNuevos ? json_encode($datosNuevos) : null;
-        $cambio->save();
+{
+    $cambio = new HistorialCambio();
+    $cambio->bitacora_id = $bitacoraId;
+    $cambio->registro_afectado = $registroId;
+    $cambio->datos_anteriores = $datosAnteriores ?: null;
+    $cambio->datos_nuevos = $datosNuevos ?: null;
+    $cambio->fecha_cambio = now();
+    $cambio->save();
 
-        return $cambio->id;
-    }
+    return $cambio->id;
+}
 
     public function index()
     {

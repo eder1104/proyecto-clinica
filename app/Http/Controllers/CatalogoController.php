@@ -9,9 +9,18 @@ use Illuminate\Http\Request;
 
 class CatalogoController extends Controller
 {
+    public function modal(Request $request)
+    {
+        $tipo = $request->query('tipo', 'diagnostico');
+        $titulo = $request->query('titulo', null);
+        $nombre_input = $request->query('nombre_input', 'catalogo_ids');
+
+        return view('citas.BusquedaCatalogoModal', compact('tipo', 'titulo', 'nombre_input'))
+            ->with('ocultarMenu', true);
+    }
+
     public function buscar(Request $request)
     {
-        $tipo = $request->input('tipo');
         $termino = $request->input('termino');
         $resultados = collect();
 
@@ -19,26 +28,36 @@ class CatalogoController extends Controller
             return response()->json($resultados);
         }
 
-        switch ($tipo) {
-            case 'diagnostico':
-                $modelo = DiagnosticoOftalmologico::class;
-                break;
-            case 'procedimiento':
-                $modelo = ProcedimientoOftalmologico::class;
-                break;
-            case 'alergia':
-                $modelo = Alergia::class;
-                break;
-            default:
-                return response()->json($resultados);
-        }
-
-        $resultados = $modelo::where('nombre', 'like', '%' . $termino . '%')
-            ->orWhere('codigo', 'like', '%' . $termino . '%')
+        $diagnosticos = DiagnosticoOftalmologico::where('nombre', 'like', '%' . $termino . '%')
             ->select('id', 'nombre', 'codigo')
-            ->limit(15) 
-            ->get();
+            ->get()
+            ->map(function ($item) {
+                $item->tipo = 'Diagnóstico';
+                return $item;
+            });
+
+        $procedimientos = ProcedimientoOftalmologico::where('nombre', 'like', '%' . $termino . '%')
+            ->select('id', 'nombre', 'codigo')
+            ->get()
+            ->map(function ($item) {
+                $item->tipo = 'Procedimiento';
+                return $item;
+            });
+
+        $alergias = Alergia::where('nombre', 'like', '%' . $termino . '%')
+            ->select('id', 'nombre')
+            ->get()
+            ->map(function ($item) {
+                $item->tipo = 'Alergia';
+                $item->codigo = null;
+                return $item;
+            });
+
+        $resultados = $diagnosticos
+            ->concat($procedimientos)
+            ->concat($alergias)
+            ->values();
 
         return response()->json($resultados);
     }
- }
+}

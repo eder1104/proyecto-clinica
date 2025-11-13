@@ -210,6 +210,10 @@ $nombreCompletoOptometra = 'Usuario no identificado';
             </div>
         </div>
 
+        <div class="catalogo-section">
+            @include('citas.catalogos')
+        </div>
+
         <h3>Diagnósticos</h3>
         <div class="form-group">
             <label>Diagnóstico principal</label>
@@ -261,33 +265,66 @@ $nombreCompletoOptometra = 'Usuario no identificado';
     </form>
 </div>
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const colors = ["green", "blue", "red", "transparent"];
+    (function() {
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalEl = document.getElementById('modalCatalogo');
+            if (!modalEl) return;
 
-        document.querySelectorAll(".color-box").forEach(box => {
-            box.addEventListener("click", () => {
-                let current = box.dataset.colorIndex ? parseInt(box.dataset.colorIndex) : 0;
-                current = (current + 1) % colors.length;
-                box.dataset.colorIndex = current;
+            let bsModalInstance = null;
+            if (window.bootstrap && bootstrap.Modal) {
+                bsModalInstance = new bootstrap.Modal(modalEl);
+            }
 
-                const newColor = colors[current];
-                box.style.backgroundColor = newColor;
-
-                const inputName = box.dataset.input;
-                const field = document.querySelector(`[name="${inputName}"]`);
-
-                if (field) {
-                    field.style.color = (newColor === "transparent") ? "black" : newColor;
-
-                    if (field.tagName.toLowerCase() === "select") {
-                        field.style.color = (newColor === "transparent") ? "black" : newColor;
-                    }
+            function onShown() {
+                if (typeof initCatalogoBuscador === 'function') {
+                    try {
+                        initCatalogoBuscador();
+                    } catch (e) {}
                 }
+
+                const form = modalEl.querySelector('#formBuscarCatalogo');
+                if (!form) return;
+                if (form.dataset.bound === '1') return;
+                form.dataset.bound = '1';
+
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const params = new URLSearchParams(new FormData(form));
+                    try {
+                        const response = await fetch(form.action + '?' + params.toString(), {
+                            credentials: 'same-origin'
+                        });
+                        const data = await response.json();
+                        const lista = modalEl.querySelector('#resultados');
+                        if (!lista) return;
+                        lista.innerHTML = '';
+                        if (!Array.isArray(data) || data.length === 0) {
+                            lista.innerHTML = '<li class="text-muted">No se encontraron resultados.</li>';
+                            return;
+                        }
+                        data.forEach(function(item) {
+                            const li = document.createElement('li');
+                            const tipo = item.tipo ? '<span style="color:#0d6efd;">[' + item.tipo + ']</span> ' : '';
+                            li.innerHTML = tipo + '<strong>' + (item.nombre || '') + '</strong>' + (item.codigo ? ' <span style="color:#888;">(' + item.codigo + ')</span>' : '');
+                            lista.appendChild(li);
+                        });
+                    } catch (err) {
+                        const lista = modalEl.querySelector('#resultados');
+                        if (lista) lista.innerHTML = '<li class="text-muted">Error al buscar. Reintente.</li>';
+                    }
+                });
+            }
+
+            modalEl.addEventListener('shown.bs.modal', onShown);
+            modalEl.addEventListener('shown', onShown);
+
+            modalEl.addEventListener('hidden.bs.modal', function() {
+                const lista = modalEl.querySelector('#resultados');
+                if (lista) lista.innerHTML = '';
             });
         });
-    });
+    })();
 </script>
-
 
 <style>
     .container {
@@ -505,5 +542,37 @@ $nombreCompletoOptometra = 'Usuario no identificado';
         border-radius: 5px;
         margin-bottom: 15px;
     }
+
+    .modal-body .catalogo-buscador {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    .modal-body .catalogo-buscador h5,
+    .modal-body .catalogo-buscador label {
+        color: #212529;
+    }
+
+    .modal-body .catalogo-buscador input,
+    .modal-body .catalogo-buscador button {
+        font-size: 0.95rem;
+    }
+
+    .modal-body .catalogo-resultados-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
 </style>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('shown.bs.modal', function(event) {
+        const modal = event.target;
+        if (modal.id === 'modalCatalogo' && typeof initCatalogoBuscador === 'function') {
+            initCatalogoBuscador();
+        }
+    });
+</script>
+@endpush

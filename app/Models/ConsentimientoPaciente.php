@@ -14,7 +14,9 @@ class ConsentimientoPaciente extends Model
     protected $fillable = [
         'cita_id',
         'paciente_id',
+        'nombre_paciente',
         'doctor_id',
+        'nombre_doctor',
         'plantilla_id',
         'nombre_firmante',
         'firma',

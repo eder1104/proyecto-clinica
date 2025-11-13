@@ -11,6 +11,8 @@ class Bitacora
 {
     public function handle(Request $request, Closure $next)
     {
+
+
         $response = $next($request);
 
         if ($request->isMethod('post') || $request->isMethod('put') || $request->isMethod('delete')) {

@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('nombre')->unique();
             $table->string('tipo')->nullable();
+            $table->string('serial')->unique()->nullable();
             $table->boolean('estado')->default(true);
             $table->timestamps();
         });

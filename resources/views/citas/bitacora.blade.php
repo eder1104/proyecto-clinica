@@ -30,10 +30,10 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                     @php
                     $color = match($registro->accion) {
-                    'crear' => 'green',
-                    'editar' => 'blue',
-                    'eliminar' => 'red',
-                    default => 'gray'
+                        'crear' => 'green',
+                        'editar' => 'blue',
+                        'eliminar' => 'red',
+                        default => 'gray'
                     };
                     @endphp
 
@@ -42,9 +42,7 @@
                     </span>
 
                     @if($registro->accion === 'editar')
-                    <button
-                        onclick="toggleComparativa('{{ $registro->id }}')"
-                        class="ml-3 text-blue-600 text-xs hover:underline">
+                    <button onclick="toggleComparativa('{{ $registro->id }}')" class="ml-3 text-blue-600 text-xs hover:underline">
                         Ver cambios
                     </button>
                     @endif
@@ -60,20 +58,19 @@
 
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {{ $registro->fecha_hora 
-                            ? \Carbon\Carbon::parse($registro->fecha_hora)->isoFormat('DD/MMM/YYYY h:mm A') 
-                            : 'N/A' 
-                        }}
+                        ? \Carbon\Carbon::parse($registro->fecha_hora)->isoFormat('DD/MMM/YYYY h:mm A') 
+                        : 'N/A' 
+                    }}
                 </td>
             </tr>
 
             @if($registro->accion === 'editar' && $registro->historialCambios->isNotEmpty())
-            <tr id="comparativa-{{ $registro->id }}" class="hidden bg-gray-50 transition-all duration-200">
+            <tr id="comparativa-{{ $registro->id }}" style="display: none;" class="bg-gray-50 transition-all duration-200">
                 <td colspan="6" class="p-4">
                     @foreach($registro->historialCambios as $cambio)
                     <div class="border rounded-lg p-3 mb-2 bg-white shadow-sm">
                         <strong class="text-blue-700">
-                            Comparativa
-                            ({{ \Carbon\Carbon::parse($cambio->fecha_cambio)->isoFormat('DD/MMM/YYYY HH:mm A') }})
+                            Comparativa ({{ \Carbon\Carbon::parse($cambio->fecha_cambio)->isoFormat('DD/MMM/YYYY HH:mm A') }})
                         </strong>
 
                         <div class="grid grid-cols-2 gap-4 mt-2 text-sm">
@@ -99,7 +96,8 @@
 <script>
     function toggleComparativa(id) {
         const fila = document.getElementById(`comparativa-${id}`);
-        if (fila) fila.classList.toggle('hidden');
+        if (!fila) return;
+        fila.style.display = (fila.style.display === 'table-row') ? 'none' : 'table-row';
     }
 </script>
 @endsection

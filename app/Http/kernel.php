@@ -14,7 +14,6 @@ class Kernel extends HttpKernel
      * @var array<int, class-string>
      */
     protected $middleware = [
-        // Laravel default middleware (puedes dejar o quitar según tu versión)
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
     ];
@@ -26,22 +25,19 @@ class Kernel extends HttpKernel
      */
     protected $middlewareGroups = [
         'web' => [
-             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
             // \Illuminate\Session\Middleware\AuthenticateSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
 
-            // --- TU MIDDLEWARE DE AUDITORÍA (usar exactamente tu nombre de clase) ---
             \App\Http\Middleware\Bitacora::class,
         ],
 
         'api' => [
-            // si quieres auditar también llamadas API
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
 
-            // --- TU MIDDLEWARE DE AUDITORÍA EN API ---
             \App\Http\Middleware\Bitacora::class,
         ],
     ];
@@ -61,6 +57,6 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        // agrega aquí otros middleware de rutas si los tienes
+        'checkrole' => \App\Http\Middleware\CheckRole::class,
     ];
 }

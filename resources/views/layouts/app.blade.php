@@ -16,7 +16,9 @@
 
 <body class="font-sans antialiased bg-gray-100">
     <div class="min-h-screen">
-        @include('layouts.navigation')
+        @if (empty($ocultarMenu))
+            @include('layouts.navigation')
+        @endif
 
         @hasSection('header')
         <header class="bg-white shadow relative">
@@ -28,20 +30,14 @@
 
         <main class="p-4">
             <x-alertas />
-
             {{ $slot ?? '' }}
             @yield('content')
         </main>
     </div>
 
-    {{-- AÑADIR BOOTSTRAP JS AQUI para que 'bootstrap.Modal' sea definido --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
     <script src="//unpkg.com/alpinejs" defer></script>
-
-    {{-- Si usas @push('scripts') en tus vistas (como en citas/index.blade.php) --}}
     @stack('scripts')
 </body>
 @include('layouts.footer')
-
 </html>

@@ -26,16 +26,17 @@ class AgendaService
             ->where('activo', true)
             ->first();
 
-        if (! $plantilla) {
+        if (!$plantilla) {
             return [];
         }
 
-        $inicio = Carbon::createFromFormat('H:i:s', $plantilla->hora_inicio);
-        $fin = Carbon::createFromFormat('H:i:s', $plantilla->hora_fin);
+        $inicio = Carbon::parse($fecha . ' ' . $plantilla->hora_inicio);
+        $fin = Carbon::parse($fecha . ' ' . $plantilla->hora_fin);
 
         $period = new CarbonPeriod($inicio, $this->slotMinutes . ' minutes', $fin);
         $slots = [];
         $prev = null;
+
         foreach ($period as $slotStart) {
             if ($prev && $slotStart->eq($prev)) {
                 continue;
@@ -113,5 +114,17 @@ class AgendaService
             'bloqueados' => collect($slots)->filter(fn($s) => $s['estado'] === 'bloqueado')->count(),
             'libres' => collect($slots)->filter(fn($s) => $s['estado'] === 'libre')->count(),
         ];
+    }
+
+    public function obtenerDoctoresBloqueadosHoy()
+    {
+        $fechaHoy = Carbon::today()->toDateString();
+        return BloqueoAgenda::with('doctor')
+            ->whereDate('fecha', $fechaHoy)
+            ->get()
+            ->pluck('doctor.nombres')
+            ->filter()
+            ->unique()
+            ->values();
     }
 }

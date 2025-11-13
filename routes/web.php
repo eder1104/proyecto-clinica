@@ -123,7 +123,7 @@ Route::middleware(['auth', 'checkrole:admin,admisiones', Bitacora::class])->grou
 
 Route::get('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'index'])->name('retina.index');
 Route::post('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'store'])->name('retina.store');
-Route::get('/catalogos/buscar', [CatalogoController::class, 'buscar'])->name('catalogos.buscar');
+Route::middleware([])->get('/catalogos/buscar', [CatalogoController::class, 'buscar'])->name('catalogos.buscar');
 Route::get('/preexamen/create/{cita_id}', [PreExamenController::class, 'create'])->name('preexamen.create');
 Route::get('/citas/reporte', [ReporteAgendaController::class, 'index'])->name('citas.reporte');
 Route::get('/catalogos', function () {return view('citas.catalogos');})->name('catalogos.index');

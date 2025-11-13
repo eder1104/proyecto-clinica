@@ -11,7 +11,6 @@ class CatalogosOftalmologicosSeeder extends Seeder
 {
     public function run(): void
     {
-        // ===  ===
         $diagnosticos = [
             ['nombre' => 'Degeneración Macular Asociada a la Edad (DMAE)', 'codigo' => 'H35.3'],
             ['nombre' => 'Retinopatía Diabética', 'codigo' => 'H36.0'],

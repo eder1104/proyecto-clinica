@@ -10,19 +10,29 @@ return new class extends Migration {
         Schema::create('consentimientos_paciente', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('cita_id')->nullable()->constrained('citas')->onDelete('set null');
-            $table->foreignId('paciente_id')->constrained('pacientes')->onDelete('cascade');
-            $table->foreignId('plantilla_id')->constrained('plantillas_consentimiento')->onDelete('cascade');
+            $table->foreignId('cita_id')
+                ->constrained('citas')
+                ->onDelete('cascade');
 
-            $table->string('nombre_firmante');
-            $table->date('fecha_firma')->default(now());
+            $table->foreignId('paciente_id')
+                ->constrained('pacientes')
+                ->onDelete('cascade');
 
-            $table->string('firma')->nullable();
+            $table->string('nombre_paciente')->nullable();
 
             $table->unsignedBigInteger('doctor_id')->nullable();
+            $table->string('nombre_doctor')->nullable();
+
+            $table->foreignId('plantilla_id')
+                ->nullable()
+                ->constrained('plantillas_consentimiento')
+                ->onDelete('set null');
+
+            $table->string('nombre_firmante')->nullable();
+            $table->date('fecha_firma')->default(now());
+            $table->string('firma')->nullable();
 
             $table->boolean('activo')->default(true);
-
             $table->timestamps();
         });
     }
