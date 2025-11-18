@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Services\AgendaService;
 use App\Http\Controllers\CalendarioController;
+use Illuminate\Pagination\LengthAwarePaginator;
+
 
 class CitaController extends Controller
 {
@@ -33,7 +35,19 @@ class CitaController extends Controller
             $query->whereDate('fecha', $fecha);
         }
 
-        $citas = $query->get();
+        $citasCollection = $query->get();
+
+        $page = $request->get('page', 1);
+        $perPage = 7;
+
+        $citas = new LengthAwarePaginator(
+            $citasCollection->forPage($page, $perPage)->values(),
+            $citasCollection->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
         $now = Carbon::now();
 
         foreach ($citas as $cita) {
@@ -120,10 +134,50 @@ class CitaController extends Controller
         $data['updated_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
         $data['estado'] = 'modificada';
 
+        $antes = $cita->only([
+            'fecha',
+            'hora_inicio',
+            'hora_fin',
+            'paciente_id',
+            'tipo_cita_id',
+            'motivo_consulta'
+        ]);
+
         $cita->update($data);
+
+        $despues = $cita->only([
+            'fecha',
+            'hora_inicio',
+            'hora_fin',
+            'paciente_id',
+            'tipo_cita_id',
+            'motivo_consulta'
+        ]);
+
+        $observacion = '';
+
+        foreach ($antes as $campo => $valorAntes) {
+            if ($valorAntes != $despues[$campo]) {
+                $observacion .= ucfirst(str_replace('_', ' ', $campo)) . ': ' . $valorAntes . ' -> ' . $despues[$campo] . "\n";
+            }
+        }
+
+        if ($observacion === '') {
+            $observacion = 'Sin cambios';
+        }
+
+        BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'Citas',
+            'Actualizar',
+            $cita->id,
+            trim($observacion)
+        );
 
         return redirect()->route('citas.index')->with('success', 'Cita actualizada correctamente.');
     }
+
+
 
     public function destroy(Cita $cita, Request $request)
     {

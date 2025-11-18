@@ -78,30 +78,17 @@ class CalendarioEspecialistaController extends Controller
             return response()->json(['success' => false, 'message' => 'Perfil de doctor no encontrado para el usuario.'], 404);
         }
 
-        $fechaSeleccionada = Carbon::parse($validated['fecha']);
-        $hoy = Carbon::today();
-
-        if ($fechaSeleccionada->isSameDay($hoy) && $validated['estado'] === 'Parcial') {
-            $horaActual = Carbon::now()->format('H:i:s');
-
-            $horaInicio = $request->input('hora_inicio');
-            $horaFin = $request->input('hora_fin');
-
-            if ($horaInicio && $horaInicio < $horaActual) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No puedes modificar el horario en horas que ya han pasado hoy.'
-                ], 422);
-            }
-        }
-
         $doctor_table_id = $doctorProfile->id;
+
         $disponibilidad = CalendarioDisponibilidad::firstOrNew(
             [
                 'doctor_id' => $doctor_table_id,
                 'fecha' => $validated['fecha'],
             ]
         );
+
+        $estadoAnterior = $disponibilidad->exists ? $disponibilidad->estado : null;
+
         $disponibilidad->estado = $validated['estado'];
         $disponibilidad->save();
 
@@ -129,12 +116,19 @@ class CalendarioEspecialistaController extends Controller
                 ->delete();
         }
 
-        BitacoraAuditoriaController::registrar(
+        $bitacoraId = BitacoraAuditoriaController::registrar(
             Auth::id(),
             'agenda',
             'editar',
             $disponibilidad->getKey(),
             $validated
+        );
+
+        BitacoraAuditoriaController::registrarCambio(
+            $bitacoraId,
+            $disponibilidad->getKey(),
+            ['estado' => $estadoAnterior],
+            ['estado' => $validated['estado']]
         );
 
         return response()->json(['success' => true]);

@@ -43,7 +43,7 @@ class BitacoraAuditoria extends Model
             'consentimiento' => 'Consentimientos',
             'historia_clinica' => 'Historia Clínica',
             'pacientes' => 'Pacientes',
-            'usuarios' => 'Gestión de Usuarios',
+            'usuarios' => 'Users',
             default => ucwords(str_replace('_', ' ', $this->modulo)),
         };
     }
@@ -51,16 +51,18 @@ class BitacoraAuditoria extends Model
     public function getObservacionDescriptivaAttribute(): string
     {
         $data = $this->observacion;
+
         if (!is_array($data) || empty($data)) {
             return 'Detalles no disponibles';
         }
 
         try {
             $descripcion = [];
+
             switch (Str::lower($this->modulo)) {
                 case 'agenda':
                 case 'calendario-especialista':
-                    if (Str::lower($this->accion) === 'editar' || Str::lower($this->accion) === 'crear' || Str::lower($this->accion) === 'post') {
+                    if (in_array(Str::lower($this->accion), ['editar', 'crear', 'post'])) {
                         $descripcion[] = "Nuevo Estado: <strong>{$data['estado']}</strong>";
                         $descripcion[] = "Fecha: <strong>{$data['fecha']}</strong>";
                     }
@@ -68,7 +70,7 @@ class BitacoraAuditoria extends Model
 
                 case 'parcialidad':
                 case 'parcialidades':
-                    if (Str::lower($this->accion) === 'crear' || Str::lower($this->accion) === 'post') {
+                    if (in_array(Str::lower($this->accion), ['crear', 'post'])) {
                         $descripcion[] = "Rango: <strong>{$data['hora_inicio']} - {$data['hora_fin']}</strong>";
                         $descripcion[] = "Fecha: <strong>{$data['fecha']}</strong>";
                     }
@@ -93,6 +95,7 @@ class BitacoraAuditoria extends Model
             return 'Datos no procesables';
         }
     }
+
 
     public function getAccionDescriptivaAttribute(): string
     {

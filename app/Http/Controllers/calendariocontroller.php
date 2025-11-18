@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Cita;
 use App\Models\CalendarioDisponibilidad;
 use App\Models\BloqueoAgenda;
+use App\Models\doctores;
 use App\Services\AgendaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,18 @@ class CalendarioController extends Controller
     public function index(Request $request)
     {
         $dias = $this->obtenerDatosCalendario();
-        return view('citas.calendario', compact('dias'));
+
+        $doctores = doctores::with('user:id,nombres,apellidos')
+            ->select('id', 'user_id', 'especialidad')
+            ->get()
+            ->map(function ($doctor) {
+                return [
+                    'nombre' => $doctor->user->nombres . ' ' . $doctor->user->apellidos,
+                    'especialidad' => $doctor->especialidad ?? 'Sin especialidad'
+                ];
+            });
+
+        return view('citas.calendario', compact('dias', 'doctores'));
     }
 
     public function obtenerDatosCalendario()
@@ -31,7 +43,7 @@ class CalendarioController extends Controller
         $firstOfMonth = $hoy->copy()->firstOfMonth()->startOfDay();
         $lastOfMonth = $hoy->copy()->lastOfMonth()->endOfDay();
 
-        $estadosDoctor = CalendarioDisponibilidad::with('doctor.user:id,nombres')
+        $estadosDoctor = CalendarioDisponibilidad::with('doctor.user:id,nombres,apellidos')
             ->whereBetween('fecha', [$firstOfMonth->format('Y-m-d'), $lastOfMonth->format('Y-m-d')])
             ->whereIn('estado', ['bloqueado', 'parcial'])
             ->get();
@@ -40,7 +52,11 @@ class CalendarioController extends Controller
         foreach ($estadosDoctor as $estado) {
             $fecha = Carbon::parse($estado->fecha)->format('Y-m-d');
             $prioridad = $estado->estado === 'bloqueado' ? 2 : 1;
-            $nombreDoctor = ($estado->doctor && $estado->doctor->user) ? explode(' ', trim($estado->doctor->user->nombres))[0] : '??';
+
+            $nombreDoctor = ($estado->doctor && $estado->doctor->user)
+                ? $estado->doctor->user->nombres . ' ' . $estado->doctor->user->apellidos
+                : 'Doctor no especificado';
+
             $nombreCompleto = 'Dr. ' . $nombreDoctor;
 
             if (!isset($mapaEstados[$fecha])) {
@@ -96,12 +112,7 @@ class CalendarioController extends Controller
             if (isset($mapaEstados[$fecha])) {
                 $estadoFinal = $mapaEstados[$fecha]['estado'];
                 $doctores = $mapaEstados[$fecha]['doctores'];
-                if (count($doctores) > 1) {
-                    $ultimoDoctor = array_pop($doctores);
-                    $doctorNombre = implode(', ', $doctores) . ' y ' . $ultimoDoctor;
-                } else {
-                    $doctorNombre = $doctores[0];
-                }
+                $doctorNombre = implode(', ', $doctores);
             }
 
             $dias[] = [
@@ -114,6 +125,7 @@ class CalendarioController extends Controller
 
         return $dias;
     }
+
 
     public function citasPorDia($fecha)
     {

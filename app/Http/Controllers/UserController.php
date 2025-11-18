@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\BitacoraAuditoriaController;
 
 class UserController extends Controller
 {
@@ -70,6 +71,8 @@ class UserController extends Controller
             'password.min'       => 'La contraseña debe tener al menos 8 caracteres.',
         ]);
 
+        $datosAnteriores = $user->toArray();
+
         $data = [
             'nombres'    => trim($request->nombres),
             'apellidos'  => trim($request->apellidos),
@@ -83,9 +86,29 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return redirect()->route('users.index')
+        $datosNuevos = $user->fresh()->toArray();
+
+        $bitacoraId = BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'usuarios',
+            'editar',
+            $user->id
+        );
+
+        if (array_diff_assoc($datosNuevos, $datosAnteriores)) {
+            BitacoraAuditoriaController::registrarCambio(
+                $bitacoraId,
+                $user->id,
+                $datosAnteriores,
+                $datosNuevos
+            );
+        }
+
+        return redirect()
+            ->route('users.index')
             ->with('success', 'Usuario actualizado correctamente. ✅');
     }
+
 
     public function updateRole(Request $request, User $user)
     {
@@ -93,9 +116,9 @@ class UserController extends Controller
             'role' => 'required|in:admin,admisiones,callcenter,doctor',
         ]);
 
-        $authUser = Auth::user();
+        $antes = $user->replicate()->toArray();
 
-        if ($authUser->id === $user->id && !$request->has('confirm')) {
+        if (Auth::user()->id === $user->id && !$request->has('confirm')) {
             return response()->json([
                 'showModal' => true,
                 'message' => '¿Estás seguro de cambiar tu propio rol? Esto podría afectar tus permisos actuales.',
@@ -103,12 +126,33 @@ class UserController extends Controller
         }
 
         $user->update([
-            'role' => $request->input('role'),
+            'role'       => $request->input('role'),
+            'updated_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
         ]);
+
+        $despues = $user->toArray();
+
+        $observacion = 'Cambio de rol a: ' . $user->role;
+
+        $bitacoraId = BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'Usuarios',
+            'editar',
+            $user->id,
+            $observacion
+        );
+
+        BitacoraAuditoriaController::registrarCambio(
+            $bitacoraId,
+            $user->id,
+            $antes,
+            $despues
+        );
 
         return redirect()->route('users.index')
             ->with('success', "El rol de {$user->nombres} fue actualizado a '{$user->role}' correctamente. ✅");
     }
+
 
     public function destroy(User $user)
     {
@@ -124,13 +168,38 @@ class UserController extends Controller
 
     public function toggleStatus(User $user)
     {
+        $antes = $user->replicate()->toArray();
+
         $user->status = $user->status === 'activo' ? 'inactivo' : 'activo';
-        $user->updated_by = Auth::check() ? Auth::id() : 0;
+        $user->updated_by = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
         $user->save();
+
+        $despues = $user->toArray();
+
+        $observacion = 'Cambio de estado: '
+            . ($antes['status'] === 'activo' ? 'Activo' : 'Inactivo')
+            . ' → '
+            . ($despues['status'] === 'activo' ? 'Activo' : 'Inactivo');
+
+        $bitacoraId = BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'Usuarios',
+            'editar',
+            $user->id,
+            $observacion
+        );
+
+        BitacoraAuditoriaController::registrarCambio(
+            $bitacoraId,
+            $user->id,
+            $antes,
+            $despues
+        );
 
         return redirect()->route('users.index')
             ->with('success', 'Estado actualizado correctamente. 🔄');
     }
+
 
     public function Usuario_buscar(Request $request)
     {

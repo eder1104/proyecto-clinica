@@ -7,7 +7,22 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            
             <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Agenda Médica Oftalmológica</h1>
+            <form method="GET" action="{{ route('citas.DoctorAgenda') }}" class="mb-6 flex items-center gap-3">
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ $search ?? '' }}"
+                    placeholder="Buscar por documento..."
+                    class="border border-gray-300 rounded-lg px-4 py-2 w-64 focus:ring focus:ring-blue-200 focus:outline-none">
+
+                <button
+                    type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    Buscar
+                </button>
+            </form>
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div class="overflow-x-auto">

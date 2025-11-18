@@ -11,6 +11,10 @@ class BitacoraAuditoriaController extends Controller
 {
     public static function registrar($usuarioId, $modulo, $accion, $registroId = null, $observacion = null)
     {
+        if (!is_array($observacion)) {
+            $observacion = $observacion ? ['detalle' => $observacion] : [];
+        }
+
         $bitacora = new BitacoraAuditoria();
         $bitacora->usuario_id = $usuarioId;
         $bitacora->modulo = $modulo;
@@ -24,17 +28,39 @@ class BitacoraAuditoriaController extends Controller
     }
 
     public static function registrarCambio($bitacoraId, $registroId, $datosAnteriores = null, $datosNuevos = null)
-{
-    $cambio = new HistorialCambio();
-    $cambio->bitacora_id = $bitacoraId;
-    $cambio->registro_afectado = $registroId;
-    $cambio->datos_anteriores = $datosAnteriores ?: null;
-    $cambio->datos_nuevos = $datosNuevos ?: null;
-    $cambio->fecha_cambio = now();
-    $cambio->save();
+    {
+        if (!$datosAnteriores || !$datosNuevos) {
+            return null;
+        }
 
-    return $cambio->id;
-}
+        $cambiosAntes = [];
+        $cambiosDespues = [];
+
+        foreach ($datosNuevos as $key => $nuevoValor) {
+
+            $valorAnterior = $datosAnteriores[$key] ?? null;
+
+            if ($valorAnterior != $nuevoValor) {
+                $cambiosAntes[$key] = $valorAnterior;
+                $cambiosDespues[$key] = $nuevoValor;
+            }
+        }
+
+        if (empty($cambiosAntes) && empty($cambiosDespues)) {
+            return null;
+        }
+
+        $cambio = new HistorialCambio();
+        $cambio->bitacora_id = $bitacoraId;
+        $cambio->registro_afectado = $registroId;
+        $cambio->datos_anteriores = $cambiosAntes;
+        $cambio->datos_nuevos = $cambiosDespues;
+        $cambio->fecha_cambio = now();
+        $cambio->save();
+
+        return $cambio->id;
+    }
+
 
     public function index()
     {

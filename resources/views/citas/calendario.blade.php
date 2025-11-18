@@ -31,124 +31,137 @@
 <div id="modalCitasDia" class="modal-overlay">
     <div class="modal-content">
         <span class="modal-close">&times;</span>
-        <h2 style="color:#10b981;">Citas del <span id="modalFechaDisplay"></span></h2>
+        <h2 style="color:#10b981;">Citas del <span id="modalFechQaDisplay"></span></h2>
         <div id="modalBloqueoInfo" class="alert-bloqueo" style="display:none;"></div>
         <div id="listadoCitasDia"></div>
     </div>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const calendarDaysDiv = document.getElementById("calendarDays");
-        const monthYear = document.getElementById("monthYear");
-        const diasData = JSON.parse(calendarDaysDiv.dataset.dias || '[]');
-        const citasUrlTemplate = calendarDaysDiv.dataset.citasUrl;
-        let currentDate = new Date();
-        let citasCached = {};
+document.addEventListener("DOMContentLoaded", () => {
+    const calendarDaysDiv = document.getElementById("calendarDays");
+    const monthYear = document.getElementById("monthYear");
+    const diasData = JSON.parse(calendarDaysDiv.dataset.dias || '[]');
+    const citasUrlTemplate = calendarDaysDiv.dataset.citasUrl;
+    let currentDate = new Date();
+    let citasCached = {};
 
-        const modal = document.getElementById("modalCitasDia");
-        const modalFechaDisplay = document.getElementById("modalFechaDisplay");
-        const modalBloqueoInfo = document.getElementById("modalBloqueoInfo");
-        const closeModal = modal.querySelector(".modal-close");
-        const listadoCitasDia = document.getElementById("listadoCitasDia");
+    const modal = document.getElementById("modalCitasDia");
+    const modalFechaDisplay = document.getElementById("modalFechaDisplay");
+    const modalBloqueoInfo = document.getElementById("modalBloqueoInfo");
+    const closeModal = modal.querySelector(".modal-close");
+    const listadoCitasDia = document.getElementById("listadoCitasDia");
 
-        const diasInfo = {};
-        diasData.forEach(d => diasInfo[d.fecha] = d);
+    const diasInfo = {};
+    diasData.forEach(d => diasInfo[d.fecha] = d);
 
-        window.abrirModal = async (fecha) => {
-            modalFechaDisplay.textContent = fecha;
-            listadoCitasDia.innerHTML = '';
+    window.abrirModal = async (fecha) => {
+        modalFechaDisplay.textContent = fecha;
+        listadoCitasDia.innerHTML = '';
 
-            const infoDia = diasInfo[fecha];
-            if (infoDia && infoDia.estado === 'bloqueado') {
-                modalBloqueoInfo.style.display = 'block';
-                modalBloqueoInfo.innerHTML = `⚠️ Día bloqueado por: ${infoDia.doctor || 'Doctor no especificado'}`;
-                listadoCitasDia.innerHTML = `<div class="bloqueado-aviso">Día completamente bloqueado</div>`;
+        const infoDia = diasInfo[fecha];
+        if (infoDia && infoDia.estado === 'bloqueado') {
+            modalBloqueoInfo.style.display = 'block';
+            let doctorText = '';
+            if(infoDia.doctores && infoDia.doctores.length){
+                doctorText = infoDia.doctores.join(', ');
+            } else if(infoDia.doctor){
+                doctorText = infoDia.doctor;
+            }
+            modalBloqueoInfo.innerHTML = `⚠️ Día bloqueado por: ${doctorText || 'Doctor no especificado'}`;
+            listadoCitasDia.innerHTML = `<div class="bloqueado-aviso">Día completamente bloqueado</div>`;
+        } else {
+            modalBloqueoInfo.style.display = 'none';
+            const citas = await fetchCitas(fecha);
+            if (!citas.length) {
+                listadoCitasDia.innerHTML = `<div class="no-citas">No hay citas registradas para esta fecha</div>`;
             } else {
-                modalBloqueoInfo.style.display = 'none';
-                const citas = await fetchCitas(fecha);
-                if (!citas.length) {
-                    listadoCitasDia.innerHTML = `<div class="no-citas">No hay citas registradas para esta fecha</div>`;
-                } else {
-                    listadoCitasDia.innerHTML = "";
-                    citas.forEach((c) => {
-                        const horaInicio = c.hora_inicio?.slice(0, 5) || 'Sin hora';
-                        const horaFin = c.hora_fin?.slice(0, 5) || 'Sin hora';
-                        const tipo = c.tipo_cita?.nombre || 'Sin tipo';
-                        const paciente = c.paciente ? `${c.paciente.nombres} ${c.paciente.apellidos}` : 'Sin paciente';
-                        const item = document.createElement('div');
-                        item.className = "card-cita";
-                        item.innerHTML = `
-                            <div><b>Hora:</b> ${horaInicio} - ${horaFin}</div>
-                            <div><b>Tipo:</b> ${tipo}</div>
-                            <div><b>Paciente:</b> ${paciente}</div>
-                            <div><b>Estado:</b> ${c.estado}</div>
-                        `;
-                        listadoCitasDia.appendChild(item);
-                    });
-                }
+                listadoCitasDia.innerHTML = "";
+                citas.forEach((c) => {
+                    const horaInicio = c.hora_inicio?.slice(0, 5) || 'Sin hora';
+                    const horaFin = c.hora_fin?.slice(0, 5) || 'Sin hora';
+                    const tipo = c.tipo_cita?.nombre || 'Sin tipo';
+                    const paciente = c.paciente ? `${c.paciente.nombres} ${c.paciente.apellidos}` : 'Sin paciente';
+                    const item = document.createElement('div');
+                    item.className = "card-cita";
+                    item.innerHTML = `
+                        <div><b>Hora:</b> ${horaInicio} - ${horaFin}</div>
+                        <div><b>Tipo:</b> ${tipo}</div>
+                        <div><b>Paciente:</b> ${paciente}</div>
+                        <div><b>Estado:</b> ${c.estado}</div>
+                    `;
+                    listadoCitasDia.appendChild(item);
+                });
             }
-            modal.style.display = "flex";
-        };
+        }
+        modal.style.display = "flex";
+    };
 
-        const fetchCitas = async (fecha) => {
-            try {
-                if (citasCached[fecha]) return citasCached[fecha];
-                const url = citasUrlTemplate.replace('__DATE__', fecha);
-                const res = await fetch(url);
-                const citas = await res.json();
-                citasCached[fecha] = citas;
-                return citas;
-            } catch {
-                return [];
+    const fetchCitas = async (fecha) => {
+        try {
+            if (citasCached[fecha]) return citasCached[fecha];
+            const url = citasUrlTemplate.replace('__DATE__', fecha);
+            const res = await fetch(url);
+            const citas = await res.json();
+            citasCached[fecha] = citas;
+            return citas;
+        } catch {
+            return [];
+        }
+    };
+
+    closeModal.onclick = () => modal.style.display = "none";
+    window.onclick = (e) => {
+        if (e.target === modal) modal.style.display = "none";
+    };
+
+    const renderCalendar = (date) => {
+        calendarDaysDiv.innerHTML = "";
+        const year = date.getFullYear(),
+            month = date.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startDay = (firstDay.getDay() + 6) % 7;
+        monthYear.textContent = date.toLocaleString("es-ES", {
+            month: "long",
+            year: "numeric"
+        }).toUpperCase();
+
+        for (let i = 0; i < startDay; i++) calendarDaysDiv.appendChild(document.createElement("div"));
+
+        for (let d = 1; d <= lastDay.getDate(); d++) {
+            const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+            const dayDiv = document.createElement("div");
+            dayDiv.classList.add("calendar-day");
+            const info = diasInfo[fullDate];
+            let diaEstado = info?.estado || "disponible";
+            if (diaEstado === "bloqueado") dayDiv.classList.add("day-bloqueado");
+            else if (diaEstado === "parcial") dayDiv.classList.add("day-parcial");
+            else if (diaEstado === "cita" || diaEstado === "disponible") dayDiv.classList.add("day-activo");
+
+            let doctorText = '';
+            if(info?.doctores && info.doctores.length){
+                doctorText = `<br><small>${info.doctores.join(', ')}</small>`;
+            } else if(info?.doctor){
+                doctorText = `<br><small>${info.doctor}</small>`;
             }
-        };
 
-        closeModal.onclick = () => modal.style.display = "none";
-        window.onclick = (e) => {
-            if (e.target === modal) modal.style.display = "none";
-        };
+            dayDiv.innerHTML = `<div class="day-number">${d}</div><span class="day-status">${diaEstado === "disponible" ? "disponible" : diaEstado}</span>${doctorText}`;
+            dayDiv.onclick = () => abrirModal(fullDate);
+            calendarDaysDiv.appendChild(dayDiv);
+        }
+    };
 
-        const renderCalendar = (date) => {
-            calendarDaysDiv.innerHTML = "";
-            const year = date.getFullYear(),
-                month = date.getMonth();
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startDay = (firstDay.getDay() + 6) % 7;
-            monthYear.textContent = date.toLocaleString("es-ES", {
-                month: "long",
-                year: "numeric"
-            }).toUpperCase();
-
-            for (let i = 0; i < startDay; i++) calendarDaysDiv.appendChild(document.createElement("div"));
-
-            for (let d = 1; d <= lastDay.getDate(); d++) {
-                const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-                const dayDiv = document.createElement("div");
-                dayDiv.classList.add("calendar-day");
-                const info = diasInfo[fullDate];
-                let diaEstado = info?.estado || "disponible";
-                if (diaEstado === "bloqueado") dayDiv.classList.add("day-bloqueado");
-                else if (diaEstado === "parcial") dayDiv.classList.add("day-parcial");
-                else if (diaEstado === "cita" || diaEstado === "disponible") dayDiv.classList.add("day-activo");
-
-                dayDiv.innerHTML = `<div class="day-number">${d}</div><span class="day-status">${diaEstado === "disponible" ? "disponible" : diaEstado}</span>`;
-                dayDiv.onclick = () => abrirModal(fullDate);
-                calendarDaysDiv.appendChild(dayDiv);
-            }
-        };
-
-        document.getElementById("prevMonth").onclick = () => {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            renderCalendar(currentDate);
-        };
-        document.getElementById("nextMonth").onclick = () => {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            renderCalendar(currentDate);
-        };
+    document.getElementById("prevMonth").onclick = () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
         renderCalendar(currentDate);
-    });
+    };
+    document.getElementById("nextMonth").onclick = () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar(currentDate);
+    };
+    renderCalendar(currentDate);
+});
 </script>
 
 <style>
@@ -162,7 +175,7 @@
 
     .calendar-wrapper {
         width: 90%;
-        max-width: 900px;
+        max-width: 1200px;
     }
 
     .calendar-title {
@@ -239,7 +252,7 @@
         color: #4b5563;
         transition: all 0.2s ease;
         cursor: pointer;
-        min-height: 80px;
+        height: 130px;
         display: flex;
         flex-direction: column;
         justify-content: center;

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('reportes_agenda', function (Blueprint $table) {
             $table->id();
-            $table->date('fecha'); // Día del reporte
+            $table->date('fecha');
             $table->integer('total_horarios')->default(0);
             $table->integer('horarios_ocupados')->default(0);
             $table->integer('horarios_bloqueados')->default(0);

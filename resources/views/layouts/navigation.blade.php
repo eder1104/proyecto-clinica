@@ -32,7 +32,7 @@
                     </button>
 
                     <div class="absolute left-0 top-full mt-1 w-60 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100 transition-all duration-300 ease-out pointer-events-none group-hover:pointer-events-auto z-50">
-                        <a href="{{ route('doctor.agenda') }}" class="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-t-xl transition-colors duration-150">
+                        <a href="{{ route('citas.DoctorAgenda') }}" class="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-t-xl transition-colors duration-150">
                             {{ __('Agenda Médica Oftalmológica') }}
                         </a>
                         <a href="{{ route('citas.reporte') }}" class="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-b-xl transition-colors duration-150">

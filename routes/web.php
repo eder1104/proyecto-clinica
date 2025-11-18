@@ -109,7 +109,7 @@ Route::post('/register', [RegisteredUserController::class, 'store'])->name('regi
 
 Route::middleware(['auth', 'checkrole:admin,admisiones', Bitacora::class])->group(function () {
     Route::get('/bitacora', [BitacoraAuditoriaController::class, 'index'])->name('citas.bitacora');
-    Route::get('/agenda-doctores', [DoctorAgendaController::class, 'index'])->name('doctor.agenda');
+    Route::get('/agenda-doctores', [DoctorAgendaController::class, 'index'])->name('citas.DoctorAgenda');
     Route::get('/calendario-especialista', [CalendarioEspecialistaController::class, 'index'])->name('citas.CalendarioEspecialista');
     Route::get('/calendario-especialista/{doctorId}/{mes}', [CalendarioEspecialistaController::class, 'obtenerCalendario'])->name('calendario.obtener');
     Route::post('/calendario-especialista/update', [CalendarioEspecialistaController::class, 'actualizarEstado'])->name('calendario.update');
@@ -126,7 +126,9 @@ Route::post('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'store'])
 Route::middleware([])->get('/catalogos/buscar', [CatalogoController::class, 'buscar'])->name('catalogos.buscar');
 Route::get('/preexamen/create/{cita_id}', [PreExamenController::class, 'create'])->name('preexamen.create');
 Route::get('/citas/reporte', [ReporteAgendaController::class, 'index'])->name('citas.reporte');
-Route::get('/catalogos', function () {return view('citas.catalogos');})->name('catalogos.index');
+Route::get('/catalogos', function () {
+    return view('citas.catalogos');
+})->name('catalogos.index');
 
 
 require __DIR__ . '/auth.php';

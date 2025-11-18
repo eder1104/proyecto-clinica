@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->json('datos_anteriores')->nullable();
             $table->json('datos_nuevos')->nullable();
             $table->timestamp('fecha_cambio')->useCurrent();
+            $table->timestamps();
         });
     }
 

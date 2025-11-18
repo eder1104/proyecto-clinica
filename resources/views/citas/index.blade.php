@@ -131,6 +131,9 @@
                             @endforelse
                         </tbody>
                     </table>
+                    <div class="mt-4">
+                        {{ $citas->links() }}
+                    </div>
 
                 </div>
             </div>
@@ -237,7 +240,7 @@
             font-weight: 500;
             color: #6b7280;
         }
-
+        
         .tab-btn.active {
             border-color: #e5e7eb;
             border-bottom-color: #fff;
