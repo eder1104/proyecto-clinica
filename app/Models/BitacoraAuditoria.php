@@ -42,6 +42,7 @@ class BitacoraAuditoria extends Model
             'parcialidades' => 'Agenda (Horas Parciales)',
             'consentimiento' => 'Consentimientos',
             'historia_clinica' => 'Historia Clínica',
+            'optometria' => 'Optometría',
             'pacientes' => 'Pacientes',
             'usuarios' => 'Users',
             default => ucwords(str_replace('_', ' ', $this->modulo)),

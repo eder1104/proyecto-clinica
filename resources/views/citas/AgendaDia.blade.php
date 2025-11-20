@@ -85,7 +85,18 @@
                             {{ ucfirst($cita->estado) }}
                         </span>
                     </td>
-                    <td>{{ $cita->tipo_cita->nombre ?? 'N/A' }}</td>
+                    <td>
+                        @if($cita->tipo_cita_id == 1)
+                        Optometría
+                        @elseif($cita->tipo_cita_id == 2)
+                        Exámenes
+                        @elseif($cita->tipo_cita_id == 3)
+                        Retina
+                        @else
+                        N/A
+                        @endif
+
+                    </td>
                 </tr>
                 @empty
                 <tr>

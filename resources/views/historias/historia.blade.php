@@ -18,7 +18,7 @@
             Citas de {{ $paciente->nombres ?? '' }} {{ $paciente->apellidos ?? '' }}
         @else
             Citas
-        @endif|
+        @endif
     </h3>
 
     @if($citas->isEmpty())

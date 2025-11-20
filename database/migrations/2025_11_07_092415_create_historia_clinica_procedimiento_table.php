@@ -9,11 +9,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('historia_clinica_procedimiento', function (Blueprint $table) {
+
             $table->foreignId('historia_clinica_id')->constrained('historias_clinicas')->onDelete('cascade');
             $table->foreignId('procedimiento_id')->constrained('procedimientos_oftalmologicos')->onDelete('cascade');
+            $table->foreignId('cita_id')->constrained('citas')->onDelete('cascade');
 
-            $table->primary(['historia_clinica_id', 'procedimiento_id']);
-            $table->text('notas')->nullable();
+            $table->primary(['historia_clinica_id', 'procedimiento_id', 'cita_id']);
+
             $table->timestamps();
         });
     }

@@ -15,12 +15,12 @@ class HistoriaClinica extends Model
     protected $fillable = [
         'paciente_id',
         'motivo_consulta',
-        'antecedentes',    
-        'signos_vitales', 
-        'diagnostico',
+        'antecedentes',
+        'signos_vitales',
+        'diagnostico_principal_id',
         'conducta',
-        'created_by',     
-        'updated_by',      
+        'created_by',
+        'updated_by'
     ];
 
     protected $casts = [
@@ -28,7 +28,6 @@ class HistoriaClinica extends Model
         'signos_vitales' => 'array',
     ];
 
-    // Relaciones
     public function paciente()
     {
         return $this->belongsTo(Paciente::class, 'paciente_id');
@@ -36,7 +35,7 @@ class HistoriaClinica extends Model
 
     public function creador()
     {
-        return $this->belongsTo(User::class, 'created_by'); 
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function actualizador()
@@ -44,13 +43,21 @@ class HistoriaClinica extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
-    public function getNombreCreadorAttribute()
+    public function diagnostico()
     {
-        return $this->creador ? $this->creador->nombres . ' ' . $this->creador->apellidos : null;
+        return $this->belongsTo(DiagnosticoOftalmologico::class, 'diagnostico_principal_id');
     }
 
-    public function getNombreActualizadorAttribute()
-    {
-        return $this->actualizador ? $this->actualizador->nombres . ' ' . $this->actualizador->apellidos : null;
-    }
+    public function procedimientos()
+{
+    return $this->belongsToMany(
+        ProcedimientoOftalmologico::class,
+        'historia_clinica_procedimiento',
+        'historia_clinica_id',
+        'procedimiento_id'
+    )
+    ->withPivot('cita_id')
+    ->withTimestamps();
+}
+
 }

@@ -92,7 +92,7 @@ class HistoriaClinicaController extends Controller
         $data['updated_by'] = $usuario->id;
 
         if ($historia && !$historia->created_by) {
-            $data['created_by'] = $usuario->id; 
+            $data['created_by'] = $usuario->id;
         }
 
         if ($historia) {

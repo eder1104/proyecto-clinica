@@ -20,6 +20,8 @@ class ProcedimientoOftalmologico extends Model
             'historia_clinica_procedimiento',
             'procedimiento_id',
             'historia_clinica_id'
-        )->withTimestamps()->withPivot('notas');
+        )
+        ->withPivot('cita_id') 
+        ->withTimestamps();
     }
 }

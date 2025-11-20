@@ -20,6 +20,8 @@ class Alergia extends Model
             'alergia_paciente',
             'alergia_id',
             'paciente_id'
-        )->withTimestamps()->withPivot('detalles');
+        )
+        ->withPivot('cita_id')
+        ->withTimestamps();
     }
 }

@@ -41,7 +41,7 @@
                         {{ $registro->accion_descriptiva }}
                     </span>
 
-                    @if($registro->accion === 'editar')
+                    @if(in_array(strtolower($registro->accion), ['editar', 'editò', 'editó', 'editado']))
                     <button onclick="toggleComparativa('{{ $registro->id }}')" class="ml-3 text-blue-600 text-xs hover:underline">
                         Ver cambios
                     </button>
@@ -64,7 +64,7 @@
                 </td>
             </tr>
 
-            @if($registro->accion === 'editar' && $registro->historialCambios->isNotEmpty())
+            @if(in_array(strtolower($registro->accion), ['editar', 'editò', 'editó', 'editado']) && $registro->historialCambios->isNotEmpty())
             <tr id="comparativa-{{ $registro->id }}" style="display: none;" class="bg-gray-50 transition-all duration-200">
                 <td colspan="6" class="p-4">
                     @foreach($registro->historialCambios as $cambio)
@@ -91,6 +91,9 @@
             @endforeach
         </tbody>
     </table>
+    <div class="mt-6">
+        {{ $bitacoras->links() }}
+    </div>
 </div>
 
 <script>

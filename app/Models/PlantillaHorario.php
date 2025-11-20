@@ -7,6 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class PlantillaHorario extends Model
 {
     protected $table = 'plantillas_horario';
-    protected $fillable = ['dia_semana', 'hora_inicio', 'hora_fin', 'activo'];
+    protected $fillable = ['hora_inicio', 'hora_fin', 'activo'];
     public $timestamps = true;
 }

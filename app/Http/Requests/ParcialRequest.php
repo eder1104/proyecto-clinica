@@ -14,57 +14,64 @@ class ParcialRequest extends FormRequest
     }
 
     public function rules(): array
-    {
-        return [
-            'doctor_id' => [
-                'required',
-                'integer',
-                'exists:users,id',
-            ],
-            'fecha' => [
-                'required',
-                'date',
-                'date_format:Y-m-d',
-                'after_or_equal:today',
-            ],
-            'hora_inicio' => [
-                'required',
-                'date_format:H:i',
-            ],
-            'hora_fin' => [
-                'required',
-                'date_format:H:i',
-                'after:hora_inicio',
-                function ($attribute, $value, $fail) {
+{
+    return [
+        'doctor_id' => [
+            'required',
+            'integer',
+            'exists:users,id',
+        ],
 
-                    $doctor_user_id = $this->input('doctor_id');
-                    $fecha = $this->input('fecha');
-                    $hora_inicio = $this->input('hora_inicio');
-                    $hora_fin = $value;
+        'fecha' => [
+            'required',
+            'date',
+            'date_format:Y-m-d',
+            'after_or_equal:today',
+        ],
 
-                    $doctorProfile = Doctores::where('user_id', $doctor_user_id)->first();
+        'hora_inicio' => [
+            'required',
+            'date_format:H:i',
+            'after_or_equal:08:00', 
+            'before_or_equal:18:00',
+        ],
 
-                    if (!$doctorProfile) {
-                        return;
-                    }
+        'hora_fin' => [
+            'required',
+            'date_format:H:i',
+            'after:hora_inicio',
+            'after_or_equal:08:00',
+            'before_or_equal:18:00',
 
-                    $doctor_table_id = $doctorProfile->id;
+            function ($attribute, $value, $fail) {
+                $doctor_user_id = $this->input('doctor_id');
+                $fecha = $this->input('fecha');
+                $hora_inicio = $this->input('hora_inicio');
+                $hora_fin = $value;
 
-                    $existing = DoctorParcialidad::where('doctor_id', $doctor_table_id)
-                        ->where('fecha', $fecha)
-                        ->where(function ($query) use ($hora_inicio, $hora_fin) {
-                            $query->where('hora_inicio', '<', $hora_fin)
-                                ->where('hora_fin', '>', $hora_inicio);
-                        })
-                        ->exists();
-
-                    if ($existing) {
-                        $fail('El rango de horas seleccionado (' . $hora_inicio . ' - ' . $hora_fin . ') se superpone con un rango ya existente.');
-                    }
+                $doctorProfile = Doctores::where('user_id', $doctor_user_id)->first();
+                if (!$doctorProfile) {
+                    return;
                 }
-            ],
-        ];
-    }
+
+                $doctor_table_id = $doctorProfile->id;
+
+                $existing = DoctorParcialidad::where('doctor_id', $doctor_table_id)
+                    ->where('fecha', $fecha)
+                    ->where(function ($query) use ($hora_inicio, $hora_fin) {
+                        $query->where('hora_inicio', '<', $hora_fin)
+                              ->where('hora_fin', '>', $hora_inicio);
+                    })
+                    ->exists();
+
+                if ($existing) {
+                    $fail('El rango (' . $hora_inicio . ' - ' . $hora_fin . ') se superpone con un rango existente.');
+                }
+            }
+        ],
+    ];
+}
+
 
     public function messages(): array
     {

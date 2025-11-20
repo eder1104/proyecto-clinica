@@ -14,6 +14,8 @@ use Carbon\Carbon;
 use App\Services\AgendaService;
 use App\Http\Controllers\CalendarioController;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Http\Controllers\BitacoraAuditoriaController;
+use App\Models\HistorialCambio;
 
 
 class CitaController extends Controller
@@ -140,7 +142,9 @@ class CitaController extends Controller
             'hora_fin',
             'paciente_id',
             'tipo_cita_id',
-            'motivo_consulta'
+            'motivo_consulta',
+            'updated_by',
+            'estado'
         ]);
 
         $cita->update($data);
@@ -151,14 +155,33 @@ class CitaController extends Controller
             'hora_fin',
             'paciente_id',
             'tipo_cita_id',
-            'motivo_consulta'
+            'motivo_consulta',
+            'updated_by',
+            'estado'
         ]);
+
+        $labels = [
+            'fecha' => 'Fecha',
+            'hora_inicio' => 'Hora Inicio',
+            'hora_fin' => 'Hora Fin',
+            'paciente_id' => 'Paciente Id',
+            'tipo_cita_id' => 'Tipo Cita Id',
+            'motivo_consulta' => 'Motivo Consulta',
+            'updated_by' => 'Updated By',
+            'estado' => 'Estado'
+        ];
 
         $observacion = '';
 
         foreach ($antes as $campo => $valorAntes) {
-            if ($valorAntes != $despues[$campo]) {
-                $observacion .= ucfirst(str_replace('_', ' ', $campo)) . ': ' . $valorAntes . ' -> ' . $despues[$campo] . "\n";
+            $valorDespues = $despues[$campo];
+
+            $valorAntes = (string)($valorAntes ?? '');
+            $valorDespues = (string)($valorDespues ?? '');
+
+            if ($valorAntes != $valorDespues) {
+                $label = $labels[$campo] ?? ucfirst(str_replace('_', ' ', $campo));
+                $observacion .= $label . ': ' . $valorAntes . ' -> ' . $valorDespues . "\n";
             }
         }
 
@@ -166,18 +189,24 @@ class CitaController extends Controller
             $observacion = 'Sin cambios';
         }
 
-        BitacoraAuditoriaController::registrar(
+        $bitacoraId = BitacoraAuditoriaController::registrar(
             Auth::id(),
             'Citas',
-            'Actualizar',
+            'Editò',
             $cita->id,
             trim($observacion)
         );
 
+        HistorialCambio::create([
+            'bitacora_id' => $bitacoraId,
+            'registro_afectado' => $cita->id,
+            'datos_anteriores' => $antes,
+            'datos_nuevos' => $despues,
+            'fecha_cambio' => now()
+        ]);
+
         return redirect()->route('citas.index')->with('success', 'Cita actualizada correctamente.');
     }
-
-
 
     public function destroy(Cita $cita, Request $request)
     {

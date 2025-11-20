@@ -19,8 +19,15 @@ class ReporteAgendaController extends Controller
             ->orderBy('hora_inicio', 'asc')
             ->get();
 
+        $citas->transform(function ($cita) {
+            $cita->tipo_examen_nombre = $cita->tipo_examen == 1 ? 'Optometría' : 'Examen';
+            return $cita;
+        });
+
         $programadas = $citas->where('estado', 'programada')->count();
-        $canceladas  = $citas->where('estado', 'cancelada')->count();
+        $canceladas = $citas->filter(function ($cita) {
+            return str_contains(strtolower($cita->estado), 'cancel');
+        })->count();
         $atendidas   = $citas->where('estado', 'atendida')->count();
 
         $bloqueos = BloqueoAgenda::with('doctor')
@@ -31,8 +38,10 @@ class ReporteAgendaController extends Controller
 
         $bloqueadosIds = $bloqueos->pluck('creado_por')->filter()->unique()->values()->all();
 
-        $totalHorarios = $doctores->count();
+        $totalDoctores = $doctores->count();
         $bloqueados = count($bloqueadosIds);
+        $totalHorarios = $totalDoctores - $bloqueados;
+
         $ocupados = $citas->count();
 
         $bloqueosConDoctor = $bloqueos->map(function ($bloqueo) {

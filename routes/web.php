@@ -104,7 +104,6 @@ Route::middleware(['auth'])->group(function () {
         ->name('consentimientos.store');
 });
 
-
 Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
 
 Route::middleware(['auth', 'checkrole:admin,admisiones', Bitacora::class])->group(function () {
@@ -119,16 +118,15 @@ Route::middleware(['auth', 'checkrole:admin,admisiones', Bitacora::class])->grou
     Route::delete('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'destroy'])->name('citas.parcial.destroy');
 });
 
-
-
 Route::get('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'index'])->name('retina.index');
 Route::post('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'store'])->name('retina.store');
-Route::middleware([])->get('/catalogos/buscar', [CatalogoController::class, 'buscar'])->name('catalogos.buscar');
+
 Route::get('/preexamen/create/{cita_id}', [PreExamenController::class, 'create'])->name('preexamen.create');
 Route::get('/citas/reporte', [ReporteAgendaController::class, 'index'])->name('citas.reporte');
-Route::get('/catalogos', function () {
-    return view('citas.catalogos');
-})->name('catalogos.index');
+
+Route::get('/catalogos', [CatalogoController::class, 'modal'])->name('catalogos.index');
+Route::get('/catalogos/buscar', [CatalogoController::class, 'buscar'])->name('catalogos.buscar');
+Route::post('/catalogos/guardar', [CatalogoController::class, 'guardarSeleccion'])->name('catalogos.guardar');
 
 
 require __DIR__ . '/auth.php';

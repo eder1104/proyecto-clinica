@@ -7,6 +7,8 @@ use App\Models\PlantillaConsentimiento;
 use App\Models\ConsentimientoPaciente;
 use App\Models\Paciente;
 use App\Models\doctores;
+use App\Models\Cita;
+use App\Models\BloqueoAgenda;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -14,10 +16,30 @@ class ConsentimientoController extends Controller
 {
     public function create(Request $request)
     {
+        $cita_id = $request->query('cita_id') ?? $request->query('cita');
+
+        if ($cita_id) {
+            $cita = Cita::findOrFail($cita_id);
+
+            
+
+            $horaActual = Carbon::now()->format('H:i:s');
+            $fechaActual = Carbon::now()->format('Y-m-d');
+
+            $tieneBloqueo = BloqueoAgenda::where('creado_por', Auth::id())
+                ->where('fecha', $fechaActual)
+                ->where('hora_inicio', '<=', $horaActual)
+                ->where('hora_fin', '>=', $horaActual)
+                ->exists();
+
+            if ($tieneBloqueo) {
+                return redirect()->route('citas.index')->with('error', 'No puedes realizar atenciones, tienes un bloqueo de agenda activo en este momento.');
+            }
+        }
+
         $plantillas = PlantillaConsentimiento::where('activo', 1)->get();
 
         $paciente_id = $request->query('paciente_id');
-        $cita_id = $request->query('cita_id') ?? $request->query('cita');
 
         if (!$paciente_id) {
             abort(400, 'No se ha proporcionado el ID del paciente.');

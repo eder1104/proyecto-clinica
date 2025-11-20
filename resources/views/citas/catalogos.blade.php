@@ -1,21 +1,14 @@
-@php($ocultarMenu = true)
-
-@if (empty($ocultarMenu))
-    @include('layouts.navigation')
-@endif
-
 <div class="catalogo-container">
   <div class="catalogo-card">
-    <h4 class="catalogo-titulo">Catálogos Clínicos Oftalmológicos</h4>
+    <h4 class="catalogo-titulo">Gestión Clínica</h4>
     <p class="catalogo-descripcion">
-      Maestro para listar diagnósticos, procedimientos y alergias
+      Buscador unificado de diagnósticos, procedimientos y alergias.
     </p>
 
-    <div id="formBuscarCatalogo" class="catalogo-form">
+    <div class="catalogo-form">
       <div class="campo">
-        <input type="text" id="termino" name="termino" placeholder="Buscar por nombre..." required>
+        <input type="text" id="termino" placeholder="Escribe para buscar..." autocomplete="off">
       </div>
-
       <div class="campo">
         <button type="button" id="btnBuscarCatalogo">Buscar 🔍</button>
       </div>
@@ -27,72 +20,249 @@
     </div>
 
     <div class="seleccionados">
-      <h6>Seleccionados</h6>
-      <div id="contenedorSeleccionados"></div>
+      <h6>Elementos Seleccionados</h6>
+
+      <div id="contenedorData">
+        <input type="hidden" id="paciente_id_val" value="{{ $paciente_id ?? '' }}">
+        <input type="hidden" id="historia_id_val" value="{{ $historia_id ?? '' }}">
+
+        <div id="contenedorSeleccionados">
+          @if(isset($historia))
+          @if($historia->diagnostico)
+          <div class="item-seleccionado">
+            <input type="text" readonly value="[Diagnóstico] {{ $historia->diagnostico->nombre }}">
+            <input type="hidden" name="items_ids[]" value="{{ $historia->diagnostico->id }}">
+            <input type="hidden" name="items_tipos[]" value="diagnostico">
+            <button type="button" class="btn-remover" onclick="this.parentElement.remove()">×</button>
+          </div>
+          @endif
+
+          @foreach($historia->procedimientos as $proc)
+          <div class="item-seleccionado">
+            <input type="text" readonly value="[Procedimiento] {{ $proc->nombre }}">
+            <input type="hidden" name="items_ids[]" value="{{ $proc->id }}">
+            <input type="hidden" name="items_tipos[]" value="procedimiento">
+            <button type="button" class="btn-remover" onclick="this.parentElement.remove()">×</button>
+          </div>
+          @endforeach
+          @endif
+
+          @if(isset($paciente) && $paciente->alergias)
+          @foreach($paciente->alergias as $alergia)
+          <div class="item-seleccionado">
+            <input type="text" readonly value="[Alergia] {{ $alergia->nombre }}">
+            <input type="hidden" name="items_ids[]" value="{{ $alergia->id }}">
+            <input type="hidden" name="items_tipos[]" value="alergia">
+            <button type="button" class="btn-remover" onclick="this.parentElement.remove()">×</button>
+          </div>
+          @endforeach
+          @endif
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-acciones">
+      <button type="button" id="btnGuardarClinica" class="btn-guardar">Guardar Consulta 💾</button>
     </div>
   </div>
 </div>
+
+<script>
+  const btnBuscar = document.getElementById('btnBuscarCatalogo');
+  const btnGuardar = document.getElementById('btnGuardarClinica');
+  const inputTermino = document.getElementById('termino');
+  const lista = document.getElementById('resultados');
+  const contenedorSeleccionados = document.getElementById('contenedorSeleccionados');
+
+  inputTermino.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') btnBuscar.click();
+  });
+
+  btnBuscar.addEventListener('click', async () => {
+    const termino = inputTermino.value.trim();
+    if (!termino) return;
+
+    lista.innerHTML = '<li style="text-align:center; color:#888;">Buscando...</li>';
+
+    try {
+      const response = await fetch(`{{ route('catalogos.buscar') }}?termino=${encodeURIComponent(termino)}`);
+      const data = await response.json();
+
+      lista.innerHTML = '';
+
+      if (data.length === 0) {
+        lista.innerHTML = '<li style="text-align:center; color:#888;">No se encontraron resultados.</li>';
+        return;
+      }
+
+      data.forEach(item => {
+        const li = document.createElement('li');
+
+        let color = '#6c757d';
+        if (item.tipo === 'procedimiento') color = '#0d6efd';
+        if (item.tipo === 'diagnostico') color = '#6610f2';
+        if (item.tipo === 'alergia') color = '#198754';
+
+        const labelHtml = `<span style="color:${color}; font-weight:bold; font-size:0.85em;">[${item.label}]</span>`;
+        const codigoHtml = item.codigo ? ` <span style="color:#999;">(${item.codigo})</span>` : '';
+
+        li.innerHTML = `
+                <div>${labelHtml} <strong>${item.nombre}</strong>${codigoHtml}</div>
+                <button type="button" class="agregar-btn">Agregar</button>
+            `;
+
+        const btnAgregar = li.querySelector('.agregar-btn');
+
+        btnAgregar.addEventListener('click', () => {
+          if (item.tipo === 'diagnostico') {
+            const inputsTipo = document.querySelectorAll('input[name="items_tipos[]"]');
+            for (let input of inputsTipo) {
+              if (input.value === 'diagnostico') {
+                alert('Solo puedes seleccionar un diagnóstico principal.');
+                return;
+              }
+            }
+          }
+
+          const wrapper = document.createElement('div');
+          wrapper.className = 'item-seleccionado';
+
+          const inputVisual = document.createElement('input');
+          inputVisual.type = 'text';
+          inputVisual.readOnly = true;
+          inputVisual.value = `[${item.label}] ${item.nombre}`;
+
+          const inputId = document.createElement('input');
+          inputId.type = 'hidden';
+          inputId.name = 'items_ids[]';
+          inputId.value = item.id;
+
+          const inputTipo = document.createElement('input');
+          inputTipo.type = 'hidden';
+          inputTipo.name = 'items_tipos[]';
+          inputTipo.value = item.tipo;
+
+          const btnRemove = document.createElement('button');
+          btnRemove.type = 'button';
+          btnRemove.className = 'btn-remover';
+          btnRemove.innerText = '×';
+          btnRemove.onclick = function() {
+            wrapper.remove();
+          };
+
+          wrapper.appendChild(inputVisual);
+          wrapper.appendChild(inputId);
+          wrapper.appendChild(inputTipo);
+          wrapper.appendChild(btnRemove);
+
+          contenedorSeleccionados.appendChild(wrapper);
+
+          btnAgregar.innerText = 'Agregado';
+          btnAgregar.disabled = true;
+          btnAgregar.style.backgroundColor = '#ccc';
+        });
+
+        lista.appendChild(li);
+      });
+
+    } catch (error) {
+      console.error(error);
+      lista.innerHTML = '<li style="color:red;">Error de conexión.</li>';
+    }
+  });
+
+  btnGuardar.addEventListener('click', async () => {
+    const pacienteId = document.getElementById('paciente_id_val').value;
+    const historiaId = document.getElementById('historia_id_val').value;
+
+    const itemsIds = Array.from(document.querySelectorAll('input[name="items_ids[]"]')).map(el => el.value);
+    const itemsTipos = Array.from(document.querySelectorAll('input[name="items_tipos[]"]')).map(el => el.value);
+
+    if (!pacienteId || !historiaId) {
+      alert('Falta información del paciente o historia clínica.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('_token', '{{ csrf_token() }}');
+    formData.append('paciente_id', pacienteId);
+    formData.append('historia_id', historiaId);
+
+    itemsIds.forEach(id => formData.append('items_ids[]', id));
+    itemsTipos.forEach(tipo => formData.append('items_tipos[]', tipo));
+
+    btnGuardar.disabled = true;
+    btnGuardar.innerText = 'Guardando...';
+
+    try {
+      const response = await fetch('{{ route("catalogos.guardar") }}', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        alert('Datos guardados correctamente');
+        window.location.reload();
+      } else {
+        alert('Error al guardar los datos');
+        btnGuardar.disabled = false;
+        btnGuardar.innerText = 'Guardar Consulta 💾';
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Error de red');
+      btnGuardar.disabled = false;
+      btnGuardar.innerText = 'Guardar Consulta 💾';
+    }
+  });
+</script>
 
 <style>
   .catalogo-container {
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    padding: 40px 20px;
+    padding: 10px;
     background-color: #f4f6f9;
-    min-height: 10;
+    height: auto;
   }
 
   .catalogo-card {
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    padding: 30px;
-    max-width: 600px;
+    padding: 20px;
     width: 100%;
-    text-align: center;
-    transition: transform 0.2s ease;
-  }
-
-  .catalogo-card:hover {
-    transform: translateY(-3px);
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
   }
 
   .catalogo-titulo {
-    margin-bottom: 10px;
     color: #0d6efd;
     font-weight: 700;
+    margin-bottom: 10px;
+    text-align: center;
   }
 
   .catalogo-descripcion {
+    text-align: center;
     color: #555;
-    font-size: 0.95rem;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
   }
 
   .catalogo-form {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-  }
-
-  .catalogo-form .campo {
-    display: flex;
-    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
   }
 
   .catalogo-form input {
     border: 1px solid #ccc;
     border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 0.95rem;
-    transition: border 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .catalogo-form input:focus {
-    outline: none;
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+    padding: 10px;
+    width: 100%;
   }
 
   .catalogo-form button {
@@ -100,114 +270,101 @@
     color: #fff;
     border: none;
     border-radius: 8px;
-    padding: 10px 0;
+    padding: 8px;
     cursor: pointer;
     font-weight: 600;
-    transition: background 0.2s ease;
-  }
-
-  .catalogo-form button:hover {
-    background-color: #0b5ed7;
   }
 
   .resultados {
-    margin-top: 30px;
-    text-align: left;
-  }
-
-  .resultados h6 {
-    font-weight: 700;
-    margin-bottom: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 5px;
   }
 
   .resultados ul {
     list-style: none;
     padding: 0;
     margin: 0;
-    border-top: 1px solid #eee;
   }
 
   .resultados li {
-    padding: 10px;
+    padding: 8px;
     border-bottom: 1px solid #eee;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
 
-  .resultados li:hover {
-    background-color: #f8f9fa;
-  }
-
-  .resultados button {
-    background-color: #198754;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 5px 10px;
-    cursor: pointer;
-    transition: background 0.2s ease;
-  }
-
-  .resultados button:hover {
-    background-color: #157347;
-  }
-
   .seleccionados {
-    margin-top: 30px;
-    text-align: left;
+    border-top: 2px solid #f0f0f0;
+    padding-top: 15px;
+    margin-bottom: 15px;
+    max-height: 150px;
+    overflow-y: auto;
   }
 
-  .seleccionados h6 {
-    font-weight: 700;
-    margin-bottom: 10px;
+  .item-seleccionado {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
   }
 
-  .seleccionados input {
-    width: 100%;
+  .item-seleccionado input[type="text"] {
+    flex-grow: 1;
+    background: #e9ecef;
     border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 4px;
+    color: #333;
+  }
+
+  .btn-remover {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    width: 35px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .agregar-btn {
+    background-color: #198754;
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+
+  .footer-acciones {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+  }
+
+  .btn-guardar {
+    background-color: #0d6efd;
+    color: #fff;
+    padding: 12px;
+    border: none;
     border-radius: 8px;
-    padding: 10px 12px;
-    background-color: #f8f9fa;
+    width: 100%;
+    font-size: 1rem;
+    cursor: pointer;
+    display: block;
+  }
+
+  .btn-guardar:hover {
+    background-color: #0b5ed7;
+  }
+
+  .btn-guardar:disabled {
+    background-color: #6c757d;
     cursor: not-allowed;
-    margin-bottom: 8px;
   }
 </style>
-
-<script>
-  const btnBuscar = document.getElementById('btnBuscarCatalogo');
-  const lista = document.getElementById('resultados');
-  const contenedorSeleccionados = document.getElementById('contenedorSeleccionados');
-
-  btnBuscar.addEventListener('click', async () => {
-    const termino = document.getElementById('termino').value.trim();
-    if (!termino) return;
-
-    const response = await fetch(`{{ route('catalogos.buscar') }}?termino=${encodeURIComponent(termino)}`);
-    const data = await response.json();
-
-    lista.innerHTML = '';
-
-    if (data.length === 0) {
-      lista.innerHTML = '<li class="text-muted">No se encontraron resultados.</li>';
-      return;
-    }
-
-    data.forEach(item => {
-      const li = document.createElement('li');
-      const tipo = item.tipo ? `<span style="color:#0d6efd;">[${item.tipo}]</span> ` : '';
-      const texto = `${tipo}<strong>${item.nombre}</strong>` + (item.codigo ? ` <span style="color:#888;">(${item.codigo})</span>` : '');
-      li.innerHTML = `<span>${texto}</span><button type="button" class="agregar-btn">Agregar</button>`;
-
-      li.querySelector('.agregar-btn').addEventListener('click', () => {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.readOnly = true;
-        input.value = item.nombre + (item.codigo ? ` (${item.codigo})` : '');
-        contenedorSeleccionados.appendChild(input);
-      });
-
-      lista.appendChild(li);
-    });
-  });
-</script>

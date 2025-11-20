@@ -15,15 +15,15 @@ class PacienteController extends Controller
     public function index()
     {
         $pacientes = Paciente::with(['creador', 'actualizador'])
-                            ->orderBy('apellidos', 'asc')
-                            ->paginate(10);
-        
+            ->orderBy('apellidos', 'asc')
+            ->paginate(10);
+
         return view('pacientes.index', compact('pacientes'));
     }
 
     public function create()
     {
-        return view('pacientes.create'); 
+        return view('pacientes.create');
     }
 
     public function store(PacientesRequest $request, User $user)
@@ -75,13 +75,34 @@ class PacienteController extends Controller
             'sexo'             => 'nullable|in:M,F',
         ]);
 
+        $datosAnteriores = $paciente->toArray();
+
         $validated['updated_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
         $paciente->update($validated);
+
+        $datosNuevos = $paciente->fresh()->toArray();
+
+        $bitacoraId = BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'pacientes',
+            'editar',
+            $paciente->id
+        );
+
+        if (array_diff_assoc($datosNuevos, $datosAnteriores)) {
+            BitacoraAuditoriaController::registrarCambio(
+                $bitacoraId,
+                $paciente->id,
+                $datosAnteriores,
+                $datosNuevos
+            );
+        }
 
         return redirect()
             ->route('pacientes.index', $paciente)
             ->with('success', 'Paciente actualizado correctamente.');
     }
+
 
     public function destroy(Paciente $paciente)
     {

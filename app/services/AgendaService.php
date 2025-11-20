@@ -20,11 +20,12 @@ class AgendaService
     public function generarSlotsDelDia(string $fecha): array
     {
         $carbonFecha = Carbon::parse($fecha);
-        $diaSemana = (int) $carbonFecha->dayOfWeek;
+        $fecha = (int) $carbonFecha->dayOfWeek;
 
-        $plantilla = PlantillaHorario::where('dia_semana', $diaSemana)
+        $plantilla = PlantillaHorario::whereDate('fecha', $fecha)
             ->where('activo', true)
             ->first();
+
 
         if (!$plantilla) {
             return [];
