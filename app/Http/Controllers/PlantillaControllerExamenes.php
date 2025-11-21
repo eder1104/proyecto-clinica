@@ -9,12 +9,15 @@ use App\Models\User;
 
 class PlantillaControllerExamenes extends Controller
 {
-    public function index()
-    {
-        $examenes = Plantilla_Examenes::all();
-        $citas = Cita::with('paciente')->orderBy('fecha', 'desc')->get();
-        return view('plantillas.examenes', compact('examenes', 'citas'));
-    }
+   public function index()
+{
+    $examenes = Plantilla_Examenes::all();
+    $citas = Cita::with('paciente')->orderBy('fecha', 'desc')->get();
+    $users = User::where('role', 'admisiones')->get();
+    
+    return view('plantillas.examenes', compact('examenes', 'citas', 'users'));
+}
+
 
     public function store(Request $request, Cita $cita)
     {

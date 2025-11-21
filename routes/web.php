@@ -61,14 +61,10 @@ Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones', Bitacora::c
     Route::get('citas/{cita}/atencion_update', [CitaController::class, 'atencion_update'])->name('citas.atencion_update');
 
     Route::prefix('citas/{cita}')->group(function () {
-        Route::get('preexamen/{cita_id}/create', [PreExamenController::class, 'create'])->name('preexamen.create');
-        Route::post('preexamen/{cita_id}', [PreExamenController::class, 'store'])->name('preexamen.store');
-        Route::get('preexamen/{id}/examen', [PreExamenController::class, 'examen'])->name('citas.examen');
-
         Route::post('examenes/store', [PlantillaControllerExamenes::class, 'store'])->name('examenes.store');
         Route::get('examenes/edit', [PlantillaControllerExamenes::class, 'edit'])->name('examenes.edit');
         Route::put('examenes/update', [PlantillaControllerExamenes::class, 'update'])->name('examenes.update');
-        Route::get('examenes/show', [PlantillaControllerExamenes::class, 'show'])->name('examenes.show');
+        Route::get('examenes/index', [PlantillaControllerExamenes::class, 'index'])->name('examenes.index');
         Route::delete('examenes/destroy', [PlantillaControllerExamenes::class, 'destroy'])->name('examenes.destroy');
 
         Route::get('plantilla/optometria', [PlantillaControllerOptometria::class, 'index'])->name('plantillas.optometria');
@@ -117,9 +113,6 @@ Route::middleware(['auth', 'checkrole:admin,admisiones', Bitacora::class])->grou
     Route::put('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'update'])->name('citas.parcial.update');
     Route::delete('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'destroy'])->name('citas.parcial.destroy');
 });
-
-Route::get('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'index'])->name('retina.index');
-Route::post('/citas/{cita}/retina', [PlantillaControllerRetina::class, 'store'])->name('retina.store');
 
 Route::get('/preexamen/create/{cita_id}', [PreExamenController::class, 'create'])->name('preexamen.create');
 Route::get('/citas/reporte', [ReporteAgendaController::class, 'index'])->name('citas.reporte');

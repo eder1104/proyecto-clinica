@@ -4,18 +4,28 @@
 
 @section('content')
 
-
 <div class="contenedor-principal">
     <div class="examenes-container">
         <div class="tabs">
             <button type="button" class="tab active" data-tab="examenes">Exámenes</button>
             <button type="button" class="tab" data-tab="diagnosticos">Diagnósticos</button>
         </div>
-        <form action="{{ route('examenes.store', ['cita' => $cita->id]) }}" method="POST" enctype="multipart/form-data">
+
+        <form action="{{ route('examenes.store', ['cita' => $citas->first()->id ?? 0]) }}" method="POST">
             @csrf
 
+            <div class="campo">
+                <label>Cita</label>
+                <select name="cita_id" required>
+                    @foreach($citas as $cita)
+                    <option value="{{ $cita->id }}">
+                        {{ $cita->paciente->nombres }} {{ $cita->paciente->apellidos }} - {{ \Carbon\Carbon::parse($cita->fecha)->format('d/m/Y') }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+
             <div id="examenes" class="tab-content active">
-                <input type="hidden" name="cita" value="{{ $cita->id }}">
 
                 <div class="campo">
                     <label>Profesional</label>
@@ -121,7 +131,6 @@
         </form>
     </div>
 </div>
-
 <style>
     .contenedor-principal {
         display: flex;
@@ -243,6 +252,7 @@
     }
 </style>
 
+
 <script>
     document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
@@ -251,5 +261,4 @@
         document.getElementById(t.dataset.tab).classList.add('active');
     }));
 </script>
-
 @endsection

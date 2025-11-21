@@ -10,18 +10,61 @@ use App\Models\doctores;
 use App\Models\Cita;
 use App\Models\BloqueoAgenda;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class ConsentimientoController extends Controller
 {
+    public function generar(Request $request)
+    {
+        $cita_id = $request->query('cita_id');
+        
+        if (!$cita_id) {
+            return back()->with('error', 'No se ha proporcionado una cita válida.');
+        }
+
+        $cita = Cita::findOrFail($cita_id);
+
+        $horaActual = Carbon::now()->format('H:i:s');
+        $fechaActual = Carbon::now()->format('Y-m-d');
+
+        $tieneBloqueo = BloqueoAgenda::where('creado_por', Auth::id())
+            ->where('fecha', $fechaActual)
+            ->where('hora_inicio', '<=', $horaActual)
+            ->where('hora_fin', '>=', $horaActual)
+            ->exists();
+
+        if ($tieneBloqueo) {
+            return redirect()->route('citas.index')->with('error', 'No puedes realizar atenciones, tienes un bloqueo de agenda activo en este momento.');
+        }
+
+        $tipo = $cita->tipo_examen;
+
+        if (!$tipo) {
+            return back()->with('error', 'Esta cita no tiene un tipo de examen especificado.');
+        }
+
+        $nombreArchivo = Str::studly($tipo);
+        $vista = "citas.PlantillasConsentimiento.Consentimiento{$nombreArchivo}";
+
+        if (View::exists($vista)) {
+            return view($vista, [
+                'cita_id' => $cita->id,
+                'paciente_id' => $cita->paciente_id,
+                'cita' => $cita 
+            ]);
+        }
+
+        return back()->with('error', "No se encontró la plantilla para el examen: $nombreArchivo");
+    }
+
     public function create(Request $request)
     {
         $cita_id = $request->query('cita_id') ?? $request->query('cita');
 
         if ($cita_id) {
             $cita = Cita::findOrFail($cita_id);
-
-            
 
             $horaActual = Carbon::now()->format('H:i:s');
             $fechaActual = Carbon::now()->format('Y-m-d');

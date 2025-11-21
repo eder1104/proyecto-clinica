@@ -90,13 +90,15 @@ class CitaController extends Controller
         $validated['estado'] = 'programada';
 
         Cita::create([
-            'fecha'        => $validated['fecha'],
-            'hora_inicio'  => $validated['hora_inicio'],
-            'hora_fin'     => $validated['hora_fin'],
-            'paciente_id'  => $validated['paciente_id'],
-            'tipo_cita_id' => $validated['tipo_cita_id'],
-            'estado'       => $validated['estado'],
-            'created_by'   => $validated['created_by'],
+            'fecha'           => $validated['fecha'],
+            'hora_inicio'     => $validated['hora_inicio'],
+            'hora_fin'        => $validated['hora_fin'],
+            'paciente_id'     => $validated['paciente_id'],
+            'tipo_cita_id'    => $validated['tipo_cita_id'],
+            'tipo_examen'     => $request->input('tipo_examen'),
+            'motivo_consulta' => $request->input('motivo_consulta'),
+            'estado'          => $validated['estado'],
+            'created_by'      => $validated['created_by'],
         ]);
 
         return redirect()->route('citas.index')->with('success', 'Cita creada correctamente.');
@@ -287,7 +289,7 @@ class CitaController extends Controller
             case 1:
                 return redirect()->route('plantillas.optometria', ['cita' => $cita->id]);
             case 2:
-                return redirect()->route('examenes.show', ['cita' => $cita->id]);
+                return redirect()->route('examenes.index', ['cita' => $cita->id]);
             default:
                 return redirect()->route('citas.index')->with('error', 'Tipo de cita no válido.');
         }

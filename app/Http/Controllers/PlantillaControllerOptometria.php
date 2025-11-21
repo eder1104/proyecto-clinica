@@ -33,67 +33,72 @@ class PlantillaControllerOptometria extends Controller
     }
 
     public function edit(Cita $cita)
-{
-    $cita->load(['paciente']);
+    {
+        $cita->load(['paciente']);
 
-    $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
-    $doctores = User::where('role', 'doctor')->get();
+        $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
+        $doctores = User::where('role', 'doctor')->get();
 
-    $historia = HistoriaClinica::where('paciente_id', $cita->paciente_id)
-        ->with(['diagnostico'])
-        ->first();
+        $historia = HistoriaClinica::where('paciente_id', $cita->paciente_id)
+            ->with(['diagnostico', 'procedimientos'])
+            ->first();
 
-    $items = collect();
+        $items = collect();
 
-    if ($historia && $historia->diagnostico_principal_id) {
-        $diag = DiagnosticoOftalmologico::find($historia->diagnostico_principal_id);
-        if ($diag) {
-            $diag->tipo_catalogo = 'diagnostico';
-            $items->push($diag);
+        if ($historia && $historia->diagnostico_principal_id) {
+            $diag = DiagnosticoOftalmologico::find($historia->diagnostico_principal_id);
+            if ($diag) {
+                $diag->tipo_catalogo = 'diagnostico';
+                $items->push($diag);
+            }
         }
-    }
 
-    $procedimientosIds = DB::table('historia_clinica_procedimiento')
-        ->where('cita_id', $cita->id)
-        ->pluck('procedimiento_id')
-        ->toArray();
-
-    if (!empty($procedimientosIds)) {
-        $proceds = ProcedimientoOftalmologico::whereIn('id', $procedimientosIds)->get();
-        foreach ($proceds as $p) {
-            $p->tipo_catalogo = 'procedimiento';
-            $items->push($p);
+        if ($historia) {
+            foreach ($historia->procedimientos as $proc) {
+                $proc->tipo_catalogo = 'procedimiento';
+                $items->push($proc);
+            }
         }
-    }
 
-    $alergiasIds = DB::table('alergia_paciente')
-        ->where('cita_id', $cita->id)
-        ->pluck('alergia_id')
-        ->toArray();
-
-    if (!empty($alergiasIds)) {
-        $alergias = Alergia::whereIn('id', $alergiasIds)->get();
-        foreach ($alergias as $a) {
-            $a->tipo_catalogo = 'alergia';
-            $items->push($a);
+        if ($cita->paciente) {
+            foreach ($cita->paciente->alergias as $alergia) {
+                $alergia->tipo_catalogo = 'alergia';
+                $items->push($alergia);
+            }
         }
+
+        if ($plantilla) {
+            $plantilla->itemsCatalogo = $items;
+        } else {
+            $plantilla = new Plantilla_Optometria();
+            $plantilla->itemsCatalogo = $items;
+        }
+
+        return view('historias.optometria_edit', compact('plantilla', 'cita', 'doctores', 'historia'));
     }
 
-    if ($plantilla) {
-        $plantilla->itemsCatalogo = $items;
-    } else {
-        $plantilla = new Plantilla_Optometria();
-        $plantilla->itemsCatalogo = $items;
-    }
-
-    return view('historias.optometria_edit', compact('plantilla', 'cita', 'doctores', 'historia'));
-}
 
 
     public function store(PlantillaOptometriaRequest $request, $cita_id)
     {
+        $request->validated();
+
         $cita = Cita::findOrFail($cita_id);
         $user = Auth::user();
+
+        $merged = $request->all();
+        $merged['paciente_id'] = $merged['paciente_id'] ?? $cita->paciente_id;
+
+        if (empty($merged['historia_id'])) {
+            $historia = HistoriaClinica::where('paciente_id', $cita->paciente_id)->latest()->first();
+            $merged['historia_id'] = $historia->id ?? null;
+        }
+
+        $catalogoRequest = app(\App\Http\Requests\CatalogosRequest::class);
+        $catalogoRequest->setContainer(app());
+        $catalogoRequest->setRedirector(app('redirect'));
+        $catalogoRequest->merge($merged);
+        $catalogoRequest->validateResolved();
 
         if ($user->role !== 'doctor') {
             return back()->withErrors(['optometra' => 'El usuario logueado no tiene el rol de doctor.'])->withInput();
@@ -123,9 +128,9 @@ class PlantillaControllerOptometria extends Controller
                 'tiempo_formulacion' => $request->tiempo_formulacion,
                 'distancia_pupilar' => $request->distancia_pupilar,
                 'cantidad' => $request->cantidad,
-                'diagnostico_principal' => $request->diagnostico_principal,
-                'otros_diagnosticos' => $request->otros_diagnosticos,
-                'datos_adicionales' => $request->datos_adicionales,
+                'medicamento_principal' => $request->medicamento_principal,
+                'otros_medicamentos' => $request->otros_medicamentos,
+                'notas_medicamento' => $request->notas_medicamento,
                 'finalidad_consulta' => $request->finalidad_consulta,
                 'causa_motivo_atencion' => $request->causa_motivo_atencion,
             ];
@@ -141,6 +146,7 @@ class PlantillaControllerOptometria extends Controller
                 ->with('success', 'Cita finalizada y plantilla registrada correctamente.');
         });
     }
+
 
     public function update(PlantillaOptometriaRequest $request, Cita $cita)
     {

@@ -41,13 +41,23 @@
 
                 <div class="mb-4">
                     <label class="block text-gray-700">Tipo de cita</label>
-                    <select name="tipo_cita_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                    <select name="tipo_cita_id" id="tipo_cita_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                         <option value="">-- Seleccione el tipo de cita --</option>
                         @foreach ($tipos_citas as $id => $nombre)
-                        <option value="{{ $id }}" {{ old('tipo_cita_id') == $id ? 'selected' : '' }}>
+                        <option value="{{ $id }}" {{ old('tipo_cita_id') == $id ? 'selected' : '' }} data-es-examen="{{ \Illuminate\Support\Str::slug($nombre) === 'examenes' ? '1' : '0' }}">
                             {{ $nombre }}
                         </option>
                         @endforeach
+                    </select>
+                </div>
+
+                <div class="mb-4" id="campo-examenes" style="display:none;">
+                    <label class="block text-gray-700">Tipo de Examen</label>
+                    <select name="tipo_examen" id="tipo_examen" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                        <option value="">-- Seleccione un examen --</option>
+                        <option value="inyeccion_intravitrea" {{ old('tipo_examen') == 'inyeccion_intravitrea' ? 'selected' : '' }}>Inyección intravítrea</option>
+                        <option value="fotocoagulacion_laser" {{ old('tipo_examen') == 'fotocoagulacion_laser' ? 'selected' : '' }}>Fotocoagulación láser</option>
+                        <option value="cirugia_retina" {{ old('tipo_examen') == 'cirugia_retina' ? 'selected' : '' }}>Cirugía de retina</option>
                     </select>
                 </div>
 
@@ -114,131 +124,124 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const pacienteIdInput = document.getElementById('paciente_id');
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const pacienteIdInput = document.getElementById('paciente_id');
+    const formCita = document.getElementById('form-cita');
+    const tipoCita = document.getElementById('tipo_cita_id');
+    const campoExamenes = document.getElementById('campo-examenes');
 
-            const obtenerDatosPaciente = () => ({
-                tipo_documento: document.getElementById('tipo_documento').value,
-                documento: document.getElementById('numero_documento').value,
-                nombres: document.getElementById('nombres').value,
-                apellidos: document.getElementById('apellidos').value,
-                telefono: document.getElementById('telefono').value,
-                direccion: document.getElementById('direccion').value,
-                email: document.getElementById('email').value,
-                fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
-                sexo: document.getElementById('sexo').value
+    const obtenerDatosPaciente = () => ({
+        tipo_documento: document.getElementById('tipo_documento').value,
+        documento: document.getElementById('numero_documento').value,
+        nombres: document.getElementById('nombres').value,
+        apellidos: document.getElementById('apellidos').value,
+        telefono: document.getElementById('telefono').value,
+        direccion: document.getElementById('direccion').value,
+        email: document.getElementById('email').value,
+        fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
+        sexo: document.getElementById('sexo').value
+    });
+
+    const actualizarCamposPaciente = (data) => {
+        pacienteIdInput.value = data.id;
+        document.getElementById('tipo_documento').value = data.tipo_documento;
+        document.getElementById('numero_documento').value = data.documento;
+        document.getElementById('nombres').value = data.nombres;
+        document.getElementById('apellidos').value = data.apellidos;
+        document.getElementById('telefono').value = data.telefono;
+        document.getElementById('direccion').value = data.direccion;
+        document.getElementById('email').value = data.email;
+        document.getElementById('fecha_nacimiento').value = data.fecha_nacimiento ?? '';
+        document.getElementById('sexo').value = data.sexo ?? '';
+    };
+
+    const limpiarCamposCompletos = () => {
+        pacienteIdInput.value = '';
+        document.getElementById('tipo_documento').value = 'CC';
+        document.getElementById('numero_documento').value = '';
+        document.getElementById('nombres').value = '';
+        document.getElementById('apellidos').value = '';
+        document.getElementById('telefono').value = '';
+        document.getElementById('direccion').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('fecha_nacimiento').value = '';
+        document.getElementById('sexo').value = 'M';
+    };
+
+    const limpiarResultados = () => {
+        pacienteIdInput.value = '';
+        document.getElementById('nombres').value = '';
+        document.getElementById('apellidos').value = '';
+        document.getElementById('telefono').value = '';
+        document.getElementById('direccion').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('fecha_nacimiento').value = '';
+        document.getElementById('sexo').value = 'M';
+    };
+
+    const numeroInput = document.getElementById('numero_documento');
+    const tipoInput = document.getElementById('tipo_documento');
+
+    let timeout = null;
+    numeroInput.addEventListener('input', () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(async () => {
+            const numero = numeroInput.value.trim();
+            const tipo = tipoInput.value;
+            if (!numero) { limpiarCamposCompletos(); return; }
+
+            try {
+                const response = await fetch(`{{ route('pacientes.buscar') }}?tipo=${tipo}&numero=${numero}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
+                });
+                const data = await response.json();
+                if (!response.ok || !data.id) { limpiarResultados(); return; }
+                actualizarCamposPaciente(data);
+            } catch { limpiarResultados(); }
+        }, 500);
+    });
+
+    formCita.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!pacienteIdInput.value) { alert('Debe ingresar un paciente válido antes de guardar la cita.'); return; }
+
+        const pacienteId = pacienteIdInput.value;
+        const datosPaciente = obtenerDatosPaciente();
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const response = await fetch(`{{ route('pacientes.actualizarApi', ['id' => 'ID_REEMPLAZAR']) }}`.replace('ID_REEMPLAZAR', pacienteId), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+                body: JSON.stringify(datosPaciente)
             });
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                alert('Error al actualizar paciente: ' + (err?.mensaje || `HTTP ${response.status}`));
+                return;
+            }
+            formCita.submit();
+        } catch { alert('Error de conexión al actualizar paciente.'); }
+    });
 
-            const actualizarCamposPaciente = (data) => {
-                pacienteIdInput.value = data.id;
-                document.getElementById('tipo_documento').value = data.tipo_documento;
-                document.getElementById('numero_documento').value = data.documento;
-                document.getElementById('nombres').value = data.nombres;
-                document.getElementById('apellidos').value = data.apellidos;
-                document.getElementById('telefono').value = data.telefono;
-                document.getElementById('direccion').value = data.direccion;
-                document.getElementById('email').value = data.email;
-                document.getElementById('fecha_nacimiento').value = data.fecha_nacimiento ?? '';
-                document.getElementById('sexo').value = data.sexo ?? '';
-            };
+    const toggleExamenes = () => {
+        const selectedOption = tipoCita.options[tipoCita.selectedIndex];
+        if (selectedOption) {
+            const esExamen = selectedOption.dataset.esExamen === '1';
+            campoExamenes.style.display = esExamen ? 'block' : 'none';
+            if (!esExamen) {
+                document.getElementById('tipo_examen').value = '';
+            }
+        }
+    };
 
-            const limpiarCamposCompletos = () => {
-                pacienteIdInput.value = '';
-                document.getElementById('tipo_documento').value = 'CC';
-                document.getElementById('numero_documento').value = '';
-                document.getElementById('nombres').value = '';
-                document.getElementById('apellidos').value = '';
-                document.getElementById('telefono').value = '';
-                document.getElementById('direccion').value = '';
-                document.getElementById('email').value = '';
-                document.getElementById('fecha_nacimiento').value = '';
-                document.getElementById('sexo').value = 'M';
-            };
+    tipoCita.addEventListener('change', toggleExamenes);
+    
+    toggleExamenes();
+});
+</script>
 
-            const limpiarResultados = () => {
-                pacienteIdInput.value = '';
-                document.getElementById('nombres').value = '';
-                document.getElementById('apellidos').value = '';
-                document.getElementById('telefono').value = '';
-                document.getElementById('direccion').value = '';
-                document.getElementById('email').value = '';
-                document.getElementById('fecha_nacimiento').value = '';
-                document.getElementById('sexo').value = 'M';
-            };
-
-            const numeroInput = document.getElementById('numero_documento');
-            const tipoInput = document.getElementById('tipo_documento');
-
-            let timeout = null;
-            numeroInput.addEventListener('input', () => {
-                clearTimeout(timeout);
-                timeout = setTimeout(async () => {
-                    const numero = numeroInput.value.trim();
-                    const tipo = tipoInput.value;
-
-                    if (!numero) {
-                        limpiarCamposCompletos();
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch(`{{ route('pacientes.buscar') }}?tipo=${tipo}&numero=${numero}`, {
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
-                            },
-                            credentials: 'same-origin'
-                        });
-                        const data = await response.json();
-
-                        if (!response.ok || !data.id) {
-                            limpiarResultados();
-                            return;
-                        }
-
-                        actualizarCamposPaciente(data);
-                    } catch (error) {
-                        limpiarResultados();
-                    }
-                }, 500);
-            });
-
-            const formCita = document.getElementById('form-cita');
-            formCita.addEventListener('submit', async (event) => {
-                event.preventDefault();
-                if (!pacienteIdInput.value) {
-                    alert('Debe ingresar un paciente válido antes de guardar la cita.');
-                    return;
-                }
-
-                const pacienteId = pacienteIdInput.value;
-                const datosPaciente = obtenerDatosPaciente();
-
-                try {
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                    const response = await fetch(`{{ route('pacientes.actualizarApi', ['id' => 'ID_REEMPLAZAR']) }}`.replace('ID_REEMPLAZAR', pacienteId), {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        credentials: 'same-origin',
-                        body: JSON.stringify(datosPaciente)
-                    });
-
-                    if (!response.ok) {
-                        const err = await response.json().catch(() => ({}));
-                        alert('Error al actualizar paciente: ' + (err?.mensaje || `HTTP ${response.status}`));
-                        return;
-                    }
-
-                    formCita.submit();
-
-                } catch (error) {
-                    alert('Error de conexión al actualizar paciente.');
-                }
-            });
-        });
-    </script>
 </x-app-layout>

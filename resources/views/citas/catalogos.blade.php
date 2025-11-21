@@ -6,11 +6,19 @@
     </p>
 
     <div class="catalogo-form">
+      @php
+      $diagnosticoExiste = isset($historia) && $historia->diagnostico;
+      @endphp
       <div class="campo">
-        <input type="text" id="termino" placeholder="Escribe para buscar..." autocomplete="off">
+        <input type="text" id="termino"
+          placeholder="{{ $diagnosticoExiste ? 'Diagnóstico ya seleccionado' : 'Escribe para buscar...' }}"
+          autocomplete="off"
+          {{ $diagnosticoExiste ? 'disabled' : '' }}>
       </div>
       <div class="campo">
-        <button type="button" id="btnBuscarCatalogo">Buscar 🔍</button>
+        <button type="button" id="btnBuscarCatalogo" {{ $diagnosticoExiste ? 'disabled' : '' }}>
+          {{ $diagnosticoExiste ? 'Buscar 🚫' : 'Buscar 🔍' }}
+        </button>
       </div>
     </div>
 
@@ -21,11 +29,9 @@
 
     <div class="seleccionados">
       <h6>Elementos Seleccionados</h6>
-
       <div id="contenedorData">
-        <input type="hidden" id="paciente_id_val" value="{{ $paciente_id ?? '' }}">
-        <input type="hidden" id="historia_id_val" value="{{ $historia_id ?? '' }}">
-
+        <input type="hidden" id="paciente_id_val" name="paciente_id"value="{{ $paciente->id ?? ($historia->paciente_id ?? '') }}">
+        <input type="hidden" id="historia_id_val" name="historia_id"value="{{ $historia->id ?? '' }}">
         <div id="contenedorSeleccionados">
           @if(isset($historia))
           @if($historia->diagnostico)
@@ -33,27 +39,25 @@
             <input type="text" readonly value="[Diagnóstico] {{ $historia->diagnostico->nombre }}">
             <input type="hidden" name="items_ids[]" value="{{ $historia->diagnostico->id }}">
             <input type="hidden" name="items_tipos[]" value="diagnostico">
-            <button type="button" class="btn-remover" onclick="this.parentElement.remove()">×</button>
+            <button type="button" class="btn-remover" onclick="this.parentElement.remove(); actualizarEstadoBusqueda();">×</button>
           </div>
           @endif
-
           @foreach($historia->procedimientos as $proc)
           <div class="item-seleccionado">
             <input type="text" readonly value="[Procedimiento] {{ $proc->nombre }}">
             <input type="hidden" name="items_ids[]" value="{{ $proc->id }}">
             <input type="hidden" name="items_tipos[]" value="procedimiento">
-            <button type="button" class="btn-remover" onclick="this.parentElement.remove()">×</button>
+            <button type="button" class="btn-remover" onclick="this.parentElement.remove(); actualizarEstadoBusqueda();">×</button>
           </div>
           @endforeach
           @endif
-
           @if(isset($paciente) && $paciente->alergias)
           @foreach($paciente->alergias as $alergia)
           <div class="item-seleccionado">
             <input type="text" readonly value="[Alergia] {{ $alergia->nombre }}">
             <input type="hidden" name="items_ids[]" value="{{ $alergia->id }}">
             <input type="hidden" name="items_tipos[]" value="alergia">
-            <button type="button" class="btn-remover" onclick="this.parentElement.remove()">×</button>
+            <button type="button" class="btn-remover" onclick="this.parentElement.remove(); actualizarEstadoBusqueda();">×</button>
           </div>
           @endforeach
           @endif
@@ -73,6 +77,33 @@
   const inputTermino = document.getElementById('termino');
   const lista = document.getElementById('resultados');
   const contenedorSeleccionados = document.getElementById('contenedorSeleccionados');
+
+  function actualizarEstadoBusqueda() {
+    const inputsTipos = Array.from(contenedorSeleccionados.querySelectorAll('input[name="items_tipos[]"]'));
+    const tieneDiagnostico = inputsTipos.some(input => input.value === 'diagnostico');
+
+    if (tieneDiagnostico) {
+      inputTermino.disabled = true;
+      inputTermino.placeholder = 'Diagnóstico ya seleccionado';
+      btnBuscar.disabled = true;
+      btnBuscar.innerText = 'Buscar 🚫';
+      lista.innerHTML = '';
+    } else {
+      inputTermino.disabled = false;
+      inputTermino.placeholder = 'Escribe para buscar...';
+      btnBuscar.disabled = false;
+      btnBuscar.innerText = 'Buscar 🔍';
+    }
+  }
+
+  document.querySelectorAll('.btn-remover').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.parentElement.remove();
+      actualizarEstadoBusqueda();
+    });
+  });
+
+  actualizarEstadoBusqueda();
 
   inputTermino.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') btnBuscar.click();
@@ -107,20 +138,19 @@
         const codigoHtml = item.codigo ? ` <span style="color:#999;">(${item.codigo})</span>` : '';
 
         li.innerHTML = `
-                <div>${labelHtml} <strong>${item.nombre}</strong>${codigoHtml}</div>
-                <button type="button" class="agregar-btn">Agregar</button>
-            `;
+        <div>${labelHtml} <strong>${item.nombre}</strong>${codigoHtml}</div>
+        <button type="button" class="agregar-btn">Agregar</button>
+      `;
 
         const btnAgregar = li.querySelector('.agregar-btn');
 
         btnAgregar.addEventListener('click', () => {
           if (item.tipo === 'diagnostico') {
-            const inputsTipo = document.querySelectorAll('input[name="items_tipos[]"]');
-            for (let input of inputsTipo) {
-              if (input.value === 'diagnostico') {
-                alert('Solo puedes seleccionar un diagnóstico principal.');
-                return;
-              }
+            const existe = Array.from(contenedorSeleccionados.querySelectorAll('input[name="items_tipos[]"]'))
+              .some(input => input.value === 'diagnostico');
+            if (existe) {
+              alert('Solo puedes seleccionar un diagnóstico principal.');
+              return;
             }
           }
 
@@ -148,6 +178,7 @@
           btnRemove.innerText = '×';
           btnRemove.onclick = function() {
             wrapper.remove();
+            actualizarEstadoBusqueda();
           };
 
           wrapper.appendChild(inputVisual);
@@ -160,6 +191,8 @@
           btnAgregar.innerText = 'Agregado';
           btnAgregar.disabled = true;
           btnAgregar.style.backgroundColor = '#ccc';
+
+          actualizarEstadoBusqueda();
         });
 
         lista.appendChild(li);
@@ -217,6 +250,7 @@
   });
 </script>
 
+
 <style>
   .catalogo-container {
     display: flex;
@@ -273,6 +307,11 @@
     padding: 8px;
     cursor: pointer;
     font-weight: 600;
+  }
+
+  .catalogo-form button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
   }
 
   .resultados {

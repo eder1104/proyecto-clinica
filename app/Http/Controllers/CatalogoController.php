@@ -9,6 +9,7 @@ use App\Models\HistoriaClinica;
 use App\Models\Paciente;
 use App\Models\ProcedimientoOftalmologico;
 use Illuminate\Http\Request;
+use App\Http\Requests\CatalogosRequest;
 use Illuminate\Support\Facades\DB;
 
 class CatalogoController extends Controller
@@ -19,9 +20,18 @@ class CatalogoController extends Controller
         $titulo = $request->query('titulo', null);
         $nombre_input = $request->query('nombre_input', 'catalogo_ids');
 
-        return view('citas.catalogos', compact('tipo', 'titulo', 'nombre_input'))
-            ->with('ocultarMenu', true);
+        $paciente_id = $request->query('paciente_id');
+        $historia_id = $request->query('historia_id');
+
+        return view('citas.catalogos', compact(
+            'tipo',
+            'titulo',
+            'nombre_input',
+            'paciente_id',
+            'historia_id'
+        ))->with('ocultarMenu', true);
     }
+
 
     public function buscar(Request $request)
     {
@@ -68,15 +78,8 @@ class CatalogoController extends Controller
         );
     }
 
-    public function guardarSeleccion(Request $request)
+    public function guardarSeleccion(CatalogosRequest $request)
     {
-        $request->validate([
-            'paciente_id' => 'required|exists:pacientes,id',
-            'historia_id' => 'required|exists:historias_clinicas,id',
-            'items_ids'   => 'array',
-            'items_tipos' => 'array',
-        ]);
-
         $pacienteId = $request->paciente_id;
         $historiaId = $request->historia_id;
 
@@ -91,30 +94,39 @@ class CatalogoController extends Controller
             $id = $ids[$i] ?? null;
             if (!$id) continue;
 
-            match ($tipo) {
-                'alergia'       => $alergiasIds[] = $id,
-                'procedimiento' => $procedimientosIds[] = $id,
-                'diagnostico'   => $diagnosticoId = $id,
-                default         => null,
-            };
+            switch ($tipo) {
+                case 'diagnostico':
+                    if ($diagnosticoId === null) {
+                        $diagnosticoId = $id;
+                    }
+                    break;
+
+                case 'procedimiento':
+                    $procedimientosIds[] = $id;
+                    break;
+
+                case 'alergia':
+                    $alergiasIds[] = $id;
+                    break;
+            }
         }
 
         DB::transaction(function () use ($pacienteId, $historiaId, $alergiasIds, $procedimientosIds, $diagnosticoId) {
 
-            if ($alergiasIds) {
+            if (!empty($alergiasIds)) {
                 $paciente = Paciente::findOrFail($pacienteId);
                 $paciente->alergias()->syncWithoutDetaching($alergiasIds);
             }
 
             $historia = HistoriaClinica::findOrFail($historiaId);
 
-            if ($diagnosticoId) {
+            if (!empty($diagnosticoId)) {
                 $historia->diagnostico_principal_id = $diagnosticoId;
             }
 
             $historia->save();
 
-            if ($procedimientosIds) {
+            if (!empty($procedimientosIds)) {
                 $historia->procedimientos()->syncWithoutDetaching($procedimientosIds);
             }
         });

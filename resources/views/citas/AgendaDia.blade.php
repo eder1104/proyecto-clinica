@@ -80,7 +80,8 @@
                         <span class="estado 
                             @if($cita->estado == 'programada') estado-programada 
                             @elseif($cita->estado == 'atendida') estado-atendida 
-                            @elseif($cita->estado == 'cancelada') estado-cancelada 
+                            @elseif($cita->estado == 'cancelada') estado-cancelada
+                            @elseif($cita->estado == 'finalizada') estado-finalizada
                             @else estado-default @endif">
                             {{ ucfirst($cita->estado) }}
                         </span>
@@ -108,12 +109,20 @@
     </div>
 
     <div class="text-center mt-5">
-        <button class="btn-imprimir" onclick="imprimirAgenda()">🖨️ Imprimir Agenda Completa</button>
+        <button id="btn-imprimir" class="btn-imprimir" onclick="imprimirAgenda()">🖨️ Imprimir Agenda Completa</button>
     </div>
 </div>
 
 <script>
     function imprimirAgenda() {
+        const boton = document.getElementById('btn-imprimir');
+
+        boton.style.display = 'none';
+
+        setTimeout(() => {
+            boton.style.display = 'inline-block';
+        }, 1000);
+
         const agendaHTML = document.getElementById('agenda-completa').outerHTML;
         const ventana = window.open('', '_blank');
         ventana.document.write(`
@@ -243,6 +252,10 @@
 
     .estado-cancelada {
         background-color: #dc3545;
+    }
+    
+     .estado-finalizada{
+        background-color: green;
     }
 
     .estado-default {

@@ -115,9 +115,15 @@
                                 </td>
                                 <td>
                                     @if (!$isBlocked)
-                                    <a href="{{ route('consentimientos.create', ['cita_id' => $c->id, 'paciente_id' => $c->paciente_id]) }}" class="btn">
-                                        Tomar Atención
-                                    </a>
+                                        @if ($c->tipo_examen === 'inyeccion_intravitrea')
+                                            <a href="{{ route('citas.PlantillasConsentimientos.ConsentimientoInyeccionIntravitrea', ['cita_id' => $c->id, 'paciente_id' => $c->paciente_id]) }}" class="btn">
+                                                Tomar Atención
+                                            </a>
+                                        @else
+                                            <a href="{{ route('consentimientos.create', ['cita_id' => $c->id, 'paciente_id' => $c->paciente_id]) }}" class="btn">
+                                                Tomar Atención
+                                            </a>
+                                        @endif
                                     @else
                                     <span class="btn-disabled">No disponible</span>
                                     @endif

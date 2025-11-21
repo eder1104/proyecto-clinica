@@ -34,9 +34,9 @@ class Plantilla_Optometria extends Model
         'tiempo_formulacion',
         'distancia_pupilar',
         'cantidad',
-        'diagnostico_principal',
-        'otros_diagnosticos',
-        'datos_adicionales',
+        'medicamento_principal',
+        'otros_medicamentos',
+        'notas_medicamento',
         'finalidad_consulta',
         'causa_motivo_atencion',
     ];

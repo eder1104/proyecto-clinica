@@ -40,6 +40,10 @@ return new class extends Migration {
             $table->date('fecha');
             $table->time('hora_inicio');
             $table->time('hora_fin');
+            
+            $table->string('motivo_consulta')->nullable();
+            $table->string('tipo_examen')->nullable();
+
             $table->string('estado')->default('programada');
             $table->foreignId('paciente_id')->constrained('pacientes')->restrictOnDelete();
             $table->foreignId('tipo_cita_id')->nullable()->constrained('tipos_citas')->nullOnDelete();

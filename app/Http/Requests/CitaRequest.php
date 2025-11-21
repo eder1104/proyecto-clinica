@@ -21,7 +21,15 @@ class CitaRequest extends FormRequest
             'hora_fin' => ['sometimes', 'required', 'date_format:H:i', 'after:hora_inicio'],
             'motivo_consulta' => ['sometimes', 'required', 'string', 'min:3', 'max:255', 'not_regex:/^\s*$/'],
             'paciente_id' => ['sometimes', 'required', 'integer', 'exists:pacientes,id'],
-            'tipo_cita_id' => ['sometimes', 'required', 'integer', 'in:1,2'],
+            
+            'tipo_cita_id' => ['sometimes', 'required', 'integer', 'exists:tipos_citas,id'],
+            
+            'tipo_examen' => [
+                'required_if:tipo_cita_id,2', 
+                'nullable', 
+                'string', 
+                'in:inyeccion_intravitrea,fotocoagulacion_laser,cirugia_retina'
+            ],
         ];
     }
 
@@ -42,7 +50,9 @@ class CitaRequest extends FormRequest
             'paciente_id.required' => 'Debe seleccionar un paciente.',
             'paciente_id.exists' => 'El paciente seleccionado no existe.',
             'tipo_cita_id.required' => 'Debe seleccionar un tipo de cita.',
-            'tipo_cita_id.in' => 'El tipo de cita seleccionado no es válido.',
+            'tipo_cita_id.exists' => 'El tipo de cita seleccionado no es válido.',
+            'tipo_examen.required_if' => 'El tipo de examen es obligatorio para la opción de Exámenes.',
+            'tipo_examen.in' => 'El tipo de examen seleccionado no es válido.',
         ];
     }
 

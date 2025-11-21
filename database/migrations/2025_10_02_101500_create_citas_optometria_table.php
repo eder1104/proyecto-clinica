@@ -42,16 +42,15 @@ return new class extends Migration
             $table->string('distancia_pupilar')->nullable();
             $table->unsignedInteger('cantidad')->nullable();
 
-            $table->string('diagnostico_principal')->nullable();
-            $table->text('otros_diagnosticos')->nullable();
-            $table->text('datos_adicionales')->nullable();
+            $table->string('medicamento_principal')->nullable();
+            $table->text('otros_medicamentos')->nullable();
+
+            $table->text('notas_medicamento')->nullable();
+
             $table->string('finalidad_consulta')->nullable();
             $table->string('causa_motivo_atencion')->nullable();
 
             $table->timestamps();
-
-            $table->foreign('cita_id')->references('id')->on('citas')->onDelete('cascade');
-            $table->foreign('paciente_id')->references('id')->on('pacientes')->onDelete('set null');
         });
     }
 

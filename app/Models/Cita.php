@@ -27,6 +27,8 @@ class Cita extends Model
         'cancelled_by',
         'cancel_reason',
         'tipo_cita_id',
+        'motivo_consulta',
+        'tipo_examen',
     ];
 
     protected $with = ['paciente'];

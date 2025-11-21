@@ -16,7 +16,7 @@ class PlantillaOptometriaRequest extends FormRequest
         if (!$this->has('consulta_completa')) {
             return [
                 'consulta_completa' => 'nullable|boolean',
-                
+
                 'anamnesis' => 'nullable|string',
                 'diagnostico_principal' => 'nullable|string|max:255',
                 'finalidad_consulta' => 'nullable|string|max:255',
@@ -46,9 +46,9 @@ class PlantillaOptometriaRequest extends FormRequest
             'distancia_pupilar' => 'required|string|max:10',
 
             'cantidad' => 'required|integer|min:1|max:9999',
-            'diagnostico_principal' => 'required|string|max:255',
-            'otros_diagnosticos' => 'required|string',
-            'datos_adicionales' => 'required|string',
+            'medicamento_principal' => 'required|string|max:255',
+            'otros_medicamentos' => 'required|string',
+            'notas_medicamento' => 'required|string',
 
             'finalidad_consulta' => 'required|string|max:255',
             'causa_motivo_atencion' => 'required|string|max:255',
@@ -75,7 +75,7 @@ class PlantillaOptometriaRequest extends FormRequest
             'cantidad.min' => 'La cantidad no puede ser menor que 1.',
             'cantidad.max' => 'La cantidad no puede superar 9999.',
 
-            'diagnostico_principal.required' => 'Debe ingresar el diagnóstico principal.',
+            'medicamento_principal.required' => 'Debe ingresar el medicamento principal.',
             'finalidad_consulta.required' => 'Debe ingresar la finalidad de la consulta.',
             'causa_motivo_atencion.required' => 'Debe ingresar la causa o motivo de atención.',
         ];
