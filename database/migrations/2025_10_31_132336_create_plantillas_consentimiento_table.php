@@ -10,6 +10,7 @@ return new class extends Migration {
         Schema::create('plantillas_consentimiento', function (Blueprint $table) {
             $table->id();
             $table->string('titulo');
+            $table->string('tipo')->unique();
             $table->text('texto');
             $table->integer('version')->default(1);
             $table->boolean('activo')->default(true);

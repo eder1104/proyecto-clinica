@@ -13,8 +13,8 @@ use App\Http\Controllers\{
     CalendarioController,
     ConsentimientoController,
     BitacoraAuditoriaController,
-    PlantillaControllerRetina,
     CitasParcialController,
+    CitasBloqueadoController,
     CalendarioEspecialistaController,
     DoctorAgendaController,
     CatalogoController,
@@ -93,12 +93,17 @@ Route::middleware(['auth', 'checkrole:admin', Bitacora::class])->group(function 
 });
 
 Route::middleware(['auth'])->group(function () {
+
     Route::get('/consentimientos', [ConsentimientoController::class, 'create'])
         ->name('consentimientos.create');
 
     Route::post('/consentimientos', [ConsentimientoController::class, 'store'])
         ->name('consentimientos.store');
+
+    Route::get('/consentimientos/generar', [ConsentimientoController::class, 'generar'])
+        ->name('consentimientos.generar');
 });
+
 
 Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
 
@@ -108,6 +113,11 @@ Route::middleware(['auth', 'checkrole:admin,admisiones', Bitacora::class])->grou
     Route::get('/calendario-especialista', [CalendarioEspecialistaController::class, 'index'])->name('citas.CalendarioEspecialista');
     Route::get('/calendario-especialista/{doctorId}/{mes}', [CalendarioEspecialistaController::class, 'obtenerCalendario'])->name('calendario.obtener');
     Route::post('/calendario-especialista/update', [CalendarioEspecialistaController::class, 'actualizarEstado'])->name('calendario.update');
+    Route::post('/bloqueo-especialista/store', [CalendarioEspecialistaController::class, 'storeBloqueo'])->name('citas.bloqueado.store');
+    Route::get('/bloqueo-especialista/{doctorId}/{fecha}', [CalendarioEspecialistaController::class, 'vistaBloqueo'])->name('citas.bloqueado');
+
+    Route::delete('/bloqueo-especialista/{id}', [CitasBloqueadoController::class, 'destroy'])->name('citas.bloqueado.destroy');
+
     Route::get('/vista-parcial/{doctorId}/{fecha}', [CitasParcialController::class, 'index'])->name('citas.parcial');
     Route::post('/parcialidades', [CitasParcialController::class, 'store'])->name('citas.parcial.store');
     Route::put('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'update'])->name('citas.parcial.update');
@@ -117,9 +127,13 @@ Route::middleware(['auth', 'checkrole:admin,admisiones', Bitacora::class])->grou
 Route::get('/preexamen/create/{cita_id}', [PreExamenController::class, 'create'])->name('preexamen.create');
 Route::get('/citas/reporte', [ReporteAgendaController::class, 'index'])->name('citas.reporte');
 
-Route::get('/catalogos', [CatalogoController::class, 'modal'])->name('catalogos.index');
-Route::get('/catalogos/buscar', [CatalogoController::class, 'buscar'])->name('catalogos.buscar');
-Route::post('/catalogos/guardar', [CatalogoController::class, 'guardarSeleccion'])->name('catalogos.guardar');
+Route::get('/catalogos/buscar-diagnosticos', [CatalogoController::class, 'buscarDiagnosticos'])->name('catalogos.buscarDiagnosticos');
+
+Route::get('/catalogos/buscar-procedimientos', [CatalogoController::class, 'buscarProcedimientos'])->name('catalogos.buscarProcedimientos');
+
+Route::get('/catalogos/buscar-alergias', [CatalogoController::class, 'buscarAlergias'])->name('catalogos.buscarAlergias');
+
+
 
 
 require __DIR__ . '/auth.php';

@@ -35,10 +35,8 @@
 
 <script>
     let currentDate = new Date();
-
     const calendarContainer = document.querySelector('.calendar-container');
     const selectedDoctor = calendarContainer.dataset.doctorId;
-
     const calendarDaysDiv = document.getElementById("calendarDays");
     const monthYear = document.getElementById("monthYear");
 
@@ -66,17 +64,18 @@
             const fecha = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
             const dayDiv = document.createElement("div");
             dayDiv.classList.add("calendar-day", "disponible");
-
-            dayDiv.innerHTML = `<div class="day-number">${day}</div>
-    <select class="estado-select" data-fecha="${fecha}">
-        <option value="Disponible" selected>Disponible</option>
-        <option value="Parcial">Parcial</option>
-        <option value="Bloqueado">Bloqueado</option>
-    </select>`;
+            dayDiv.innerHTML = `
+                <div class="day-number">${day}</div>
+                <select class="estado-select" data-fecha="${fecha}">
+                    <option value="Disponible" selected>Disponible</option>
+                    <option value="Parcial">Parcial</option>
+                    <option value="Bloqueado">Bloqueado</option>
+                </select>`;
             calendarDaysDiv.appendChild(dayDiv);
         }
 
         const mesStr = `${year}-${String(month + 1).padStart(2, "0")}`;
+
         fetch(`/calendario-especialista/${selectedDoctor}/${mesStr}`)
             .then(res => res.json())
             .then(data => {
@@ -87,52 +86,56 @@
                         updateDayColor(select);
 
                         if (data[fecha] === 'Parcial') {
-                            const dayDiv = select.closest(".calendar-day");
-                            dayDiv.style.cursor = 'pointer';
-
-                            dayDiv.addEventListener("click", (e) => {
-                                if (e.target.classList.contains('estado-select')) {
-                                    return;
+                            select.closest(".calendar-day").style.cursor = "pointer";
+                            select.closest(".calendar-day").onclick = e => {
+                                if (!e.target.classList.contains("estado-select")) {
+                                    window.location.href = `/vista-parcial/${selectedDoctor}/${fecha}`;
                                 }
-                                window.location.href = `/vista-parcial/${selectedDoctor}/${fecha}`;
-                            });
+                            };
+                        }
+
+                        if (data[fecha] === 'Bloqueado') {
+                            select.closest(".calendar-day").style.cursor = "pointer";
+                            select.closest(".calendar-day").onclick = e => {
+                                if (!e.target.classList.contains("estado-select")) {
+                                    window.location.href = `/bloqueo-especialista/${selectedDoctor}/${fecha}`;
+                                }
+                            };
                         }
                     }
                 });
-            })
-            .catch(() => console.error("Error al obtener la disponibilidad."));
+            });
 
-        document.querySelectorAll(".estado-select").forEach(select => {
-            select.addEventListener("input", e => {
-                const fecha = e.target.dataset.fecha;
-                const nuevoEstado = e.target.value;
+        document.addEventListener("change", function(e) {
+            if (!e.target.classList.contains("estado-select")) return;
 
-                if (nuevoEstado === 'Parcial') {
-                    window.location.href = `/vista-parcial/${selectedDoctor}/${fecha}`;
-                    return;
-                }
+            const select = e.target;
+            const fecha = select.dataset.fecha;
+            const estado = select.value;
 
-                updateDayColor(e.target);
+            if (estado === "Parcial") {
+                window.location.href = `/vista-parcial/${selectedDoctor}/${fecha}`;
+                return;
+            }
 
-                fetch("/calendario-especialista/update", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        },
-                        body: JSON.stringify({
-                            doctor_id: selectedDoctor,
-                            fecha,
-                            estado: nuevoEstado
-                        })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.redirect) {
-                            window.location.href = data.redirect;
-                        }
-                    })
-                    .catch(() => console.error("Error al actualizar el estado."));
+            if (estado === "Bloqueado") {
+                window.location.href = `/bloqueo-especialista/${selectedDoctor}/${fecha}`;
+                return;
+            }
+
+            updateDayColor(select);
+
+            fetch("/calendario-especialista/update", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+                },
+                body: JSON.stringify({
+                    doctor_id: selectedDoctor,
+                    fecha,
+                    estado
+                })
             });
         });
     }
@@ -147,6 +150,7 @@
         currentDate.setMonth(currentDate.getMonth() - 1);
         renderCalendar(currentDate);
     });
+
     document.getElementById("nextMonth").addEventListener("click", () => {
         currentDate.setMonth(currentDate.getMonth() + 1);
         renderCalendar(currentDate);
@@ -154,7 +158,6 @@
 
     renderCalendar(currentDate);
 </script>
-
 <style>
     .calendar-container {
         display: flex;

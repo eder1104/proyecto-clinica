@@ -104,7 +104,7 @@ class CalendarioController extends Controller
             $doctorNombre = null;
             $cantidadCitas = Cita::whereDate('fecha', $fecha)->where('estado', 'activa')->count();
 
-            $estadoBase = $this->agenda->estadoDelDia($fecha);
+            $estadoBase = $this->agenda->estadoDelDia(5, $fecha);
             if ($estadoBase === 'parcial' || $estadoBase === 'bloqueado') {
                 $estadoFinal = $estadoBase;
             }

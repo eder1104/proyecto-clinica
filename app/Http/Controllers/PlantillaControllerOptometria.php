@@ -16,21 +16,31 @@ use Illuminate\Support\Facades\DB;
 
 class PlantillaControllerOptometria extends Controller
 {
-    public function index($cita_id)
-    {
-        $cita = Cita::with('paciente')->findOrFail($cita_id);
+public function index($cita_id)
+{
+    $cita = Cita::with('paciente')->findOrFail($cita_id);
 
-        $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
-        $citas = Cita::with('paciente')->orderBy('fecha', 'desc')->get();
-        $doctores = User::where('role', 'doctor')->get();
-        $id = $plantilla ? $plantilla->id : null;
+    $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
+    $citas = Cita::with('paciente')->orderBy('fecha', 'desc')->get();
+    $doctores = User::where('role', 'doctor')->get();
+    $id = $plantilla ? $plantilla->id : null;
 
-        $historia = HistoriaClinica::where('paciente_id', $cita->paciente_id)
-            ->with(['diagnostico', 'procedimientos'])
-            ->first();
+    $historia = HistoriaClinica::where('paciente_id', $cita->paciente_id)
+        ->with(['diagnostico', 'procedimientos'])
+        ->first();
 
-        return view('plantillas.optometria', compact('id', 'plantilla', 'citas', 'cita', 'doctores', 'historia'));
-    }
+    $alergiasPrevias = $cita->paciente->alergias()->get();
+
+    return view('plantillas.optometria', compact(
+        'id',
+        'plantilla',
+        'citas',
+        'cita',
+        'doctores',
+        'historia',
+        'alergiasPrevias'
+    ));
+}
 
     public function edit(Cita $cita)
     {
@@ -90,9 +100,15 @@ class PlantillaControllerOptometria extends Controller
         $merged['paciente_id'] = $merged['paciente_id'] ?? $cita->paciente_id;
 
         if (empty($merged['historia_id'])) {
-            $historia = HistoriaClinica::where('paciente_id', $cita->paciente_id)->latest()->first();
-            $merged['historia_id'] = $historia->id ?? null;
+
+            $historia = HistoriaClinica::firstOrCreate(
+                ['paciente_id' => $cita->paciente_id],
+                ['created_by' => Auth::id()]
+            );
+
+            $merged['historia_id'] = $historia->id;
         }
+
 
         $catalogoRequest = app(\App\Http\Requests\CatalogosRequest::class);
         $catalogoRequest->setContainer(app());

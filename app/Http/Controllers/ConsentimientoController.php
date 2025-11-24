@@ -19,10 +19,7 @@ class ConsentimientoController extends Controller
     public function generar(Request $request)
     {
         $cita_id = $request->query('cita_id');
-        
-        if (!$cita_id) {
-            return back()->with('error', 'No se ha proporcionado una cita válida.');
-        }
+        if (!$cita_id) return back()->with('error', 'No se ha proporcionado una cita válida.');
 
         $cita = Cita::findOrFail($cita_id);
 
@@ -36,28 +33,49 @@ class ConsentimientoController extends Controller
             ->exists();
 
         if ($tieneBloqueo) {
-            return redirect()->route('citas.index')->with('error', 'No puedes realizar atenciones, tienes un bloqueo de agenda activo en este momento.');
+            return redirect()->route('citas.index')
+                ->with('error', 'No puedes realizar atenciones, tienes un bloqueo de agenda activo en este momento.');
         }
 
-        $tipo = $cita->tipo_examen;
+        if ($cita->tipo_cita_id == 1) {
 
-        if (!$tipo) {
-            return back()->with('error', 'Esta cita no tiene un tipo de examen especificado.');
-        }
+            $alergiasPrevias = $cita->paciente->alergias()->get();
 
-        $nombreArchivo = Str::studly($tipo);
-        $vista = "citas.PlantillasConsentimiento.Consentimiento{$nombreArchivo}";
-
-        if (View::exists($vista)) {
+            $vista = 'Plantillas.Optometria';
             return view($vista, [
                 'cita_id' => $cita->id,
                 'paciente_id' => $cita->paciente_id,
-                'cita' => $cita 
+                'plantilla_id' => null,
+                'plantilla_consentimiento' => null,
+                'cita' => $cita,
+                'alergiasPrevias' => $alergiasPrevias
             ]);
         }
 
-        return back()->with('error', "No se encontró la plantilla para el examen: $nombreArchivo");
+
+        $tipo = $cita->tipo_examen;
+
+        $vistas = [
+            'cirugia_retina'          => 'citas.PlantillasConsentimiento.ConsentimientoCirugiaRetina',
+            'fotocoagulacion_laser'   => 'citas.PlantillasConsentimiento.ConsentimientoFotocoagulacionLaser',
+            'inyeccion_intravitrea'   => 'citas.PlantillasConsentimiento.ConsentimientoInyeccionIntravitrea',
+        ];
+
+        if (!isset($vistas[$tipo]) || !View::exists($vistas[$tipo])) {
+            return back()->with('error', 'No existe una plantilla para este tipo de examen.');
+        }
+
+        $plantilla = PlantillaConsentimiento::where('tipo', $tipo)->first();
+
+        return view($vistas[$tipo], [
+            'cita_id' => $cita->id,
+            'paciente_id' => $cita->paciente_id,
+            'plantilla_id' => $plantilla->id ?? null,
+            'plantilla_consentimiento' => $plantilla,
+            'cita' => $cita
+        ]);
     }
+
 
     public function create(Request $request)
     {
@@ -81,12 +99,9 @@ class ConsentimientoController extends Controller
         }
 
         $plantillas = PlantillaConsentimiento::where('activo', 1)->get();
-
         $paciente_id = $request->query('paciente_id');
 
-        if (!$paciente_id) {
-            abort(400, 'No se ha proporcionado el ID del paciente.');
-        }
+        if (!$paciente_id) abort(400, 'No se ha proporcionado el ID del paciente.');
 
         return view('citas.consentimiento', compact('plantillas', 'paciente_id', 'cita_id'));
     }
@@ -119,18 +134,18 @@ class ConsentimientoController extends Controller
         $rutaFirma = $request->file('imagen_firma')->store('firmas_consents', 'public');
 
         $paciente = Paciente::find($request->paciente_id);
-        $nombrePaciente = $paciente ? trim($paciente->nombres . ' ' . $paciente->apellidos) : 'Paciente sin nombre';
+        $nombrePaciente = $paciente
+            ? trim($paciente->nombres . ' ' . $paciente->apellidos)
+            : 'Paciente sin nombre';
 
         $doctorRecord = doctores::with('user')->where('user_id', Auth::id())->first();
         $nombreDoctor = $doctorRecord && $doctorRecord->user
             ? trim($doctorRecord->user->nombres . ' ' . $doctorRecord->user->apellidos)
             : (Auth::user()->nombre_completo ?? 'Doctor sin nombre');
 
-        if ($tipoFirmante === 'paciente') {
-            $nombreFirmante = $nombrePaciente;
-        } else {
-            $nombreFirmante = trim($request->nombre_acompanante . ' ' . $request->apellido_acompanante);
-        }
+        $nombreFirmante = $tipoFirmante === 'paciente'
+            ? $nombrePaciente
+            : trim($request->nombre_acompanante . ' ' . $request->apellido_acompanante);
 
         $fechaFormateada = Carbon::createFromFormat('d/m/Y', $request->fecha_firma)->format('Y-m-d');
 

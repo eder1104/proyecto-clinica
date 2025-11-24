@@ -17,15 +17,11 @@ class AgendaService
         $this->slotMinutes = $slotMinutes;
     }
 
-    public function generarSlotsDelDia(string $fecha): array
+    public function generarSlotsDelDia(int $doctorId, string $fecha): array
     {
-        $carbonFecha = Carbon::parse($fecha);
-        $fecha = (int) $carbonFecha->dayOfWeek;
-
-        $plantilla = PlantillaHorario::whereDate('fecha', $fecha)
+        $plantilla = PlantillaHorario::where('doctor_id', $doctorId)
             ->where('activo', true)
             ->first();
-
 
         if (!$plantilla) {
             return [];
@@ -35,26 +31,32 @@ class AgendaService
         $fin = Carbon::parse($fecha . ' ' . $plantilla->hora_fin);
 
         $period = new CarbonPeriod($inicio, $this->slotMinutes . ' minutes', $fin);
+
         $slots = [];
         $prev = null;
 
         foreach ($period as $slotStart) {
+
             if ($prev && $slotStart->eq($prev)) {
                 continue;
             }
+
             $slotEnd = $slotStart->copy()->addMinutes($this->slotMinutes);
             if ($slotEnd->gt($fin)) break;
 
             $slots[] = [
                 'start' => $slotStart->format('H:i:s'),
-                'end' => $slotEnd->format('H:i:s'),
+                'end'   => $slotEnd->format('H:i:s'),
                 'estado' => 'libre'
             ];
 
             $prev = $slotStart->copy()->addMinutes($this->slotMinutes);
         }
 
-        $bloqueos = BloqueoAgenda::whereDate('fecha', $fecha)->get();
+        $bloqueos = BloqueoAgenda::where('doctor_id', $doctorId)
+            ->whereDate('fecha', $fecha)
+            ->get();
+
         foreach ($bloqueos as $b) {
             foreach ($slots as &$s) {
                 if ($this->timeRangesOverlap($s['start'], $s['end'], $b->hora_inicio, $b->hora_fin)) {
@@ -64,11 +66,16 @@ class AgendaService
             unset($s);
         }
 
-        $citas = Cita::whereDate('fecha', $fecha)->get();
+        $citas = Cita::where('doctor_id', $doctorId)
+            ->whereDate('fecha', $fecha)
+            ->get();
+
         foreach ($citas as $c) {
             foreach ($slots as &$s) {
                 if ($this->timeRangesOverlap($s['start'], $s['end'], $c->hora_inicio, $c->hora_fin)) {
-                    if ($s['estado'] !== 'bloqueado') $s['estado'] = 'ocupado';
+                    if ($s['estado'] !== 'bloqueado') {
+                        $s['estado'] = 'ocupado';
+                    }
                 }
             }
             unset($s);
@@ -77,16 +84,18 @@ class AgendaService
         return $slots;
     }
 
-    public function estadoDelDia(string $fecha): string
+    public function estadoDelDia(int $doctorId, string $fecha): string
     {
-        $slots = $this->generarSlotsDelDia($fecha);
+        $slots = $this->generarSlotsDelDia($doctorId, $fecha);
 
         if (empty($slots)) {
             return 'disponible';
         }
 
         $total = count($slots);
-        $ocupados = collect($slots)->filter(fn($s) => $s['estado'] === 'ocupado' || $s['estado'] === 'bloqueado')->count();
+        $ocupados = collect($slots)->filter(fn($s) => 
+            $s['estado'] === 'ocupado' || $s['estado'] === 'bloqueado'
+        )->count();
 
         if ($ocupados === 0) return 'disponible';
         if ($ocupados >= $total) return 'bloqueado';
@@ -103,12 +112,13 @@ class AgendaService
         return $aS < $bE && $bS < $aE;
     }
 
-    public function resumenDelDia(string $fecha): array
+    public function resumenDelDia(int $doctorId, string $fecha): array
     {
-        $slots = $this->generarSlotsDelDia($fecha);
+        $slots = $this->generarSlotsDelDia($doctorId, $fecha);
+
         return [
             'fecha' => $fecha,
-            'estado' => $this->estadoDelDia($fecha),
+            'estado' => $this->estadoDelDia($doctorId, $fecha),
             'slots' => $slots,
             'total_slots' => count($slots),
             'ocupados' => collect($slots)->filter(fn($s) => $s['estado'] === 'ocupado')->count(),

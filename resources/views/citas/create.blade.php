@@ -30,13 +30,15 @@
                     <label class="block text-gray-700">Fecha</label>
                     <input type="date" name="fecha" value="{{ old('fecha') }}" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                 </div>
+
                 <div class="mb-4">
                     <label class="block text-gray-700">Hora de inicio</label>
-                    <input type="time" name="hora_inicio" value="{{ old('hora_inicio') }}" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                    <input type="time" name="hora_inicio" id="hora_inicio" value="{{ old('hora_inicio') }}" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                 </div>
-                <div class="mb-4">
+
+                <div class="mb-4" style="display:none;">
                     <label class="block text-gray-700">Hora de fin</label>
-                    <input type="time" name="hora_fin" value="{{ old('hora_fin') }}" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                    <input type="time" name="hora_fin" id="hora_fin" value="{{ old('hora_fin') }}" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                 </div>
 
                 <div class="mb-4">
@@ -120,6 +122,7 @@
                     <a href="{{ route('citas.index') }}" class="px-4 py-2 rounded bg-gray-400 text-white hover:bg-gray-500">Cancelar</a>
                     <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Guardar</button>
                 </div>
+
             </form>
         </div>
     </div>
@@ -239,8 +242,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     tipoCita.addEventListener('change', toggleExamenes);
-    
     toggleExamenes();
+
+    const horaInicio = document.getElementById('hora_inicio');
+    const horaFin = document.getElementById('hora_fin');
+
+    horaInicio.addEventListener('change', () => {
+        const value = horaInicio.value;
+        if (!value) return;
+        let [h, m] = value.split(':').map(Number);
+        h = (h + 1) % 24;
+        horaFin.value = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    });
 });
 </script>
 

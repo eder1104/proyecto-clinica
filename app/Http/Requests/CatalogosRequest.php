@@ -15,7 +15,6 @@ class CatalogosRequest extends FormRequest
     {
         return [
             'paciente_id' => 'required|exists:pacientes,id',
-            'historia_id' => 'required|exists:historias_clinicas,id',
             'items_ids'   => 'nullable|array',
             'items_tipos' => 'nullable|array',
             'items_ids.*' => 'nullable|integer',

@@ -19,14 +19,14 @@ class CreateHorariosTable extends Migration
             $table->boolean('activo')->default(true);
 
             $table->foreignId('doctor_id')
-                  ->nullable()
-                  ->constrained('doctores')
-                  ->onDelete('cascade');
+                ->nullable()
+                ->constrained('doctores')
+                ->onDelete('cascade');
 
             $table->timestamps();
 
             $table->index(['doctor_id', 'fecha']);
-            $table->unique(['hora_inicio', 'hora_fin']);
+            $table->unique(['doctor_id', 'hora_inicio', 'hora_fin']);
         });
     }
 

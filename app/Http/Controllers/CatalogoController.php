@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Alergia;
 use App\Models\DiagnosticoOftalmologico;
-use App\Models\Procedimiento;
 use App\Models\HistoriaClinica;
 use App\Models\Paciente;
 use App\Models\ProcedimientoOftalmologico;
@@ -19,63 +18,75 @@ class CatalogoController extends Controller
         $tipo = $request->query('tipo', 'diagnostico');
         $titulo = $request->query('titulo', null);
         $nombre_input = $request->query('nombre_input', 'catalogo_ids');
-
         $paciente_id = $request->query('paciente_id');
         $historia_id = $request->query('historia_id');
+
+        $alergiasPrevias = collect();
+        if ($paciente_id) {
+            $paciente = Paciente::find($paciente_id);
+            if ($paciente) {
+                $alergiasPrevias = $paciente->alergias()->get();
+            }
+        }
 
         return view('citas.catalogos', compact(
             'tipo',
             'titulo',
             'nombre_input',
             'paciente_id',
-            'historia_id'
+            'historia_id',
+            'alergiasPrevias'
         ))->with('ocultarMenu', true);
     }
 
-
-    public function buscar(Request $request)
+    public function buscarDiagnosticos(Request $request)
     {
         $termino = $request->input('termino');
+        if (!$termino) return response()->json([]);
 
-        if (empty($termino)) {
-            return response()->json([]);
-        }
-
-        $diagnosticos = DiagnosticoOftalmologico::where('nombre', 'like', "%$termino%")
+        return DiagnosticoOftalmologico::where('nombre', 'like', "%$termino%")
             ->orWhere('codigo', 'like', "%$termino%")
-            ->limit(10)->get()
+            ->limit(20)
+            ->get()
             ->map(fn($item) => [
-                'id'   => $item->id,
+                'id' => $item->id,
                 'nombre' => $item->nombre,
                 'codigo' => $item->codigo,
-                'tipo'   => 'diagnostico',
-                'label'  => 'Diagnóstico'
+                'tipo' => 'diagnostico'
             ]);
+    }
 
-        $procedimientos = ProcedimientoOftalmologico::where('nombre', 'like', "%$termino%")
+    public function buscarProcedimientos(Request $request)
+    {
+        $termino = $request->input('termino');
+        if (!$termino) return response()->json([]);
+
+        return ProcedimientoOftalmologico::where('nombre', 'like', "%$termino%")
             ->orWhere('codigo', 'like', "%$termino%")
-            ->limit(10)->get()
+            ->limit(20)
+            ->get()
             ->map(fn($item) => [
-                'id'   => $item->id,
+                'id' => $item->id,
                 'nombre' => $item->nombre,
                 'codigo' => $item->codigo,
-                'tipo'   => 'procedimiento',
-                'label'  => 'Procedimiento'
+                'tipo' => 'procedimiento'
             ]);
+    }
 
-        $alergias = Alergia::where('nombre', 'like', "%$termino%")
-            ->limit(10)->get()
+    public function buscarAlergias(Request $request)
+    {
+        $termino = $request->input('termino');
+        if (!$termino) return response()->json([]);
+
+        return Alergia::where('nombre', 'like', "%$termino%")
+            ->limit(20)
+            ->get()
             ->map(fn($item) => [
-                'id'   => $item->id,
+                'id' => $item->id,
                 'nombre' => $item->nombre,
                 'codigo' => null,
-                'tipo'   => 'alergia',
-                'label'  => 'Alergia'
+                'tipo' => 'alergia'
             ]);
-
-        return response()->json(
-            $diagnosticos->concat($procedimientos)->concat($alergias)->values()
-        );
     }
 
     public function guardarSeleccion(CatalogosRequest $request)
@@ -83,7 +94,7 @@ class CatalogoController extends Controller
         $pacienteId = $request->paciente_id;
         $historiaId = $request->historia_id;
 
-        $ids   = $request->items_ids ?? [];
+        $ids = $request->items_ids ?? [];
         $tipos = $request->items_tipos ?? [];
 
         $alergiasIds = [];
@@ -94,20 +105,16 @@ class CatalogoController extends Controller
             $id = $ids[$i] ?? null;
             if (!$id) continue;
 
-            switch ($tipo) {
-                case 'diagnostico':
-                    if ($diagnosticoId === null) {
-                        $diagnosticoId = $id;
-                    }
-                    break;
+            if ($tipo === 'diagnostico' && $diagnosticoId === null) {
+                $diagnosticoId = $id;
+            }
 
-                case 'procedimiento':
-                    $procedimientosIds[] = $id;
-                    break;
+            if ($tipo === 'procedimiento') {
+                $procedimientosIds[] = $id;
+            }
 
-                case 'alergia':
-                    $alergiasIds[] = $id;
-                    break;
+            if ($tipo === 'alergia') {
+                $alergiasIds[] = $id;
             }
         }
 

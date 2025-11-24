@@ -13,6 +13,7 @@ class PlantillaConsentimiento extends Model
 
     protected $fillable = [
         'titulo',
+        'tipo',
         'texto',
         'version',
         'activo',

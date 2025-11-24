@@ -285,33 +285,59 @@
                       </p>
 
                       <div class="search-card">
-                          <div class="search-grid">
-                              <div class="search-item main-search" style="grid-column: span 3;">
-                                  <label for="termino_busqueda_input">Término de Búsqueda</label>
-                                  <input type="text" id="termino_busqueda_input" placeholder="Buscar por nombre...">
-                              </div>
-                              <div class="search-item button-container" style="grid-column: span 3; text-align: center; margin-top: 10px;">
-                                  <button type="button" id="btnRealizarBusqueda" class="btn-buscar">
-                                      Buscar 🔍
-                                  </button>
-                              </div>
+                          <label>Término Diagnóstico</label>
+                          <input type="text" id="termino_diag">
+                          <button type="button" id="btnDiag" class="btn-buscar">Buscar 🔍</button>
+                      </div>
+
+                      <div class="results-header">Resultados Diagnósticos</div>
+                      <ul id="listaDiag" class="results-list"></ul>
+
+                      <div class="results-header" style="margin-top: 20px;">Seleccionados Diagnósticos</div>
+                      <div id="selDiag" style="display: flex; flex-direction: column; gap: 10px;"></div>
+
+                      <hr>
+
+                      <div class="search-card">
+                          <label>Término Procedimiento</label>
+                          <input type="text" id="termino_proc">
+                          <button type="button" id="btnProc" class="btn-buscar">Buscar 🔍</button>
+                      </div>
+
+                      <div class="results-header">Resultados Procedimientos</div>
+                      <ul id="listaProc" class="results-list"></ul>
+
+                      <div class="results-header" style="margin-top: 20px;">Seleccionados Procedimientos</div>
+                      <div id="selProc" style="display: flex; flex-direction: column; gap: 10px;"></div>
+
+                      <hr>
+
+                      <div class="results-header" style="margin-top: 20px;">Seleccionados Alergias</div>
+
+                      <div id="selAler" style="display: flex; flex-direction: column; gap: 10px;">
+
+                          @foreach($alergiasPrevias as $alergia)
+                          <div class="item-seleccionado" style="display:flex; gap:5px;">
+
+                              <input type="text" readonly
+                                  value="{{ $alergia->nombre }}"
+                                  style="flex-grow:1; background:#f8f9fa;">
+
+                              <input type="hidden" name="items_ids[]" value="{{ $alergia->id }}">
+                              <input type="hidden" name="items_tipos[]" value="alergia">
+
+                              <button type="button"
+                                  onclick="this.parentElement.remove()"
+                                  style="background:#dc3545; color:white; border:none; border-radius:4px; width:32px; font-size:18px;">
+                                  ×
+                              </button>
                           </div>
+                          @endforeach
+
                       </div>
 
-                      <div class="results-header">
-                          Resultados
-                      </div>
-                      <ul id="resultados" class="results-list">
-                      </ul>
-
-                      <div class="results-header" style="margin-top: 20px;">
-                          Seleccionados
-                      </div>
-                      <div id="contenedorSeleccionados" style="display: flex; flex-direction: column; gap: 10px;">
-                      </div>
                   </div>
               </div>
-
               <div class="boton-guardar">
                   <button type="submit">Guardar Consulta</button>
               </div>
@@ -328,97 +354,84 @@
                       let current = box.dataset.colorIndex ? parseInt(box.dataset.colorIndex) : 0;
                       current = (current + 1) % colors.length;
                       box.dataset.colorIndex = current;
-
                       const newColor = colors[current];
                       box.style.backgroundColor = newColor;
-
                       const inputName = box.dataset.input;
                       const field = document.querySelector(`[name="${inputName}"]`);
-
                       if (field) {
                           field.style.color = (newColor === "transparent") ? "black" : newColor;
-                          if (field.tagName.toLowerCase() === "select") {
-                              field.style.color = (newColor === "transparent") ? "black" : newColor;
-                          }
                       }
                   });
               });
 
               const navButtons = document.querySelectorAll('.nav-button');
               const contentSections = document.querySelectorAll('.content-section');
-
               const initialActiveButton = document.querySelector('.nav-button.active');
+
               if (initialActiveButton) {
                   const initialTarget = document.getElementById(initialActiveButton.getAttribute('data-target'));
-                  if (initialTarget) {
-                      initialTarget.classList.remove('hidden');
-                  }
+                  if (initialTarget) initialTarget.classList.remove('hidden');
               }
 
               navButtons.forEach(button => {
                   button.addEventListener('click', function() {
                       const targetId = this.getAttribute('data-target');
-
                       contentSections.forEach(section => section.classList.add('hidden'));
                       navButtons.forEach(btn => btn.classList.remove('active'));
-
                       document.getElementById(targetId).classList.remove('hidden');
                       this.classList.add('active');
                   });
               });
 
-              const terminoInput = document.getElementById('termino_busqueda_input');
-              if (terminoInput) {
-                  terminoInput.addEventListener('keydown', function(event) {
-                      if (event.key === 'Enter') {
-                          event.preventDefault();
-                          document.getElementById('btnRealizarBusqueda').click();
-                      }
-                  });
-              }
+              function crearBuscador(inputId, botonId, listaId, contenedorId, ruta) {
+                  const input = document.getElementById(inputId);
+                  const boton = document.getElementById(botonId);
+                  const lista = document.getElementById(listaId);
+                  const contenedor = document.getElementById(contenedorId);
 
-              const btnBuscar = document.getElementById('btnRealizarBusqueda');
-              const lista = document.getElementById('resultados');
-              const contenedorSeleccionados = document.getElementById('contenedorSeleccionados');
+                  if (input) {
+                      input.addEventListener('keydown', function(event) {
+                          if (event.key === 'Enter') {
+                              event.preventDefault();
+                              boton.click();
+                          }
+                      });
+                  }
 
-              if (btnBuscar) {
-                  btnBuscar.addEventListener('click', async function() {
-                      const termino = terminoInput ? terminoInput.value.trim() : '';
-
+                  boton.addEventListener('click', async function() {
+                      const termino = input ? input.value.trim() : '';
                       if (!termino) return;
 
                       lista.innerHTML = '<li class="msg-loading">Buscando...</li>';
 
                       try {
-                          const response = await fetch(`{{ route('catalogos.buscar') }}?termino=${encodeURIComponent(termino)}`, {
+                          const response = await fetch(ruta + '?termino=' + encodeURIComponent(termino), {
                               headers: {
                                   'X-Requested-With': 'XMLHttpRequest'
                               }
                           });
 
-                          if (!response.ok) throw new Error('Error en la respuesta');
+                          if (!response.ok) throw new Error();
 
                           const data = await response.json();
-
                           lista.innerHTML = '';
+
                           if (!Array.isArray(data) || data.length === 0) {
                               lista.innerHTML = '<li class="msg-vacio">No se encontraron resultados.</li>';
                               return;
                           }
 
-                          data.forEach(function(item) {
+                          data.forEach(item => {
                               const li = document.createElement('li');
                               li.classList.add('list-item');
 
-                              const tipo = item.tipo ? `<span style="color:#0d6efd;">[${item.tipo}]</span> ` : '';
-                              const texto = `${tipo}<strong>${item.nombre}</strong>` + (item.codigo ? ` <span style="color:#888;">(${item.codigo})</span>` : '');
+                              const tipo = item.tipo ? '[' + item.tipo + '] ' : '';
+                              const texto = tipo + item.nombre + (item.codigo ? ' (' + item.codigo + ')' : '');
 
                               li.innerHTML = `
-                            <div class="item-info">
-                                ${texto}
-                            </div>
-                            <button type="button" class="btn-agregar">Agregar</button>
-                        `;
+                        <div class="item-info">${texto}</div>
+                        <button type="button" class="btn-agregar">Agregar</button>
+                    `;
 
                               li.querySelector('.btn-agregar').addEventListener('click', () => {
                                   const wrapper = document.createElement('div');
@@ -429,7 +442,7 @@
                                   const inputVisual = document.createElement('input');
                                   inputVisual.type = 'text';
                                   inputVisual.readOnly = true;
-                                  inputVisual.value = `[${item.tipo || ''}] ${item.nombre}` + (item.codigo ? ` (${item.codigo})` : '');
+                                  inputVisual.value = texto;
                                   inputVisual.style.flexGrow = '1';
                                   inputVisual.style.backgroundColor = '#f8f9fa';
 
@@ -461,19 +474,25 @@
                                   wrapper.appendChild(hiddenTipo);
                                   wrapper.appendChild(removeBtn);
 
-                                  contenedorSeleccionados.appendChild(wrapper);
+                                  contenedor.appendChild(wrapper);
                               });
 
                               lista.appendChild(li);
                           });
+
                       } catch (err) {
                           lista.innerHTML = '<li class="msg-error">Error al buscar. Intente nuevamente.</li>';
-                          console.error(err);
                       }
                   });
               }
+
+              crearBuscador('termino_diag', 'btnDiag', 'listaDiag', 'selDiag', '{{ route("catalogos.buscarDiagnosticos") }}');
+              crearBuscador('termino_proc', 'btnProc', 'listaProc', 'selProc', '{{ route("catalogos.buscarProcedimientos") }}');
+              crearBuscador('termino_aler', 'btnAler', 'listaAler', 'selAler', '{{ route("catalogos.buscarAlergias") }}');
           });
       </script>
+
+
 
       <style>
           .optometria-scope .container-custom {

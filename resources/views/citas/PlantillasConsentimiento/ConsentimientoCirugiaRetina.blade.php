@@ -9,12 +9,11 @@
             <input type="hidden" name="cita_id" value="{{ $cita_id }}">
             <input type="hidden" name="plantilla_id" value="{{ $plantilla_id }}">
 
-
-            <h5 class="titulo-principal">Plantilla Consentimiento — Inteccion Intravitrea</h5>
+            <h5 class="titulo-principal">Plantilla Consentimiento — Cirugía de Retina</h5>
 
             <p class="descripcion">
-                Procedimiento con láser utilizado para sellar vasos sanguíneos anormales o reducir inflamación retinal,
-                comúnmente usado en retinopatía diabética o desgarros retinianos.
+                Procedimiento quirúrgico realizado para corregir desprendimientos de retina, agujeros maculares,
+                hemorragias vítreas u otras patologías que afectan la visión y requieren intervención especializada.
             </p>
 
             <label class="form-label titulo text-center">¿Quién firma?</label>
@@ -114,12 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
     }
 
-    .titulo {
-        width: 100%;
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
-
     .card-consentimiento h5 {
         color: #0d6efd;
         font-weight: 700;
@@ -132,17 +125,14 @@ document.addEventListener('DOMContentLoaded', function() {
         color: #212529;
         font-size: 0.9rem;
         margin-bottom: 0.4rem;
-        display: block;
         text-align: left;
     }
 
-    .form-control,
-    .form-select {
+    .form-control {
         border-radius: 0.5rem;
         border: 1px solid #ced4da;
         padding: 0.7rem 1rem;
         font-size: 1rem;
-        width: 100%;
         background-color: #fafafa;
         transition: all 0.2s ease;
     }
@@ -150,26 +140,27 @@ document.addEventListener('DOMContentLoaded', function() {
     .form-control:focus {
         border-color: #0d6efd;
         background-color: #fff;
-        box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.2);
+        box-shadow: 0 0 0 0.15rem rgba(13,110,253,0.2);
     }
 
-    .option {
+    .options-row {
         display: flex;
-        flex-direction: row;
         justify-content: center;
         gap: 2rem;
+        margin-bottom: 1.2rem;
     }
 
-    .btn {
-        border-radius: 0.5rem;
-        padding: 0.5rem 1.2rem;
+    .option-item {
         font-weight: 600;
-        transition: all 0.2s ease;
+        display: flex;
+        gap: 6px;
+        align-items: center;
     }
 
-    .btn-primary:hover {
-        background-color: #0056b3;
-        border-color: #0056b3;
+    .footer-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1.2rem;
     }
 </style>
 @endsection

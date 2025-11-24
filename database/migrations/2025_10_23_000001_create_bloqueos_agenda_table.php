@@ -10,6 +10,7 @@ class CreateBloqueosAgendaTable extends Migration
     {
         Schema::create('bloqueos_agenda', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('doctor_id');
             $table->date('fecha');
             $table->time('hora_inicio');
             $table->time('hora_fin');

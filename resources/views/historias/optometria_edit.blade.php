@@ -44,8 +44,6 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                             <p class="form-control-static">
                                 {{ $nombreCompletoOptometra }}
                             </p>
-                            @error('optometra')
-                            @enderror
                         </div>
                     </div>
 
@@ -61,38 +59,30 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                 <div class="form-group">
                     <label>Anamnesis</label>
                     <textarea name="anamnesis">{{ old('anamnesis', $plantilla->anamnesis ?? '') }}</textarea>
-                    @error('anamnesis')
-                    <div class="alerta">{{ $message }}</div>
-                    @enderror
                 </div>
 
                 <div class="grid-2">
                     <div>
                         <label>Alternativa deseada</label>
                         <input type="text" name="alternativa_deseada" value="{{ old('alternativa_deseada', $plantilla->alternativa_deseada ?? '') }}">
-                        @error('alternativa_deseada')
-                        <div class="alerta">{{ $message }}</div>
-                        @enderror
                     </div>
                     <div>
                         <label>Dominancia ocular</label>
                         <input type="text" name="dominancia_ocular" value="{{ old('dominancia_ocular', $plantilla->dominancia_ocular ?? '') }}">
-                        @error('dominancia_ocular')
-                        <div class="alerta">{{ $message }}</div>
-                        @enderror
                     </div>
                 </div>
 
                 <h3>Agudeza Visual (AVSC)</h3>
                 
                 <div class="SelectAgudeza">
+
                     <div class="AgudezaVisual">
                         <label>Lejos OD</label>
                         <div class="Box_Agudeza">
                             <select name="av_lejos_od" class="form-control agudeza-select">
                                 <option value=""></option>
                                 @foreach($valores as $valor)
-                                    <option value="{{ $valor }}" {{ old('av_lejos_od', $plantilla->av_lejos_od ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
+                                    <option value="{{ $valor }}">{{ $valor }}</option>
                                 @endforeach
                             </select>
                             <div class="color-box" data-input="av_lejos_od"></div>
@@ -105,7 +95,7 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                             <select name="av_intermedia_od" class="form-control agudeza-select">
                                 <option value=""></option>
                                 @foreach($valores as $valor)
-                                    <option value="{{ $valor }}" {{ old('av_intermedia_od', $plantilla->av_intermedia_od ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
+                                    <option value="{{ $valor }}">{{ $valor }}</option>
                                 @endforeach
                             </select>
                             <div class="color-box" data-input="av_intermedia_od"></div>
@@ -118,14 +108,14 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                             <select name="av_cerca_od" class="form-control agudeza-select">
                                 <option value=""></option>
                                 @foreach($valores as $valor)
-                                    <option value="{{ $valor }}" {{ old('av_cerca_od', $plantilla->av_cerca_od ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
+                                    <option value="{{ $valor }}">{{ $valor }}</option>
                                 @endforeach
                             </select>
                             <div class="color-box" data-input="av_cerca_od"></div>
                         </div>
                     </div>
 
-                    <label for="" class="SubTitle_op">AVSC</label>
+                    <label class="SubTitle_op">AVSC</label>
 
                     <div class="AgudezaVisual">
                         <label>Lejos OI</label>
@@ -133,7 +123,7 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                             <select name="av_lejos_oi" class="form-control agudeza-select">
                                 <option value=""></option>
                                 @foreach($valores as $valor)
-                                    <option value="{{ $valor }}" {{ old('av_lejos_oi', $plantilla->av_lejos_oi ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
+                                    <option value="{{ $valor }}">{{ $valor }}</option>
                                 @endforeach
                             </select>
                             <div class="color-box" data-input="av_lejos_oi"></div>
@@ -146,7 +136,7 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                             <select name="av_intermedia_oi" class="form-control agudeza-select">
                                 <option value=""></option>
                                 @foreach($valores as $valor)
-                                    <option value="{{ $valor }}" {{ old('av_intermedia_oi', $plantilla->av_intermedia_oi ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
+                                    <option value="{{ $valor }}">{{ $valor }}</option>
                                 @endforeach
                             </select>
                             <div class="color-box" data-input="av_intermedia_oi"></div>
@@ -159,21 +149,18 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                             <select name="av_cerca_oi" class="form-control agudeza-select">
                                 <option value=""></option>
                                 @foreach($valores as $valor)
-                                    <option value="{{ $valor }}" {{ old('av_cerca_oi', $plantilla->av_cerca_oi ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
+                                    <option value="{{ $valor }}">{{ $valor }}</option>
                                 @endforeach
                             </select>
                             <div class="color-box" data-input="av_cerca_oi"></div>
                         </div>
                     </div>
-                </div>
 
+                </div>
 
                 <div class="form-group">
                     <label>Observaciones optometría</label>
-                    <textarea name="observaciones_optometria" placeholder="Escribe observaciones relevantes...">{{ old('observaciones_optometria', $plantilla->observaciones_optometria ?? '') }}</textarea>
-                    @error('observaciones_optometria')
-                    <div class="alerta">{{ $message }}</div>
-                    @enderror
+                    <textarea name="observaciones_optometria">{{ old('observaciones_optometria', $plantilla->observaciones_optometria ?? '') }}</textarea>
                 </div>
 
                 <h3>Fórmula y lentes</h3>
@@ -182,45 +169,45 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                         <label>Tipo de lente</label>
                         <select name="tipo_lente" class="form-control">
                             <option value="">-- Selecciona tipo --</option>
-                            <option value="Monofocal" {{ old('tipo_lente', $plantilla->tipo_lente ?? '') == 'Monofocal' ? 'selected' : '' }}>Monofocal</option>
-                            <option value="Bifocal" {{ old('tipo_lente', $plantilla->tipo_lente ?? '') == 'Bifocal' ? 'selected' : '' }}>Bifocal</option>
-                            <option value="Progresivo" {{ old('tipo_lente', $plantilla->tipo_lente ?? '') == 'Progresivo' ? 'selected' : '' }}>Progresivo</option>
+                            <option value="Monofocal">Monofocal</option>
+                            <option value="Bifocal">Bifocal</option>
+                            <option value="Progresivo">Progresivo</option>
                         </select>
                     </div>
 
                     <div>
                         <label>Especificaciones del lente</label>
-                        <input type="text" name="especificaciones_lente" placeholder="Ej: Antirreflejo, transición, etc." value="{{ old('especificaciones_lente', $plantilla->especificaciones_lente ?? '') }}">
+                        <input type="text" name="especificaciones_lente">
                     </div>
 
                     <div>
                         <label>Vigencia de fórmula</label>
-                        <input type="date" name="vigencia_formula" value="{{ old('vigencia_formula', $plantilla->vigencia_formula ?? '') }}">
+                        <input type="date" name="vigencia_formula">
                     </div>
 
                     <div>
                         <label>Filtro</label>
                         <select name="filtro" class="form-control">
                             <option value="">-- Selecciona filtro --</option>
-                            <option value="Antirreflejo" {{ old('filtro', $plantilla->filtro ?? '') == 'Antirreflejo' ? 'selected' : '' }}>Antirreflejo</option>
-                            <option value="Luz azul" {{ old('filtro', $plantilla->filtro ?? '') == 'Luz azul' ? 'selected' : '' }}>Luz azul</option>
-                            <option value="Fotocromático" {{ old('filtro', $plantilla->filtro ?? '') == 'Fotocromático' ? 'selected' : '' }}>Fotocromático</option>
+                            <option value="Antirreflejo">Antirreflejo</option>
+                            <option value="Luz azul">Luz azul</option>
+                            <option value="Fotocromático">Fotocromático</option>
                         </select>
                     </div>
 
                     <div>
                         <label>Tiempo de formulación (meses)</label>
-                        <input type="number" min="0" name="tiempo_formulacion" value="{{ old('tiempo_formulacion', $plantilla->tiempo_formulacion ?? '') }}">
+                        <input type="number" min="0" name="tiempo_formulacion">
                     </div>
 
                     <div>
                         <label>Distancia pupilar (mm)</label>
-                        <input type="number" step="0.5" min="0" name="distancia_pupilar" value="{{ old('distancia_pupilar', $plantilla->distancia_pupilar ?? '') }}">
+                        <input type="number" step="0.5" min="0" name="distancia_pupilar">
                     </div>
 
                     <div>
                         <label>Cantidad de lentes</label>
-                        <input type="number" min="1" name="cantidad" value="{{ old('cantidad', $plantilla->cantidad ?? '') }}">
+                        <input type="number" min="1" name="cantidad">
                     </div>
                 </div>
                 
@@ -229,21 +216,21 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                     <label>Diagnóstico principal</label>
                     <select name="diagnostico_principal" class="form-control">
                         <option value="">-- Selecciona diagnóstico --</option>
-                        <option value="Miopía" {{ old('diagnostico_principal', $plantilla->diagnostico_principal ?? '') == 'Miopía' ? 'selected' : '' }}>Miopía</option>
-                        <option value="Hipermetropía" {{ old('diagnostico_principal', $plantilla->hipermetropia ?? '') == 'Hipermetropía' ? 'selected' : '' }}>Hipermetropía</option>
-                        <option value="Astigmatismo" {{ old('diagnostico_principal', $plantilla->astigmatismo ?? '') == 'Astigmatismo' ? 'selected' : '' }}>Astigmatismo</option>
-                        <option value="Presbicia" {{ old('diagnostico_principal', $plantilla->presbicia ?? '') == 'Presbicia' ? 'selected' : '' }}>Presbicia</option>
+                        <option value="Miopía">Miopía</option>
+                        <option value="Hipermetropía">Hipermetropía</option>
+                        <option value="Astigmatismo">Astigmatismo</option>
+                        <option value="Presbicia">Presbicia</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label>Otros diagnósticos</label>
-                    <textarea name="otros_diagnosticos" placeholder="Escribe otros diagnósticos relevantes...">{{ old('otros_diagnosticos', $plantilla->otros_diagnosticos ?? '') }}</textarea>
+                    <textarea name="otros_diagnosticos">{{ old('otros_diagnosticos', $plantilla->otros_diagnosticos ?? '') }}</textarea>
                 </div>
 
                 <div class="form-group">
                     <label>Datos adicionales</label>
-                    <textarea name="datos_adicionales" placeholder="Ejemplo: Antecedentes, notas del paciente...">{{ old('datos_adicionales', $plantilla->datos_adicionales ?? '') }}</textarea>
+                    <textarea name="datos_adicionales">{{ old('datos_adicionales', $plantilla->datos_adicionales ?? '') }}</textarea>
                 </div>
 
                 <div class="grid-2">
@@ -251,9 +238,9 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                         <label>Finalidad de la consulta</label>
                         <select name="finalidad_consulta" class="form-control">
                             <option value="">-- Selecciona --</option>
-                            <option value="Control" {{ old('finalidad_consulta', $plantilla->finalidad_consulta ?? '') == 'Control' ? 'selected' : '' }}>Control</option>
-                            <option value="Diagnóstico" {{ old('finalidad_consulta', $plantilla->finalidad_consulta ?? '') == 'Diagnóstico' ? 'selected' : '' }}>Diagnóstico</option>
-                            <option value="Formulación" {{ old('finalidad_consulta', $plantilla->finalidad_consulta ?? '') == 'Formulación' ? 'selected' : '' }}>Formulación</option>
+                            <option value="Control">Control</option>
+                            <option value="Diagnóstico">Diagnóstico</option>
+                            <option value="Formulación">Formulación</option>
                         </select>
                     </div>
 
@@ -261,62 +248,38 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                         <label>Causa / Motivo de atención</label>
                         <select name="causa_motivo_atencion" class="form-control">
                             <option value="">-- Selecciona --</option>
-                            <option value="Molestias visuales" {{ old('causa_motivo_atencion', $plantilla->causa_motivo_atencion ?? '') == 'Molestias visuales' ? 'selected' : '' }}>Molestias visuales</option>
-                            <option value="Control rutinario" {{ old('causa_motivo_atencion', $plantilla->causa_motivo_atencion ?? '') == 'Control rutinario' ? 'selected' : '' }}>Control rutinario</option>
-                            <option value="Cambio de fórmula" {{ old('causa_motivo_atencion', $plantilla->causa_motivo_atencion ?? '') == 'Cambio de fórmula' ? 'selected' : '' }}>Cambio de fórmula</option>
-                            <option value="Otros" {{ old('causa_motivo_atencion', $plantilla->causa_motivo_atencion ?? '') == 'Otros' ? 'selected' : '' }}>Otros</option>
+                            <option value="Molestias visuales">Molestias visuales</option>
+                            <option value="Control rutinario">Control rutinario</option>
+                            <option value="Cambio de fórmula">Cambio de fórmula</option>
+                            <option value="Otros">Otros</option>
                         </select>
                     </div>
                 </div>
             </div>
 
             <div id="catalogos-content" class="content-section hidden">
+
                 <div class="catalogo-section">
-                    <h3>Búsqueda de Catálogos</h3>
-                    <p class="catalogo-descripcion" style="text-align: center; color: #666; margin-bottom: 20px;">
-                        Maestro para listar diagnósticos, procedimientos y alergias
-                    </p>
-                    
-                    <div class="search-card">
-                        <div class="search-grid">
-                            <div class="search-item main-search" style="grid-column: span 3;">
-                                <label for="termino_busqueda_input">Término de Búsqueda</label>
-                                <input type="text" id="termino_busqueda_input" placeholder="Buscar por nombre...">
-                            </div>
-                            <div class="search-item button-container" style="grid-column: span 3; text-align: center; margin-top: 10px;">
-                                <button type="button" id="btnRealizarBusqueda" class="btn-buscar">
-                                    Buscar 🔍
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="results-header">
-                        Resultados
-                    </div>
-                    <ul id="resultados" class="results-list">
-                    </ul>
-
-                    <div class="results-header" style="margin-top: 20px;">
-                        Seleccionados
-                    </div>
-                    <div id="contenedorSeleccionados">
-                        @if(isset($plantilla) && !empty($plantilla->itemsCatalogo))
-                            @foreach($plantilla->itemsCatalogo as $itemGuardado)
-                            <div class="item-seleccionado">
-                                <input type="text" 
-                                       readonly 
-                                       value="{{ $itemGuardado->nombre }} {{ $itemGuardado->codigo ? '('.$itemGuardado->codigo.')' : '' }}">
-                                
-                                <input type="hidden" name="items_catalogo_ids[]" value="{{ $itemGuardado->id }}">
-                                <input type="hidden" name="items_catalogo_clases[]" value="{{ get_class($itemGuardado) }}">
-                                
-                                <button type="button" class="btn-remover" onclick="this.parentElement.remove()">×</button>
-                            </div>
-                            @endforeach
-                        @endif
-                    </div>
+                    <h3>Diagnósticos</h3>
+                    <input type="text" id="buscarDiagnosticos" placeholder="Buscar diagnósticos...">
+                    <ul id="resultDiagnosticos"></ul>
+                    <div id="selDiagnosticos"></div>
                 </div>
+
+                <div class="catalogo-section">
+                    <h3>Procedimientos</h3>
+                    <input type="text" id="buscarProcedimientos" placeholder="Buscar procedimientos...">
+                    <ul id="resultProcedimientos"></ul>
+                    <div id="selProcedimientos"></div>
+                </div>
+
+                <div class="catalogo-section">
+                    <h3>Alergias</h3>
+                    <input type="text" id="buscarAlergias" placeholder="Buscar alergias...">
+                    <ul id="resultAlergias"></ul>
+                    <div id="selAlergias"></div>
+                </div>
+
             </div>
 
             <div class="boton-guardar">
@@ -327,149 +290,131 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const colors = ["green", "blue", "red", "transparent"];
+document.addEventListener('DOMContentLoaded', function() {
 
-        document.querySelectorAll(".color-box").forEach(box => {
-            box.addEventListener("click", () => {
-                let current = box.dataset.colorIndex ? parseInt(box.dataset.colorIndex) : 0;
-                current = (current + 1) % colors.length;
-                box.dataset.colorIndex = current;
-
-                const newColor = colors[current];
-                box.style.backgroundColor = newColor;
-
-                const inputName = box.dataset.input;
-                const field = document.querySelector(`[name="${inputName}"]`);
-
-                if (field) {
-                    field.style.color = (newColor === "transparent") ? "black" : newColor;
-                    if (field.tagName.toLowerCase() === "select") {
-                        field.style.color = (newColor === "transparent") ? "black" : newColor;
-                    }
+    const colors=["green","blue","red","transparent"];
+    document.querySelectorAll(".color-box").forEach(box=>{
+        box.addEventListener("click",()=>{
+            let c=box.dataset.colorIndex?parseInt(box.dataset.colorIndex):0;
+            c=(c+1)%colors.length;
+            box.dataset.colorIndex=c;
+            const col=colors[c];
+            box.style.backgroundColor=col;
+            const input=box.dataset.input;
+            const field=document.querySelector(`[name="${input}"]`);
+            if(field){
+                field.style.color=(col==="transparent")?"black":col;
+                if(field.tagName.toLowerCase()==="select"){
+                    field.style.color=(col==="transparent")?"black":col;
                 }
-            });
+            }
+        });
+    });
+
+    const navButtons=document.querySelectorAll('.nav-button');
+    const sections=document.querySelectorAll('.content-section');
+    const active=document.querySelector('.nav-button.active');
+    if(active){
+        const t=document.getElementById(active.getAttribute('data-target'));
+        if(t) t.classList.remove('hidden');
+    }
+    navButtons.forEach(btn=>{
+        btn.addEventListener('click',function(){
+            const id=this.getAttribute('data-target');
+            sections.forEach(s=>s.classList.add('hidden'));
+            navButtons.forEach(b=>b.classList.remove('active'));
+            document.getElementById(id).classList.remove('hidden');
+            this.classList.add('active');
+        });
+    });
+
+    function buscador(inputId,ulId,selId,url,tipo){
+        const input=document.getElementById(inputId);
+        const ul=document.getElementById(ulId);
+        const sel=document.getElementById(selId);
+
+        input.addEventListener('keydown',e=>{
+            if(e.key==="Enter"){
+                e.preventDefault();
+                buscar();
+            }
         });
 
-        const navButtons = document.querySelectorAll('.nav-button');
-        const contentSections = document.querySelectorAll('.content-section');
-        
-        const initialActiveButton = document.querySelector('.nav-button.active');
-        if (initialActiveButton) {
-            const initialTarget = document.getElementById(initialActiveButton.getAttribute('data-target'));
-            if (initialTarget) {
-                initialTarget.classList.remove('hidden');
+        input.addEventListener('input',function(){
+            if(this.value.trim()===""){
+                ul.innerHTML="";
+            }
+        });
+
+        async function buscar(){
+            const t=input.value.trim();
+            if(!t) return;
+            ul.innerHTML='<li>Buscando...</li>';
+            try{
+                const r=await fetch(url+'?termino='+encodeURIComponent(t));
+                if(!r.ok) throw new Error();
+                const data=await r.json();
+                ul.innerHTML="";
+                if(!data.length){
+                    ul.innerHTML='<li>No se encontraron resultados.</li>';
+                    return;
+                }
+                data.forEach(item=>{
+                    const li=document.createElement('li');
+                    li.textContent=item.nombre+(item.codigo?(' ('+item.codigo+')'):'');
+                    li.style.cursor="pointer";
+                    li.onclick=()=>{
+                        const box=document.createElement('div');
+                        box.style.display='flex';
+                        box.style.gap='6px';
+                        box.style.margin='4px 0';
+
+                        const v=document.createElement('input');
+                        v.type='text';
+                        v.readOnly=true;
+                        v.style.flexGrow='1';
+                        v.value=item.nombre+(item.codigo?(' ('+item.codigo+')'):'');
+                        box.appendChild(v);
+
+                        const hid=document.createElement('input');
+                        hid.type='hidden';
+                        hid.name='items_ids[]';
+                        hid.value=item.id;
+                        box.appendChild(hid);
+
+                        const ht=document.createElement('input');
+                        ht.type='hidden';
+                        ht.name='items_tipos[]';
+                        ht.value=tipo;
+                        box.appendChild(ht);
+
+                        const rm=document.createElement('button');
+                        rm.type='button';
+                        rm.textContent='×';
+                        rm.style.width='28px';
+                        rm.style.background='#c00';
+                        rm.style.color='white';
+                        rm.onclick=()=>box.remove();
+                        box.appendChild(rm);
+
+                        sel.appendChild(box);
+                    };
+                    ul.appendChild(li);
+                });
+            }catch(e){
+                ul.innerHTML='<li>Error al buscar. Intente nuevamente.</li>';
             }
         }
 
-        navButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const targetId = this.getAttribute('data-target');
-                
-                contentSections.forEach(section => section.classList.add('hidden'));
-                navButtons.forEach(btn => btn.classList.remove('active'));
-                
-                document.getElementById(targetId).classList.remove('hidden');
-                this.classList.add('active');
-            });
-        });
+        input.addEventListener('change',buscar);
+    }
 
-        const terminoInput = document.getElementById('termino_busqueda_input');
-        if (terminoInput) {
-            terminoInput.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    document.getElementById('btnRealizarBusqueda').click();
-                }
-            });
-        }
+    buscador('buscarDiagnosticos','resultDiagnosticos','selDiagnosticos','{{ route("catalogos.buscarDiagnosticos") }}','diagnostico');
+    buscador('buscarProcedimientos','resultProcedimientos','selProcedimientos','{{ route("catalogos.buscarProcedimientos") }}','procedimiento');
+    buscador('buscarAlergias','resultAlergias','selAlergias','{{ route("catalogos.buscarAlergias") }}','alergia');
 
-        const btnBuscar = document.getElementById('btnRealizarBusqueda');
-        const lista = document.getElementById('resultados');
-        const contenedorSeleccionados = document.getElementById('contenedorSeleccionados');
-
-        if (btnBuscar) {
-            btnBuscar.addEventListener('click', async function() {
-                const termino = terminoInput ? terminoInput.value.trim() : '';
-                
-                if (!termino) return;
-
-                lista.innerHTML = '<li class="msg-loading">Buscando...</li>';
-
-                try {
-                    const response = await fetch(`{{ route('catalogos.buscar') }}?termino=${encodeURIComponent(termino)}`, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    
-                    if (!response.ok) throw new Error('Error en la respuesta');
-                    
-                    const data = await response.json();
-                    
-                    lista.innerHTML = '';
-                    if (!Array.isArray(data) || data.length === 0) {
-                        lista.innerHTML = '<li class="msg-vacio">No se encontraron resultados.</li>';
-                        return;
-                    }
-                    
-                    data.forEach(function(item) {
-                        const li = document.createElement('li');
-                        li.classList.add('list-item');
-                        
-                        const tipo = item.tipo_label ? `<span style="color:#0d6efd;">[${item.tipo_label}]</span> ` : '';
-                        const texto = `${tipo}<strong>${item.nombre}</strong>` + (item.codigo ? ` <span style="color:#888;">(${item.codigo})</span>` : '');
-                        
-                        li.innerHTML = `
-                            <div class="item-info">
-                                ${texto}
-                            </div>
-                            <button type="button" class="btn-agregar">Agregar</button>
-                        `;
-
-                        li.querySelector('.btn-agregar').addEventListener('click', () => {
-                            const wrapper = document.createElement('div');
-                            wrapper.className = 'item-seleccionado';
-
-                            const inputVisual = document.createElement('input');
-                            inputVisual.type = 'text';
-                            inputVisual.readOnly = true;
-                            inputVisual.value = item.nombre + (item.codigo ? ` (${item.codigo})` : '');
-                            
-                            const inputId = document.createElement('input');
-                            inputId.type = 'hidden';
-                            inputId.name = 'items_catalogo_ids[]'; 
-                            inputId.value = item.id;
-
-                            const inputClase = document.createElement('input');
-                            inputClase.type = 'hidden';
-                            inputClase.name = 'items_catalogo_clases[]';
-                            inputClase.value = item.clase;
-
-                            const btnRemove = document.createElement('button');
-                            btnRemove.type = 'button';
-                            btnRemove.className = 'btn-remover';
-                            btnRemove.innerText = '×';
-                            btnRemove.onclick = function() { wrapper.remove(); };
-
-                            wrapper.appendChild(inputVisual);
-                            wrapper.appendChild(inputId);
-                            wrapper.appendChild(inputClase);
-                            wrapper.appendChild(btnRemove);
-                            
-                            contenedorSeleccionados.appendChild(wrapper);
-                        });
-
-                        lista.appendChild(li);
-                    });
-                } catch (err) {
-                    lista.innerHTML = '<li class="msg-error">Error al buscar. Intente nuevamente.</li>';
-                }
-            });
-        }
-    });
+});
 </script>
-
 <style>
     .optometria-scope .container-custom {
         max-width: 950px;

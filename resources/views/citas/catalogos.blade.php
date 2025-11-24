@@ -30,37 +30,51 @@
     <div class="seleccionados">
       <h6>Elementos Seleccionados</h6>
       <div id="contenedorData">
-        <input type="hidden" id="paciente_id_val" name="paciente_id"value="{{ $paciente->id ?? ($historia->paciente_id ?? '') }}">
-        <input type="hidden" id="historia_id_val" name="historia_id"value="{{ $historia->id ?? '' }}">
+        <input type="hidden" id="paciente_id_val" name="paciente_id" value="{{ $paciente->id ?? ($historia->paciente_id ?? '') }}">
+        <input type="hidden" id="historia_id_val" name="historia_id" value="{{ $historia->id ?? '' }}">
+
         <div id="contenedorSeleccionados">
-          @if(isset($historia))
-          @if($historia->diagnostico)
-          <div class="item-seleccionado">
-            <input type="text" readonly value="[Diagnóstico] {{ $historia->diagnostico->nombre }}">
-            <input type="hidden" name="items_ids[]" value="{{ $historia->diagnostico->id }}">
-            <input type="hidden" name="items_tipos[]" value="diagnostico">
-            <button type="button" class="btn-remover" onclick="this.parentElement.remove(); actualizarEstadoBusqueda();">×</button>
+
+          <h6 style="margin-top:10px; color:#6610f2;">Diagnósticos</h6>
+          <div id="section-diagnosticos">
+            @if(isset($historia) && $historia->diagnostico)
+            <div class="item-seleccionado">
+              <input type="text" readonly value="[Diagnóstico] {{ $historia->diagnostico->nombre }}">
+              <input type="hidden" name="items_ids[]" value="{{ $historia->diagnostico->id }}">
+              <input type="hidden" name="items_tipos[]" value="diagnostico">
+              <button type="button" class="btn-remover" onclick="this.parentElement.remove(); actualizarEstadoBusqueda();">×</button>
+            </div>
+            @endif
           </div>
-          @endif
-          @foreach($historia->procedimientos as $proc)
-          <div class="item-seleccionado">
-            <input type="text" readonly value="[Procedimiento] {{ $proc->nombre }}">
-            <input type="hidden" name="items_ids[]" value="{{ $proc->id }}">
-            <input type="hidden" name="items_tipos[]" value="procedimiento">
-            <button type="button" class="btn-remover" onclick="this.parentElement.remove(); actualizarEstadoBusqueda();">×</button>
+
+          <h6 style="margin-top:15px; color:#0d6efd;">Procedimientos</h6>
+          <div id="section-procedimientos">
+            @if(isset($historia))
+            @foreach($historia->procedimientos as $proc)
+            <div class="item-seleccionado">
+              <input type="text" readonly value="[Procedimiento] {{ $proc->nombre }}">
+              <input type="hidden" name="items_ids[]" value="{{ $proc->id }}">
+              <input type="hidden" name="items_tipos[]" value="procedimiento">
+              <button type="button" class="btn-remover" onclick="this.parentElement.remove(); actualizarEstadoBusqueda();">×</button>
+            </div>
+            @endforeach
+            @endif
           </div>
-          @endforeach
-          @endif
-          @if(isset($paciente) && $paciente->alergias)
-          @foreach($paciente->alergias as $alergia)
-          <div class="item-seleccionado">
-            <input type="text" readonly value="[Alergia] {{ $alergia->nombre }}">
-            <input type="hidden" name="items_ids[]" value="{{ $alergia->id }}">
-            <input type="hidden" name="items_tipos[]" value="alergia">
-            <button type="button" class="btn-remover" onclick="this.parentElement.remove(); actualizarEstadoBusqueda();">×</button>
+
+          <h6 style="margin-top:15px; color:#198754;">Alergias</h6>
+          <div id="section-alergias">
+            @if(isset($paciente) && $paciente->alergias)
+            @foreach($paciente->alergias as $alergia)
+            <div class="item-seleccionado">
+              <input type="text" readonly value="[Alergia] {{ $alergia->nombre }}">
+              <input type="hidden" name="items_ids[]" value="{{ $alergia->id }}">
+              <input type="hidden" name="items_tipos[]" value="alergia">
+              <button type="button" class="btn-remover" onclick="this.parentElement.remove(); actualizarEstadoBusqueda();">×</button>
+            </div>
+            @endforeach
+            @endif
           </div>
-          @endforeach
-          @endif
+
         </div>
       </div>
     </div>
@@ -154,6 +168,11 @@
             }
           }
 
+          let destino = null;
+          if (item.tipo === 'diagnostico') destino = document.getElementById('section-diagnosticos');
+          if (item.tipo === 'procedimiento') destino = document.getElementById('section-procedimientos');
+          if (item.tipo === 'alergia') destino = document.getElementById('section-alergias');
+
           const wrapper = document.createElement('div');
           wrapper.className = 'item-seleccionado';
 
@@ -186,7 +205,7 @@
           wrapper.appendChild(inputTipo);
           wrapper.appendChild(btnRemove);
 
-          contenedorSeleccionados.appendChild(wrapper);
+          destino.appendChild(wrapper);
 
           btnAgregar.innerText = 'Agregado';
           btnAgregar.disabled = true;
@@ -250,7 +269,6 @@
   });
 </script>
 
-
 <style>
   .catalogo-container {
     display: flex;
@@ -259,46 +277,40 @@
     background-color: #f4f6f9;
     height: auto;
   }
-
   .catalogo-card {
     background: #fff;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     padding: 20px;
     width: 100%;
     max-width: 100%;
     display: flex;
     flex-direction: column;
   }
-
   .catalogo-titulo {
     color: #0d6efd;
     font-weight: 700;
     margin-bottom: 10px;
     text-align: center;
   }
-
   .catalogo-descripcion {
     text-align: center;
     color: #555;
     margin-bottom: 20px;
     font-size: 0.9rem;
   }
-
   .catalogo-form {
     display: flex;
     flex-direction: column;
     gap: 10px;
     margin-bottom: 15px;
   }
-
   .catalogo-form input {
     border: 1px solid #ccc;
     border-radius: 8px;
     padding: 10px;
     width: 100%;
   }
-
   .catalogo-form button {
     background-color: #0d6efd;
     color: #fff;
@@ -308,12 +320,10 @@
     cursor: pointer;
     font-weight: 600;
   }
-
   .catalogo-form button:disabled {
     background-color: #6c757d;
     cursor: not-allowed;
   }
-
   .resultados {
     max-height: 200px;
     overflow-y: auto;
@@ -322,13 +332,11 @@
     border-radius: 8px;
     padding: 5px;
   }
-
   .resultados ul {
     list-style: none;
     padding: 0;
     margin: 0;
   }
-
   .resultados li {
     padding: 8px;
     border-bottom: 1px solid #eee;
@@ -336,7 +344,6 @@
     justify-content: space-between;
     align-items: center;
   }
-
   .seleccionados {
     border-top: 2px solid #f0f0f0;
     padding-top: 15px;
@@ -344,13 +351,11 @@
     max-height: 150px;
     overflow-y: auto;
   }
-
   .item-seleccionado {
     display: flex;
     gap: 5px;
     margin-bottom: 5px;
   }
-
   .item-seleccionado input[type="text"] {
     flex-grow: 1;
     background: #e9ecef;
@@ -359,7 +364,6 @@
     border-radius: 4px;
     color: #333;
   }
-
   .btn-remover {
     background-color: #dc3545;
     color: white;
@@ -369,7 +373,6 @@
     cursor: pointer;
     font-weight: bold;
   }
-
   .agregar-btn {
     background-color: #198754;
     color: white;
@@ -379,13 +382,11 @@
     cursor: pointer;
     font-size: 0.85rem;
   }
-
   .footer-acciones {
     margin-top: auto;
     padding-top: 10px;
     border-top: 1px solid #eee;
   }
-
   .btn-guardar {
     background-color: #0d6efd;
     color: #fff;
@@ -397,11 +398,9 @@
     cursor: pointer;
     display: block;
   }
-
   .btn-guardar:hover {
     background-color: #0b5ed7;
   }
-
   .btn-guardar:disabled {
     background-color: #6c757d;
     cursor: not-allowed;

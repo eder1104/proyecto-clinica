@@ -9,7 +9,7 @@ class DoctorParcialidad extends Model
 {
     use HasFactory;
 
-    protected $table = 'plantillas_horario';
+    protected $table = 'doctor_parcialidades';
 
     protected $fillable = [
         'doctor_id',
