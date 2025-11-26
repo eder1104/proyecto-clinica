@@ -18,7 +18,6 @@ class CitaRequest extends FormRequest
         return [
             'fecha' => ['sometimes', 'required', 'date', 'after_or_equal:' . now()->toDateString()],
             'hora_inicio' => ['sometimes', 'required', 'date_format:H:i'],
-            'hora_fin' => ['sometimes', 'required', 'date_format:H:i', 'after:hora_inicio'],
             'motivo_consulta' => ['sometimes', 'required', 'string', 'min:3', 'max:255', 'not_regex:/^\s*$/'],
             'paciente_id' => ['sometimes', 'required', 'integer', 'exists:pacientes,id'],
             

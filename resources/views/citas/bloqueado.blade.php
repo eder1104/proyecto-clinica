@@ -17,21 +17,29 @@
         <div class="form-section">
             <h2>Añadir Bloqueo</h2>
             <div class="range-group">
+                @php
+                    $inicio = strtotime("08:00");
+                    $fin = strtotime("18:00");
+                    $intervalo = 20 * 60; 
+                @endphp
+
                 <div>
                     <label for="hora_inicio">Hora Inicio</label>
-                    <select id="hora_inicio" name="hora_inicio" required>
-                        @for ($i = 0; $i < 24; $i++)
-                            <option value="{{ sprintf('%02d:00', $i) }}">{{ date("g:i A", strtotime("$i:00")) }}</option>
+                    <select id="hora_inicio" name="hora_inicio" required style="max-height: 200px; overflow-y: auto;">
+                        @for ($t = $inicio; $t < $fin; $t += $intervalo)
+                            <option value="{{ date('H:i', $t) }}">
+                            {{ date('g:i A', $t) }}
+                            </option>
                         @endfor
                     </select>
                 </div>
 
                 <div>
                     <label for="hora_fin">Hora Fin</label>
-                    <select id="hora_fin" name="hora_fin" required>
-                        @for ($i = 1; $i <= 24; $i++)
-                            <option value="{{ sprintf('%02d:00', $i == 24 ? 0 : $i) }}" @if ($i==1) selected @endif>
-                                {{ date("g:i A", strtotime("$i:00")) }}
+                    <select id="hora_fin" name="hora_fin" required style="max-height: 200px; overflow-y: auto;">
+                        @for ($t = $inicio + $intervalo; $t <= $fin; $t += $intervalo)
+                            <option value="{{ date('H:i', $t) }}">
+                            {{ date('g:i A', $t) }}
                             </option>
                         @endfor
                     </select>
@@ -117,7 +125,7 @@
         align-items: flex-end;
     }
 
-    .range-group > div {
+    .range-group>div {
         flex: 1;
     }
 

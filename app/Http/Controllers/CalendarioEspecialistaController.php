@@ -43,13 +43,21 @@ class CalendarioEspecialistaController extends Controller
             ->pluck('id', 'fecha')
             ->toArray();
 
+        $bloqueosGuardados = BloqueoAgenda::where('doctor_id', $doctor_table_id)
+            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->pluck('id', 'fecha')
+            ->toArray();
+
         $diasMes = (int)date('t', strtotime($fechaInicio));
         $dias = [];
 
         for ($d = 1; $d <= $diasMes; $d++) {
             $fecha = sprintf('%s-%02d', $mes, $d);
+            
             if (isset($parcialidadesGuardadas[$fecha])) {
                 $dias[$fecha] = 'Parcial';
+            } elseif (isset($bloqueosGuardados[$fecha])) {
+                $dias[$fecha] = 'Bloqueado';
             } else {
                 $dias[$fecha] = $disponibilidadGuardada[$fecha] ?? 'Disponible';
             }
@@ -68,6 +76,8 @@ class CalendarioEspecialistaController extends Controller
 
         $doctorProfile = Doctores::where('user_id', $validated['doctor_id'])->first();
         if (!$doctorProfile) return response()->json(['success' => false], 404);
+        
+        $usuarioId = Auth::id();
 
         if ($validated['estado'] === 'Bloqueado') {
             return redirect()->route('citas.bloqueado', [
@@ -77,19 +87,25 @@ class CalendarioEspecialistaController extends Controller
         }
 
         if ($validated['estado'] === 'Parcial') {
+            
+            $observacion = "Cambio de disponibilidad manual a Parcial para la fecha {$validated['fecha']}.";
+            
             CalendarioDisponibilidad::updateOrCreate(
                 ['doctor_id' => $doctorProfile->id, 'fecha' => $validated['fecha']],
                 ['estado' => 'Disponible']
             );
 
-            DoctorParcialidad::updateOrCreate(
+            $parcialidad = DoctorParcialidad::updateOrCreate(
                 ['doctor_id' => $doctorProfile->id, 'fecha' => $validated['fecha']],
                 []
             );
-
+            
             BloqueoAgenda::where('fecha', $validated['fecha'])
-                ->where('creado_por', $validated['doctor_id'])
+                ->where('doctor_id', $doctorProfile->id)
                 ->delete();
+
+            $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
+            $bitacoraId = BitacoraAuditoriaController::registrar($usuarioId, 'agenda', 'creacion/edicion parcial', $parcialidad->getKey(), $datosBitacora);
 
             return response()->json(['success' => true]);
         }
@@ -99,7 +115,8 @@ class CalendarioEspecialistaController extends Controller
             'fecha' => $validated['fecha']
         ]);
 
-        $estadoAnterior = $disponibilidad->exists ? $disponibilidad->estado : null;
+        $estadoAnterior = $disponibilidad->exists ? $disponibilidad->estado : 'No registrado';
+        $observacion = "Cambio de estado de '{$estadoAnterior}' a '{$validated['estado']}' para la fecha {$validated['fecha']}.";
 
         $disponibilidad->estado = $validated['estado'];
         $disponibilidad->save();
@@ -109,10 +126,12 @@ class CalendarioEspecialistaController extends Controller
             ->delete();
 
         BloqueoAgenda::where('fecha', $validated['fecha'])
-            ->where('creado_por', $validated['doctor_id'])
+            ->where('doctor_id', $doctorProfile->id)
             ->delete();
 
-        $bitacoraId = BitacoraAuditoriaController::registrar(Auth::id(), 'agenda', 'editar', $disponibilidad->getKey(), $validated);
+        $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
+        $bitacoraId = BitacoraAuditoriaController::registrar(Auth::id(), 'agenda', 'editar estado', $disponibilidad->getKey(), $datosBitacora);
+        
         BitacoraAuditoriaController::registrarCambio($bitacoraId, $disponibilidad->getKey(), ['estado' => $estadoAnterior], ['estado' => $validated['estado']]);
 
         return response()->json(['success' => true]);
@@ -148,6 +167,9 @@ class CalendarioEspecialistaController extends Controller
         ]);
 
         $doctorProfile = Doctores::where('user_id', $data['doctor_id'])->firstOrFail();
+        $usuarioId = Auth::id();
+        $motivo = $data['motivo'] ?? 'No especificado';
+        $observacion = "Bloqueo de agenda creado por {$doctorProfile->user->nombres} {$doctorProfile->user->apellidos} para la fecha {$data['fecha']} de {$data['hora_inicio']} a {$data['hora_fin']}. Motivo: {$motivo}.";
 
         CalendarioDisponibilidad::updateOrCreate(
             ['doctor_id' => $doctorProfile->id, 'fecha' => $data['fecha']],
@@ -158,14 +180,17 @@ class CalendarioEspecialistaController extends Controller
             ->where('fecha', $data['fecha'])
             ->delete();
 
-        BloqueoAgenda::create([
+        $bloqueo = BloqueoAgenda::create([
             'doctor_id' => $doctorProfile->id,
             'fecha' => $data['fecha'],
             'hora_inicio' => $data['hora_inicio'],
             'hora_fin' => $data['hora_fin'],
-            'creado_por' => $data['doctor_id'],
-            'motivo' => $data['motivo'] ?? null
+            'creado_por' => $data['doctor_id'], 
+            'motivo' => $motivo
         ]);
+
+        $datosBitacora = array_merge($data, ['observacion' => $observacion]);
+        $bitacoraId = BitacoraAuditoriaController::registrar($usuarioId, 'agenda', 'bloqueo creado', $bloqueo->getKey(), $datosBitacora);
 
         return back()->with('success', 'Bloqueo registrado');
     }

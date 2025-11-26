@@ -1,3 +1,6 @@
+@extends('layouts.app')
+
+@section('title', 'Consulta de Optometría')
 @php
 use Illuminate\Support\Facades\Auth;
 
@@ -19,17 +22,22 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
 }
 @endphp
 
-@extends('layouts.app')
-
-@section('title', 'Consulta de Optometría')
-
 @section('content')
+
+@include('components.alertas')
+
 <div class="optometria-scope">
     <div class="container-custom">
         <h2 class="titulo">Plantilla de Consulta de Optometría</h2>
 
-        <form id="optometriaForm" action="{{ route('optometria.store', ['cita' => $cita->id]) }}" method="POST">
+        <form id="optometriaForm" action="{{ isset($plantilla) ? route('optometria.update', ['cita' => $cita->id]) : route('optometria.store', ['cita' => $cita->id]) }}" method="POST">
             @csrf
+            @if(isset($plantilla))
+                @method('PUT')
+            @endif
+
+            <input type="hidden" name="paciente_id" value="{{ $cita->paciente->id ?? ($historia->paciente_id ?? '') }}">
+            <input type="hidden" name="historia_id" value="{{ $historia->id ?? '' }}">
 
             <div class="nav-simple">
                 <button type="button" class="nav-button active" data-target="consulta-content">Consulta</button>
@@ -59,30 +67,38 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                 <div class="form-group">
                     <label>Anamnesis</label>
                     <textarea name="anamnesis">{{ old('anamnesis', $plantilla->anamnesis ?? '') }}</textarea>
+                    @error('anamnesis')
+                    <div class="alerta">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="grid-2">
                     <div>
                         <label>Alternativa deseada</label>
                         <input type="text" name="alternativa_deseada" value="{{ old('alternativa_deseada', $plantilla->alternativa_deseada ?? '') }}">
+                        @error('alternativa_deseada')
+                        <div class="alerta">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div>
                         <label>Dominancia ocular</label>
                         <input type="text" name="dominancia_ocular" value="{{ old('dominancia_ocular', $plantilla->dominancia_ocular ?? '') }}">
+                        @error('dominancia_ocular')
+                        <div class="alerta">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
 
                 <h3>Agudeza Visual (AVSC)</h3>
-                
-                <div class="SelectAgudeza">
 
+                <div class="SelectAgudeza">
                     <div class="AgudezaVisual">
                         <label>Lejos OD</label>
                         <div class="Box_Agudeza">
                             <select name="av_lejos_od" class="form-control agudeza-select">
                                 <option value=""></option>
                                 @foreach($valores as $valor)
-                                    <option value="{{ $valor }}">{{ $valor }}</option>
+                                <option value="{{ $valor }}" {{ old('av_lejos_od', $plantilla->av_lejos_od ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
                                 @endforeach
                             </select>
                             <div class="color-box" data-input="av_lejos_od"></div>
@@ -95,7 +111,7 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                             <select name="av_intermedia_od" class="form-control agudeza-select">
                                 <option value=""></option>
                                 @foreach($valores as $valor)
-                                    <option value="{{ $valor }}">{{ $valor }}</option>
+                                <option value="{{ $valor }}" {{ old('av_intermedia_od', $plantilla->av_intermedia_od ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
                                 @endforeach
                             </select>
                             <div class="color-box" data-input="av_intermedia_od"></div>
@@ -108,7 +124,7 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                             <select name="av_cerca_od" class="form-control agudeza-select">
                                 <option value=""></option>
                                 @foreach($valores as $valor)
-                                    <option value="{{ $valor }}">{{ $valor }}</option>
+                                <option value="{{ $valor }}" {{ old('av_cerca_od', $plantilla->av_cerca_od ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
                                 @endforeach
                             </select>
                             <div class="color-box" data-input="av_cerca_od"></div>
@@ -123,7 +139,7 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                             <select name="av_lejos_oi" class="form-control agudeza-select">
                                 <option value=""></option>
                                 @foreach($valores as $valor)
-                                    <option value="{{ $valor }}">{{ $valor }}</option>
+                                <option value="{{ $valor }}" {{ old('av_lejos_oi', $plantilla->av_lejos_oi ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
                                 @endforeach
                             </select>
                             <div class="color-box" data-input="av_lejos_oi"></div>
@@ -136,7 +152,7 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                             <select name="av_intermedia_oi" class="form-control agudeza-select">
                                 <option value=""></option>
                                 @foreach($valores as $valor)
-                                    <option value="{{ $valor }}">{{ $valor }}</option>
+                                <option value="{{ $valor }}" {{ old('av_intermedia_oi', $plantilla->av_intermedia_oi ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
                                 @endforeach
                             </select>
                             <div class="color-box" data-input="av_intermedia_oi"></div>
@@ -149,18 +165,20 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                             <select name="av_cerca_oi" class="form-control agudeza-select">
                                 <option value=""></option>
                                 @foreach($valores as $valor)
-                                    <option value="{{ $valor }}">{{ $valor }}</option>
+                                <option value="{{ $valor }}" {{ old('av_cerca_oi', $plantilla->av_cerca_oi ?? '') == $valor ? 'selected' : '' }}>{{ $valor }}</option>
                                 @endforeach
                             </select>
                             <div class="color-box" data-input="av_cerca_oi"></div>
                         </div>
                     </div>
-
                 </div>
 
                 <div class="form-group">
                     <label>Observaciones optometría</label>
                     <textarea name="observaciones_optometria">{{ old('observaciones_optometria', $plantilla->observaciones_optometria ?? '') }}</textarea>
+                    @error('observaciones_optometria')
+                    <div class="alerta">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <h3>Fórmula y lentes</h3>
@@ -169,68 +187,68 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                         <label>Tipo de lente</label>
                         <select name="tipo_lente" class="form-control">
                             <option value="">-- Selecciona tipo --</option>
-                            <option value="Monofocal">Monofocal</option>
-                            <option value="Bifocal">Bifocal</option>
-                            <option value="Progresivo">Progresivo</option>
+                            <option value="Monofocal" {{ old('tipo_lente', $plantilla->tipo_lente ?? '') == 'Monofocal' ? 'selected' : '' }}>Monofocal</option>
+                            <option value="Bifocal" {{ old('tipo_lente', $plantilla->tipo_lente ?? '') == 'Bifocal' ? 'selected' : '' }}>Bifocal</option>
+                            <option value="Progresivo" {{ old('tipo_lente', $plantilla->tipo_lente ?? '') == 'Progresivo' ? 'selected' : '' }}>Progresivo</option>
                         </select>
                     </div>
 
                     <div>
                         <label>Especificaciones del lente</label>
-                        <input type="text" name="especificaciones_lente">
+                        <input type="text" name="especificaciones_lente" value="{{ old('especificaciones_lente', $plantilla->especificaciones_lente ?? '') }}">
                     </div>
 
                     <div>
                         <label>Vigencia de fórmula</label>
-                        <input type="date" name="vigencia_formula">
+                        <input type="date" name="vigencia_formula" value="{{ old('vigencia_formula', $plantilla->vigencia_formula ?? '') }}">
                     </div>
 
                     <div>
                         <label>Filtro</label>
                         <select name="filtro" class="form-control">
                             <option value="">-- Selecciona filtro --</option>
-                            <option value="Antirreflejo">Antirreflejo</option>
-                            <option value="Luz azul">Luz azul</option>
-                            <option value="Fotocromático">Fotocromático</option>
+                            <option value="Antirreflejo" {{ old('filtro', $plantilla->filtro ?? '') == 'Antirreflejo' ? 'selected' : '' }}>Antirreflejo</option>
+                            <option value="Luz azul" {{ old('filtro', $plantilla->filtro ?? '') == 'Luz azul' ? 'selected' : '' }}>Luz azul</option>
+                            <option value="Fotocromático" {{ old('filtro', $plantilla->filtro ?? '') == 'Fotocromático' ? 'selected' : '' }}>Fotocromático</option>
                         </select>
                     </div>
 
                     <div>
                         <label>Tiempo de formulación (meses)</label>
-                        <input type="number" min="0" name="tiempo_formulacion">
+                        <input type="number" min="0" name="tiempo_formulacion" value="{{ old('tiempo_formulacion', $plantilla->tiempo_formulacion ?? '') }}">
                     </div>
 
                     <div>
                         <label>Distancia pupilar (mm)</label>
-                        <input type="number" step="0.5" min="0" name="distancia_pupilar">
+                        <input type="number" step="0.5" min="0" name="distancia_pupilar" value="{{ old('distancia_pupilar', $plantilla->distancia_pupilar ?? '') }}">
                     </div>
 
                     <div>
                         <label>Cantidad de lentes</label>
-                        <input type="number" min="1" name="cantidad">
+                        <input type="number" min="1" name="cantidad" value="{{ old('cantidad', $plantilla->cantidad ?? '') }}">
                     </div>
                 </div>
-                
-                <h3>Diagnósticos</h3>
+
+                <h3>Medicamentos y Datos</h3>
                 <div class="form-group">
-                    <label>Diagnóstico principal</label>
-                    <select name="diagnostico_principal" class="form-control">
-                        <option value="">-- Selecciona diagnóstico --</option>
-                        <option value="Miopía">Miopía</option>
-                        <option value="Hipermetropía">Hipermetropía</option>
-                        <option value="Astigmatismo">Astigmatismo</option>
-                        <option value="Presbicia">Presbicia</option>
+                    <label>Medicamento principal</label>
+                    <select name="medicamento_principal" class="form-control">
+                        <option value="">-- Selecciona medicamento --</option>
+                        <option value="Acetaminofén" {{ old('medicamento_principal', $plantilla->medicamento_principal ?? '') == 'Acetaminofén' ? 'selected' : '' }}>Acetaminofén</option>
+                        <option value="Ibuprofeno" {{ old('medicamento_principal', $plantilla->medicamento_principal ?? '') == 'Ibuprofeno' ? 'selected' : '' }}>Ibuprofeno</option>
+                        <option value="Diclofenaco" {{ old('medicamento_principal', $plantilla->medicamento_principal ?? '') == 'Diclofenaco' ? 'selected' : '' }}>Diclofenaco</option>
+                        <option value="Amoxicilina" {{ old('medicamento_principal', $plantilla->medicamento_principal ?? '') == 'Amoxicilina' ? 'selected' : '' }}>Amoxicilina</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label>Otros diagnósticos</label>
-                    <textarea name="otros_diagnosticos">{{ old('otros_diagnosticos', $plantilla->otros_diagnosticos ?? '') }}</textarea>
+                    <label>Otros medicamentos</label>
+                    <textarea name="otros_medicamentos" placeholder="Escribe otros medicamentos...">{{ old('otros_medicamentos', $plantilla->otros_medicamentos ?? '') }}</textarea>
                 </div>
 
                 <div class="form-group">
-                    <label>Datos adicionales</label>
-                    <textarea name="datos_adicionales">{{ old('datos_adicionales', $plantilla->datos_adicionales ?? '') }}</textarea>
+                    <label>Notas del medicamento</label>
+                    <textarea name="notas_medicamento" placeholder="Ejemplo: dosis, frecuencia, vía de administración...">{{ old('notas_medicamento', $plantilla->notas_medicamento ?? '') }}</textarea>
                 </div>
 
                 <div class="grid-2">
@@ -238,9 +256,9 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                         <label>Finalidad de la consulta</label>
                         <select name="finalidad_consulta" class="form-control">
                             <option value="">-- Selecciona --</option>
-                            <option value="Control">Control</option>
-                            <option value="Diagnóstico">Diagnóstico</option>
-                            <option value="Formulación">Formulación</option>
+                            <option value="Control" {{ old('finalidad_consulta', $plantilla->finalidad_consulta ?? '') == 'Control' ? 'selected' : '' }}>Control</option>
+                            <option value="Diagnóstico" {{ old('finalidad_consulta', $plantilla->finalidad_consulta ?? '') == 'Diagnóstico' ? 'selected' : '' }}>Diagnóstico</option>
+                            <option value="Formulación" {{ old('finalidad_consulta', $plantilla->finalidad_consulta ?? '') == 'Formulación' ? 'selected' : '' }}>Formulación</option>
                         </select>
                     </div>
 
@@ -248,38 +266,99 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
                         <label>Causa / Motivo de atención</label>
                         <select name="causa_motivo_atencion" class="form-control">
                             <option value="">-- Selecciona --</option>
-                            <option value="Molestias visuales">Molestias visuales</option>
-                            <option value="Control rutinario">Control rutinario</option>
-                            <option value="Cambio de fórmula">Cambio de fórmula</option>
-                            <option value="Otros">Otros</option>
+                            <option value="Molestias visuales" {{ old('causa_motivo_atencion', $plantilla->causa_motivo_atencion ?? '') == 'Molestias visuales' ? 'selected' : '' }}>Molestias visuales</option>
+                            <option value="Control rutinario" {{ old('causa_motivo_atencion', $plantilla->causa_motivo_atencion ?? '') == 'Control rutinario' ? 'selected' : '' }}>Control rutinario</option>
+                            <option value="Cambio de fórmula" {{ old('causa_motivo_atencion', $plantilla->causa_motivo_atencion ?? '') == 'Cambio de fórmula' ? 'selected' : '' }}>Cambio de fórmula</option>
+                            <option value="Otros" {{ old('causa_motivo_atencion', $plantilla->causa_motivo_atencion ?? '') == 'Otros' ? 'selected' : '' }}>Otros</option>
                         </select>
                     </div>
                 </div>
             </div>
 
             <div id="catalogos-content" class="content-section hidden">
-
                 <div class="catalogo-section">
-                    <h3>Diagnósticos</h3>
-                    <input type="text" id="buscarDiagnosticos" placeholder="Buscar diagnósticos...">
-                    <ul id="resultDiagnosticos"></ul>
-                    <div id="selDiagnosticos"></div>
-                </div>
+                    <h3>Búsqueda de Catálogos</h3>
+                    <p class="catalogo-descripcion" style="text-align: center; color: #666; margin-bottom: 20px;">
+                        Maestro para listar diagnósticos, procedimientos y alergias
+                    </p>
 
-                <div class="catalogo-section">
-                    <h3>Procedimientos</h3>
-                    <input type="text" id="buscarProcedimientos" placeholder="Buscar procedimientos...">
-                    <ul id="resultProcedimientos"></ul>
-                    <div id="selProcedimientos"></div>
-                </div>
+                    <div id="js-error-container"></div>
 
-                <div class="catalogo-section">
-                    <h3>Alergias</h3>
-                    <input type="text" id="buscarAlergias" placeholder="Buscar alergias...">
-                    <ul id="resultAlergias"></ul>
-                    <div id="selAlergias"></div>
-                </div>
+                    <div class="search-card">
+                        <label>Término Diagnóstico</label>
+                        <input type="text" id="termino_diag">
+                        <button type="button" id="btnDiag" class="btn-buscar">Buscar 🔍</button>
+                    </div>
 
+                    <div class="results-header">Resultados Diagnósticos</div>
+                    <ul id="listaDiag" class="results-list"></ul>
+
+                    <div class="results-header" style="margin-top: 20px;">Seleccionados Diagnósticos</div>
+                    <div id="selDiag" style="display: flex; flex-direction: column; gap: 10px;">
+                        @if(isset($historia) && $historia->diagnostico)
+                        <div class="item-seleccionado-wrapper">
+                            <input type="text" readonly value="{{ $historia->diagnostico->nombre }} ({{ $historia->diagnostico->codigo }})" class="form-control item-visual">
+                            <input type="hidden" name="items_ids[]" value="{{ $historia->diagnostico->id }}">
+                            <input type="hidden" name="items_tipos[]" value="diagnostico">
+                            <button type="button" class="btn-remove" onclick="this.parentElement.remove()">×</button>
+                        </div>
+                        @endif
+                    </div>
+
+                    <hr>
+
+                    <div class="search-card">
+                        <label>Término Procedimiento</label>
+                        <input type="text" id="termino_proc">
+                        <button type="button" id="btnProc" class="btn-buscar">Buscar 🔍</button>
+                    </div>
+
+                    <div class="results-header">Resultados Procedimientos</div>
+                    <ul id="listaProc" class="results-list"></ul>
+
+                    <div class="results-header" style="margin-top: 20px;">Seleccionados Procedimientos</div>
+                    <div id="selProc" style="display: flex; flex-direction: column; gap: 10px;">
+                        @if(isset($historia) && $historia->procedimientos)
+                        @foreach($historia->procedimientos as $proc)
+                        @if($proc->pivot->cita_id == $cita->id)
+                        <div class="item-seleccionado-wrapper">
+                            <input type="text" readonly value="{{ $proc->nombre }}" class="form-control item-visual">
+                            <input type="hidden" name="items_ids[]" value="{{ $proc->id }}">
+                            <input type="hidden" name="items_tipos[]" value="procedimiento">
+                            <button type="button" class="btn-remove" onclick="this.parentElement.remove()">×</button>
+                        </div>
+                        @endif
+                        @endforeach
+                        @endif
+                    </div>
+
+                    <hr>
+
+                    <div class="search-card">
+                        <label>Término Alergia</label>
+                        <input type="text" id="termino_aler">
+                        <button type="button" id="btnAler" class="btn-buscar">Buscar 🔍</button>
+                    </div>
+
+                    <div class="results-header">Resultados Alergias</div>
+                    <ul id="listaAler" class="results-list"></ul>
+
+                    <div class="results-header" style="margin-top: 20px;">Seleccionados Alergias</div>
+
+                    <div id="selAler" style="display: flex; flex-direction: column; gap: 10px;">
+                        @if(isset($cita) && $cita->paciente && $cita->paciente->alergias)
+                        @foreach($cita->paciente->alergias as $alergia)
+                        <div class="item-seleccionado-wrapper">
+                            <input type="text" readonly value="{{ $alergia->nombre }}" class="form-control item-visual">
+                            <input type="hidden" name="items_ids[]" value="{{ $alergia->id }}">
+                            <input type="hidden" name="items_tipos[]" value="alergia">
+                            <button type="button" class="btn-remove" onclick="this.parentElement.remove()">×</button>
+                        </div>
+                        @endforeach
+                        @endif
+                    </div>
+
+                </div>
             </div>
 
             <div class="boton-guardar">
@@ -290,131 +369,180 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        const colors = ["green", "blue", "red", "transparent"];
 
-    const colors=["green","blue","red","transparent"];
-    document.querySelectorAll(".color-box").forEach(box=>{
-        box.addEventListener("click",()=>{
-            let c=box.dataset.colorIndex?parseInt(box.dataset.colorIndex):0;
-            c=(c+1)%colors.length;
-            box.dataset.colorIndex=c;
-            const col=colors[c];
-            box.style.backgroundColor=col;
-            const input=box.dataset.input;
-            const field=document.querySelector(`[name="${input}"]`);
-            if(field){
-                field.style.color=(col==="transparent")?"black":col;
-                if(field.tagName.toLowerCase()==="select"){
-                    field.style.color=(col==="transparent")?"black":col;
+        document.querySelectorAll(".color-box").forEach(box => {
+            box.addEventListener("click", () => {
+                let current = box.dataset.colorIndex ? parseInt(box.dataset.colorIndex) : 0;
+                current = (current + 1) % colors.length;
+                box.dataset.colorIndex = current;
+                const newColor = colors[current];
+                box.style.backgroundColor = newColor;
+                const inputName = box.dataset.input;
+                const field = document.querySelector(`[name="${inputName}"]`);
+                if (field) {
+                    field.style.color = (newColor === "transparent") ? "black" : newColor;
                 }
-            }
-        });
-    });
-
-    const navButtons=document.querySelectorAll('.nav-button');
-    const sections=document.querySelectorAll('.content-section');
-    const active=document.querySelector('.nav-button.active');
-    if(active){
-        const t=document.getElementById(active.getAttribute('data-target'));
-        if(t) t.classList.remove('hidden');
-    }
-    navButtons.forEach(btn=>{
-        btn.addEventListener('click',function(){
-            const id=this.getAttribute('data-target');
-            sections.forEach(s=>s.classList.add('hidden'));
-            navButtons.forEach(b=>b.classList.remove('active'));
-            document.getElementById(id).classList.remove('hidden');
-            this.classList.add('active');
-        });
-    });
-
-    function buscador(inputId,ulId,selId,url,tipo){
-        const input=document.getElementById(inputId);
-        const ul=document.getElementById(ulId);
-        const sel=document.getElementById(selId);
-
-        input.addEventListener('keydown',e=>{
-            if(e.key==="Enter"){
-                e.preventDefault();
-                buscar();
-            }
+            });
         });
 
-        input.addEventListener('input',function(){
-            if(this.value.trim()===""){
-                ul.innerHTML="";
-            }
-        });
+        const navButtons = document.querySelectorAll('.nav-button');
+        const contentSections = document.querySelectorAll('.content-section');
+        const initialActiveButton = document.querySelector('.nav-button.active');
 
-        async function buscar(){
-            const t=input.value.trim();
-            if(!t) return;
-            ul.innerHTML='<li>Buscando...</li>';
-            try{
-                const r=await fetch(url+'?termino='+encodeURIComponent(t));
-                if(!r.ok) throw new Error();
-                const data=await r.json();
-                ul.innerHTML="";
-                if(!data.length){
-                    ul.innerHTML='<li>No se encontraron resultados.</li>';
-                    return;
-                }
-                data.forEach(item=>{
-                    const li=document.createElement('li');
-                    li.textContent=item.nombre+(item.codigo?(' ('+item.codigo+')'):'');
-                    li.style.cursor="pointer";
-                    li.onclick=()=>{
-                        const box=document.createElement('div');
-                        box.style.display='flex';
-                        box.style.gap='6px';
-                        box.style.margin='4px 0';
-
-                        const v=document.createElement('input');
-                        v.type='text';
-                        v.readOnly=true;
-                        v.style.flexGrow='1';
-                        v.value=item.nombre+(item.codigo?(' ('+item.codigo+')'):'');
-                        box.appendChild(v);
-
-                        const hid=document.createElement('input');
-                        hid.type='hidden';
-                        hid.name='items_ids[]';
-                        hid.value=item.id;
-                        box.appendChild(hid);
-
-                        const ht=document.createElement('input');
-                        ht.type='hidden';
-                        ht.name='items_tipos[]';
-                        ht.value=tipo;
-                        box.appendChild(ht);
-
-                        const rm=document.createElement('button');
-                        rm.type='button';
-                        rm.textContent='×';
-                        rm.style.width='28px';
-                        rm.style.background='#c00';
-                        rm.style.color='white';
-                        rm.onclick=()=>box.remove();
-                        box.appendChild(rm);
-
-                        sel.appendChild(box);
-                    };
-                    ul.appendChild(li);
-                });
-            }catch(e){
-                ul.innerHTML='<li>Error al buscar. Intente nuevamente.</li>';
-            }
+        if (initialActiveButton) {
+            const initialTarget = document.getElementById(initialActiveButton.getAttribute('data-target'));
+            if (initialTarget) initialTarget.classList.remove('hidden');
         }
 
-        input.addEventListener('change',buscar);
-    }
+        navButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                contentSections.forEach(section => section.classList.add('hidden'));
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                document.getElementById(targetId).classList.remove('hidden');
+                this.classList.add('active');
+            });
+        });
 
-    buscador('buscarDiagnosticos','resultDiagnosticos','selDiagnosticos','{{ route("catalogos.buscarDiagnosticos") }}','diagnostico');
-    buscador('buscarProcedimientos','resultProcedimientos','selProcedimientos','{{ route("catalogos.buscarProcedimientos") }}','procedimiento');
-    buscador('buscarAlergias','resultAlergias','selAlergias','{{ route("catalogos.buscarAlergias") }}','alergia');
+        function actualizarEstadoBusqueda() {
 
-});
+        }
+
+        function crearBuscador(inputId, botonId, listaId, contenedorId, ruta) {
+            const input = document.getElementById(inputId);
+            const boton = document.getElementById(botonId);
+            const lista = document.getElementById(listaId);
+            const contenedor = document.getElementById(contenedorId);
+
+            const esDiagnostico = contenedorId === 'selDiag';
+            const esProcedimiento = contenedorId === 'selProc';
+            const esAlergia = contenedorId === 'selAler';
+
+            if (input) {
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        boton.click();
+                    }
+                });
+            }
+
+            boton.addEventListener('click', async function() {
+                const termino = input ? input.value.trim() : '';
+                if (!termino) return;
+
+                lista.innerHTML = '<li class="msg-loading">Buscando...</li>';
+                document.getElementById('js-error-container').innerHTML = '';
+
+
+                try {
+                    const response = await fetch(ruta + '?termino=' + encodeURIComponent(termino), {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!response.ok) throw new Error();
+
+                    const data = await response.json();
+                    lista.innerHTML = '';
+
+                    if (!Array.isArray(data) || data.length === 0) {
+                        lista.innerHTML = '<li class="msg-vacio">No se encontraron resultados.</li>';
+                        return;
+                    }
+
+                    data.forEach(item => {
+                        const li = document.createElement('li');
+                        li.classList.add('list-item');
+
+                        const tipo = item.tipo ? '[' + item.tipo + '] ' : '';
+                        const texto = tipo + item.nombre + (item.codigo ? ' (' + item.codigo + ')' : '');
+
+                        li.innerHTML = `
+                    <div class="item-info">${texto}</div>
+                    <button type="button" class="btn-agregar">Agregar</button>
+                `;
+
+                        li.querySelector('.btn-agregar').addEventListener('click', () => {
+
+                            const existentes = Array.from(contenedor.querySelectorAll('input[name="items_ids[]"]'));
+                            document.getElementById('js-error-container').innerHTML = '';
+
+
+                            if (esDiagnostico) {
+                                if (existentes.length >= 1) {
+                                    showCustomError('Solo se puede seleccionar un diagnóstico.');
+                                    return;
+                                }
+                            }
+
+                            if (esProcedimiento) {
+                                const idYaExiste = existentes.some(input => input.value == item.id);
+                                if (idYaExiste) {
+                                    showCustomError('El procedimiento ya fue agregado.');
+                                    return;
+                                }
+                            }
+
+                            if (esAlergia) {
+                                const idYaExiste = existentes.some(input => input.value == item.id);
+                                if (idYaExiste) {
+                                    showCustomError('La alergia ya fue agregada.');
+                                    return;
+                                }
+                            }
+
+                            const wrapper = document.createElement('div');
+                            wrapper.className = 'item-seleccionado-wrapper';
+                            wrapper.innerHTML = `
+                                <input type="text" readonly value="${texto}" class="form-control item-visual">
+                                <input type="hidden" name="items_ids[]" value="${item.id}">
+                                <input type="hidden" name="items_tipos[]" value="${item.tipo}">
+                                <button type="button" class="btn-remove">×</button>
+                            `;
+
+                            wrapper.querySelector('.btn-remove').onclick = function() {
+                                wrapper.remove();
+                                actualizarEstadoBusqueda();
+                            };
+
+                            contenedor.appendChild(wrapper);
+                            actualizarEstadoBusqueda();
+                        });
+
+                        lista.appendChild(li);
+                    });
+
+                } catch (err) {
+                    lista.innerHTML = '<li class="msg-error">Error al buscar. Intente nuevamente.</li>';
+                }
+            });
+        }
+
+        function showCustomError(message) {
+            const errorContainer = document.getElementById('js-error-container');
+            if (!errorContainer) {
+                return;
+            }
+
+            errorContainer.innerHTML = `
+    <div class="alerta" style="margin-bottom: 5px;">${message}</div>
+`;
+            setTimeout(() => {
+                errorContainer.innerHTML = '';
+            }, 4000);
+        }
+
+
+        crearBuscador('termino_diag', 'btnDiag', 'listaDiag', 'selDiag', '{{ route("catalogos.buscarDiagnosticos") }}');
+        crearBuscador('termino_proc', 'btnProc', 'listaProc', 'selProc', '{{ route("catalogos.buscarProcedimientos") }}');
+        crearBuscador('termino_aler', 'btnAler', 'listaAler', 'selAler', '{{ route("catalogos.buscarAlergias") }}');
+    });
 </script>
+
 <style>
     .optometria-scope .container-custom {
         max-width: 950px;
@@ -450,8 +578,8 @@ document.addEventListener('DOMContentLoaded', function() {
         background-color: #fff;
     }
 
-    .optometria-scope input:focus, 
-    .optometria-scope textarea:focus, 
+    .optometria-scope input:focus,
+    .optometria-scope textarea:focus,
     .optometria-scope select:focus {
         border-color: #007bff;
         box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
@@ -466,13 +594,13 @@ document.addEventListener('DOMContentLoaded', function() {
     .optometria-scope .small-input input[type="text"] {
         max-width: 200px;
     }
-    
+
     .optometria-scope .form-control-static {
-        border: 1px solid #ccc; 
-        padding: 8px; 
-        border-radius: 4px; 
-        background-color: #f0f0f0; 
-        color: #333; 
+        border: 1px solid #ccc;
+        padding: 8px;
+        border-radius: 4px;
+        background-color: #f0f0f0;
+        color: #333;
         font-weight: bold;
     }
 
@@ -516,7 +644,7 @@ document.addEventListener('DOMContentLoaded', function() {
         border-radius: 0 0 12px 12px;
         background-color: #fff;
     }
-    
+
     .optometria-scope .content-section.hidden {
         display: none;
     }
@@ -540,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function() {
         gap: 10px;
         margin-left: auto;
     }
-    
+
     .optometria-scope .checkbox-right input {
         width: 18px;
         height: 18px;
@@ -610,7 +738,7 @@ document.addEventListener('DOMContentLoaded', function() {
         cursor: pointer;
         transition: transform 0.1s;
     }
-    
+
     .optometria-scope .color-box:hover {
         transform: scale(1.1);
         border-color: #9ca3af;
@@ -647,8 +775,6 @@ document.addEventListener('DOMContentLoaded', function() {
         border-radius: 6px;
         padding: 11px 24px;
         cursor: pointer;
-        transition: background 0.3s, transform 0.1s;
-        font-size: 15px;
         font-weight: 600;
         display: inline-flex;
         align-items: center;
@@ -687,7 +813,6 @@ document.addEventListener('DOMContentLoaded', function() {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: background-color 0.2s;
     }
 
     .optometria-scope .list-item:last-child {
@@ -711,7 +836,6 @@ document.addEventListener('DOMContentLoaded', function() {
         border-radius: 6px;
         padding: 5px 10px;
         cursor: pointer;
-        transition: background 0.2s ease;
         font-size: 12px;
         font-weight: bold;
     }
@@ -720,49 +844,18 @@ document.addEventListener('DOMContentLoaded', function() {
         background-color: #157347;
     }
 
-    .optometria-scope .item-seleccionado {
-        display: flex;
-        align-items: center;
-        margin-bottom: 8px;
-        gap: 5px;
-    }
-
-    .optometria-scope .item-seleccionado input[type="text"] {
-        background-color: #f8f9fa;
-        cursor: not-allowed;
-        margin-bottom: 0;
-    }
-
-    .optometria-scope .btn-remover {
-        background-color: #dc3545;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        width: 38px;
-        height: 38px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 18px;
-        flex-shrink: 0;
-    }
-
-    .optometria-scope .btn-remover:hover {
-        background-color: #bb2d3b;
-    }
-
-    .optometria-scope .msg-vacio, 
-    .optometria-scope .msg-error, 
+    .optometria-scope .msg-vacio,
+    .optometria-scope .msg-error,
     .optometria-scope .msg-loading {
         padding: 30px;
         text-align: center;
         color: #6b7280;
         font-style: italic;
     }
-    
-    .optometria-scope .msg-error { color: #dc2626; }
+
+    .optometria-scope .msg-error {
+        color: #dc2626;
+    }
 
     .optometria-scope .boton-guardar {
         text-align: center;
@@ -779,7 +872,6 @@ document.addEventListener('DOMContentLoaded', function() {
         font-weight: 700;
         cursor: pointer;
         box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
-        transition: all 0.3s;
     }
 
     .optometria-scope .boton-guardar button:hover {
@@ -795,6 +887,27 @@ document.addEventListener('DOMContentLoaded', function() {
         border-radius: 6px;
         font-size: 13px;
         margin-top: 5px;
+    }
+
+    .optometria-scope .item-seleccionado-wrapper {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 8px;
+    }
+
+    .optometria-scope .item-visual {
+        flex-grow: 1;
+        background-color: #f8f9fa;
+    }
+
+    .optometria-scope .btn-remove {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 30px;
+        font-size: 18px;
     }
 </style>
 @endsection

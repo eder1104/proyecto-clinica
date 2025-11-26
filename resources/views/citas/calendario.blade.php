@@ -1,7 +1,7 @@
 @section('content')
 <div class="calendar-container">
     <div class="calendar-wrapper">
-        <h1 class="calendar-title">Calendario de Citas</h1>
+        <h1 class="calendar-title">Calendario de Citas y Bloqueos</h1>
 
         <div class="calendar-box">
             <div class="calendar-header">
@@ -28,140 +28,224 @@
     </div>
 </div>
 
-<div id="modalCitasDia" class="modal-overlay">
+<div id="modalBloqueosParcialidades" class="modal-overlay">
     <div class="modal-content">
         <span class="modal-close">&times;</span>
-        <h2 style="color:#10b981;">Citas del <span id="modalFechQaDisplay"></span></h2>
-        <div id="modalBloqueoInfo" class="alert-bloqueo" style="display:none;"></div>
-        <div id="listadoCitasDia"></div>
+        <h2 style="color:#10b981;">Detalles del <span id="modalFechaDisplayBloqueos"></span></h2>
+
+        <div id="listadoCitas">
+            <h3>Citas del Día</h3>
+            <div id="citasList"></div>
+        </div>
+
+        <div id="listadoBloqueos">
+            <h3>Bloqueos de Agenda</h3>
+            <div id="bloqueosList"></div>
+        </div>
+
+        <div id="listadoParcialidades">
+            <h3>Parcialidades</h3>
+            <div id="parcialidadesList"></div>
+        </div>
+
+        <div id="noBloqueosAviso" style="display:none;" class="bloqueado-aviso">
+            No se registraron bloqueos, parcialidades o citas para esta fecha.
+        </div>
     </div>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
     const calendarDaysDiv = document.getElementById("calendarDays");
     const monthYear = document.getElementById("monthYear");
-    const diasData = JSON.parse(calendarDaysDiv.dataset.dias || '[]');
-    const citasUrlTemplate = calendarDaysDiv.dataset.citasUrl;
-    let currentDate = new Date();
-    let citasCached = {};
+    
+    if (calendarDaysDiv) {
+        const diasData = JSON.parse(calendarDaysDiv.dataset.dias || '[]');
+        const citasUrlTemplate = calendarDaysDiv.dataset.citasUrl;
+        let currentDate = new Date();
+        let citasCached = {};
 
-    const modal = document.getElementById("modalCitasDia");
-    const modalFechaDisplay = document.getElementById("modalFechaDisplay");
-    const modalBloqueoInfo = document.getElementById("modalBloqueoInfo");
-    const closeModal = modal.querySelector(".modal-close");
-    const listadoCitasDia = document.getElementById("listadoCitasDia");
+        const modalBloqueos = document.getElementById("modalBloqueosParcialidades");
+        const modalFechaDisplayBloqueos = document.getElementById("modalFechaDisplayBloqueos");
+        const bloqueosList = document.getElementById("bloqueosList");
+        const parcialidadesList = document.getElementById("parcialidadesList");
+        const citasList = document.getElementById("citasList");
+        const noBloqueosAviso = document.getElementById("noBloqueosAviso");
+        const closeModalBloqueos = modalBloqueos.querySelector(".modal-close");
 
-    const diasInfo = {};
-    diasData.forEach(d => diasInfo[d.fecha] = d);
+        const diasInfo = {};
+        diasData.forEach(d => diasInfo[d.fecha] = d);
 
-    window.abrirModal = async (fecha) => {
-        modalFechaDisplay.textContent = fecha;
-        listadoCitasDia.innerHTML = '';
+        window.abrirModal = async (fecha) => {
+            modalFechaDisplayBloqueos.textContent = fecha;
 
-        const infoDia = diasInfo[fecha];
-        if (infoDia && infoDia.estado === 'bloqueado') {
-            modalBloqueoInfo.style.display = 'block';
-            let doctorText = '';
-            if(infoDia.doctores && infoDia.doctores.length){
-                doctorText = infoDia.doctores.join(', ');
-            } else if(infoDia.doctor){
-                doctorText = infoDia.doctor;
-            }
-            modalBloqueoInfo.innerHTML = `⚠️ Día bloqueado por: ${doctorText || 'Doctor no especificado'}`;
-            listadoCitasDia.innerHTML = `<div class="bloqueado-aviso">Día completamente bloqueado</div>`;
-        } else {
-            modalBloqueoInfo.style.display = 'none';
+            bloqueosList.innerHTML = '';
+            parcialidadesList.innerHTML = '';
+            citasList.innerHTML = '';
+            noBloqueosAviso.style.display = 'none';
+
+            const infoDia = diasInfo[fecha];
+            let hayRegistros = false;
+
             const citas = await fetchCitas(fecha);
-            if (!citas.length) {
-                listadoCitasDia.innerHTML = `<div class="no-citas">No hay citas registradas para esta fecha</div>`;
-            } else {
-                listadoCitasDia.innerHTML = "";
-                citas.forEach((c) => {
-                    const horaInicio = c.hora_inicio?.slice(0, 5) || 'Sin hora';
-                    const horaFin = c.hora_fin?.slice(0, 5) || 'Sin hora';
-                    const tipo = c.tipo_cita?.nombre || 'Sin tipo';
-                    const paciente = c.paciente ? `${c.paciente.nombres} ${c.paciente.apellidos}` : 'Sin paciente';
+
+            if (citas.length > 0) {
+                citas.forEach(c => {
                     const item = document.createElement('div');
-                    item.className = "card-cita";
+                    item.className = "card-bloqueo";
+                    item.style.background = "#e0f2fe";
+                    item.style.borderColor = "#38bdf8";
+
                     item.innerHTML = `
-                        <div><b>Hora:</b> ${horaInicio} - ${horaFin}</div>
-                        <div><b>Tipo:</b> ${tipo}</div>
-                        <div><b>Paciente:</b> ${paciente}</div>
-                        <div><b>Estado:</b> ${c.estado}</div>
+                        <p><strong>Paciente:</strong> ${c.paciente_nombre ?? 'Sin nombre'}</p>
+                        <p><strong>Hora:</strong> ${c.hora.slice(0,5)}</p>
+                        <p><strong>Doctor:</strong> ${c.doctor_nombre ?? 'Desconocido'}</p>
+                        ${c.procedimiento ? `<p><strong>Procedimiento:</strong> ${c.procedimiento}</p>` : ""}
                     `;
-                    listadoCitasDia.appendChild(item);
+
+                    citasList.appendChild(item);
                 });
-            }
-        }
-        modal.style.display = "flex";
-    };
-
-    const fetchCitas = async (fecha) => {
-        try {
-            if (citasCached[fecha]) return citasCached[fecha];
-            const url = citasUrlTemplate.replace('__DATE__', fecha);
-            const res = await fetch(url);
-            const citas = await res.json();
-            citasCached[fecha] = citas;
-            return citas;
-        } catch {
-            return [];
-        }
-    };
-
-    closeModal.onclick = () => modal.style.display = "none";
-    window.onclick = (e) => {
-        if (e.target === modal) modal.style.display = "none";
-    };
-
-    const renderCalendar = (date) => {
-        calendarDaysDiv.innerHTML = "";
-        const year = date.getFullYear(),
-            month = date.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        const startDay = (firstDay.getDay() + 6) % 7;
-        monthYear.textContent = date.toLocaleString("es-ES", {
-            month: "long",
-            year: "numeric"
-        }).toUpperCase();
-
-        for (let i = 0; i < startDay; i++) calendarDaysDiv.appendChild(document.createElement("div"));
-
-        for (let d = 1; d <= lastDay.getDate(); d++) {
-            const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-            const dayDiv = document.createElement("div");
-            dayDiv.classList.add("calendar-day");
-            const info = diasInfo[fullDate];
-            let diaEstado = info?.estado || "disponible";
-            if (diaEstado === "bloqueado") dayDiv.classList.add("day-bloqueado");
-            else if (diaEstado === "parcial") dayDiv.classList.add("day-parcial");
-            else if (diaEstado === "cita" || diaEstado === "disponible") dayDiv.classList.add("day-activo");
-
-            let doctorText = '';
-            if(info?.doctores && info.doctores.length){
-                doctorText = `<br><small>${info.doctores.join(', ')}</small>`;
-            } else if(info?.doctor){
-                doctorText = `<br><small>${info.doctor}</small>`;
+                hayRegistros = true;
+            } else {
+                citasList.innerHTML = `<p class="no-citas">No hay citas para esta fecha.</p>`;
             }
 
-            dayDiv.innerHTML = `<div class="day-number">${d}</div><span class="day-status">${diaEstado === "disponible" ? "disponible" : diaEstado}</span>${doctorText}`;
-            dayDiv.onclick = () => abrirModal(fullDate);
-            calendarDaysDiv.appendChild(dayDiv);
-        }
-    };
+            if (infoDia?.bloqueos?.length) {
+                infoDia.bloqueos.forEach((b) => {
+                    const item = document.createElement('div');
+                    item.className = "card-bloqueo bloque-total";
+                    item.innerHTML = `
+                        <p><strong>Doctor:</strong> ${b.doctor_nombre || 'Desconocido'}</p>
+                        <p><strong>Bloqueo:</strong> Agenda Completa</p>
+                        <p><strong>Motivo:</strong> ${b.motivo || 'Sin especificar'}</p>
+                    `;
+                    bloqueosList.appendChild(item);
+                    hayRegistros = true;
+                });
+            } else {
+                bloqueosList.innerHTML = '<p class="no-citas">No hay bloqueos de agenda completa registrados.</p>';
+            }
 
-    document.getElementById("prevMonth").onclick = () => {
-        currentDate.setMonth(currentDate.getMonth() - 1);
+            if (infoDia?.parcialidades?.length) {
+                infoDia.parcialidades.forEach((p) => {
+                    const item = document.createElement('div');
+                    item.className = "card-bloqueo bloque-parcial";
+                    item.innerHTML = `
+                        <p><strong>Doctor:</strong> ${p.doctor_nombre || 'Desconocido'}</p>
+                        <p><strong>Horario Bloqueado:</strong> ${p.hora_inicio.slice(0,5)} - ${p.hora_fin.slice(0,5)}</p>
+                        <p><strong>Motivo:</strong> ${p.motivo || 'Parcialidad sin motivo'}</p>
+                    `;
+                    parcialidadesList.appendChild(item);
+                    hayRegistros = true;
+                });
+            } else {
+                parcialidadesList.innerHTML = '<p class="no-citas">No hay parcialidades registradas.</p>';
+            }
+
+            if (!hayRegistros) noBloqueosAviso.style.display = 'block';
+
+            modalBloqueos.style.display = "flex";
+        };
+
+        const fetchCitas = async (fecha) => {
+            try {
+                if (citasCached[fecha]) return citasCached[fecha];
+                const url = citasUrlTemplate.replace('__DATE__', fecha);
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Error fetching citas');
+                const citas = await res.json();
+                citasCached[fecha] = citas;
+                return citas;
+            } catch (error) {
+                console.error(error);
+                return [];
+            }
+        };
+
+        closeModalBloqueos.onclick = () => modalBloqueos.style.display = "none";
+        window.onclick = (e) => {
+            if (e.target === modalBloqueos) modalBloqueos.style.display = "none";
+        };
+
+        const renderCalendar = (date) => {
+            calendarDaysDiv.innerHTML = "";
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = (firstDay.getDay() + 6) % 7;
+
+            monthYear.textContent = date.toLocaleString("es-ES", {
+                month: "long",
+                year: "numeric"
+            }).toUpperCase();
+
+            for (let i = 0; i < startDay; i++) calendarDaysDiv.appendChild(document.createElement("div"));
+
+            for (let d = 1; d <= lastDay.getDate(); d++) {
+                const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+                const dayDiv = document.createElement("div");
+                dayDiv.classList.add("calendar-day");
+
+                const info = diasInfo[fullDate];
+
+                let hasBloqueos = info?.bloqueos?.length > 0;
+                let hasParcialidades = info?.parcialidades?.length > 0;
+
+                let classes = [];
+                let labels = [];
+
+                if (hasParcialidades) {
+                    classes.push("day-parcial");
+                    labels.push("<div>PARCIALIDADES ACTIVAS</div>");
+                }
+                if (hasBloqueos) {
+                    classes.push("day-bloqueado");
+                    labels.push("<div>BLOQUEOS COMPLETOS</div>");
+                }
+                if (!hasBloqueos && !hasParcialidades) {
+                    classes.push("day-activo");
+                    labels.push("<div>DISPONIBLE</div>");
+                }
+
+                classes.forEach(c => dayDiv.classList.add(c));
+
+                let doctorText = '';
+                if (info?.doctores?.length) doctorText = `<br><small>${info.doctores.join(', ')}</small>`;
+
+                if (hasBloqueos && hasParcialidades) {
+                    dayDiv.classList.add("day-mixto");
+                    dayDiv.innerHTML = `
+        <div class="day-number">${d}</div>
+        <div class="split-box">
+            <div class="split-left">BLOQUEOS ACTIVOS</div>
+            <div class="split-right">PARCIALIDADES ACTIVAS</div>
+        </div>
+        ${doctorText}
+    `;
+                } else {
+                    dayDiv.innerHTML = `
+        <div class="day-number">${d}</div>
+        ${labels.join("")}
+        ${doctorText}
+    `;
+                }
+
+
+                dayDiv.onclick = () => abrirModal(fullDate);
+                calendarDaysDiv.appendChild(dayDiv);
+            }
+        };
+
+        document.getElementById("prevMonth").onclick = () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar(currentDate);
+        };
+        document.getElementById("nextMonth").onclick = () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar(currentDate);
+        };
         renderCalendar(currentDate);
-    };
-    document.getElementById("nextMonth").onclick = () => {
-        currentDate.setMonth(currentDate.getMonth() + 1);
-        renderCalendar(currentDate);
-    };
-    renderCalendar(currentDate);
-});
+    }
 </script>
 
 <style>
@@ -249,6 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
         border-radius: 10px;
         padding: 18px 0;
         font-weight: 600;
+        position: relative;
         color: #4b5563;
         transition: all 0.2s ease;
         cursor: pointer;
@@ -258,6 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
         justify-content: center;
         align-items: center;
         text-align: center;
+        z-index: 1;
     }
 
     .calendar-day:hover {
@@ -314,7 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
         padding: 30px;
         border-radius: 12px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        max-width: 400px;
+        max-width: 500px;
         width: 90%;
         position: relative;
         margin: auto;
@@ -341,76 +427,66 @@ document.addEventListener("DOMContentLoaded", () => {
         padding-bottom: 10px;
     }
 
-    #listadoCitasDia {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-        margin-top: 12px;
+    .modal-content h3 {
+        font-size: 1.2rem;
+        color: #374151;
+        margin-top: 15px;
         margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #f3f4f6;
     }
 
-    .card-cita {
+    #listadoBloqueos,
+    #listadoParcialidades,
+    #listadoCitas {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-top: 5px;
+        margin-bottom: 15px;
+    }
+
+    .card-bloqueo {
         padding: 12px 15px;
         border-radius: 7px;
-        background: #e0f6ec;
-        border: 1px solid #10b981;
         font-size: 1rem;
         color: #222;
         font-weight: 500;
-        cursor: pointer;
+        border-left: 5px solid;
     }
 
-    .card-cita:hover {
-        background: #d1fae5;
+    .bloque-total {
+        background: #fdecea;
+        border-color: #f87171;
     }
 
-    .cita-estado {
-        float: right;
-        color: #065f46;
-        font-size: 0.88em;
+    .bloque-parcial {
+        background: #fef9c3;
+        border-color: #facc15;
+    }
+
+    .card-bloqueo p {
+        margin: 0;
+        line-height: 1.4;
     }
 
     .bloqueado-aviso {
         padding: 14px 18px;
-        background-color: #fdecea;
-        border: 1px solid #f87171;
+        background-color: #e5e7eb;
+        border: 1px solid #9ca3af;
         border-radius: 8px;
-        color: #b91c1c;
+        color: #374151;
         font-size: 1em;
         text-align: center;
         font-weight: 500;
+        margin-top: 10px;
     }
 
     .no-citas {
-        padding: 10px 0 0 0;
-        color: #374151;
+        padding: 5px 0;
+        color: #6b7280;
         text-align: center;
-    }
-
-    #detalleCita {
-        margin-top: 20px;
-        padding: 15px;
-        background-color: #f3f4f6;
-        border-radius: 8px;
-        border: 1px solid #e5e7eb;
-    }
-
-    .form-group-read-only label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 3px;
-        font-size: 0.85rem;
-        color: #4b5563;
-    }
-
-    .form-group-read-only select {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #e5e7eb;
-        border-radius: 4px;
-        background-color: #ffffff;
-        color: #1f2937;
-        font-weight: 500;
+        font-size: 0.9em;
     }
 
     .alert-bloqueo {
@@ -421,8 +497,44 @@ document.addEventListener("DOMContentLoaded", () => {
         color: #b91c1c;
         font-size: 0.95rem;
         font-weight: 500;
-        margin-bottom: 10px;
         text-align: center;
+    }
+
+    .day-mixto {
+        background: #fffbea !important;
+        border-color: #f59e0b !important;
+        color: #78350f !important;
+    }
+
+    .split-box {
+        width: 100%;
+        height: 100%;
+    }
+
+    .split-left {
+        flex: 1;
+        background: #fecaca;
+        display: flex;
+        height: 65%;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        position: relative;
+        z-index: 99999 !important;
+    }
+
+    .split-right {
+        flex: 1;
+        background: #fef9c3;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        height: 65%;
+        z-index: 99999;
     }
 </style>
 @endsection

@@ -10,6 +10,7 @@ use App\Models\ProcedimientoOftalmologico;
 use Illuminate\Http\Request;
 use App\Http\Requests\CatalogosRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class CatalogoController extends Controller
 {
@@ -20,6 +21,7 @@ class CatalogoController extends Controller
         $nombre_input = $request->query('nombre_input', 'catalogo_ids');
         $paciente_id = $request->query('paciente_id');
         $historia_id = $request->query('historia_id');
+        $cita_id = $request->query('cita_id');
 
         $alergiasPrevias = collect();
         if ($paciente_id) {
@@ -35,6 +37,7 @@ class CatalogoController extends Controller
             'nombre_input',
             'paciente_id',
             'historia_id',
+            'cita_id',
             'alergiasPrevias'
         ))->with('ocultarMenu', true);
     }
@@ -93,6 +96,7 @@ class CatalogoController extends Controller
     {
         $pacienteId = $request->paciente_id;
         $historiaId = $request->historia_id;
+        $citaId = $request->cita_id;
 
         $ids = $request->items_ids ?? [];
         $tipos = $request->items_tipos ?? [];
@@ -118,14 +122,27 @@ class CatalogoController extends Controller
             }
         }
 
-        DB::transaction(function () use ($pacienteId, $historiaId, $alergiasIds, $procedimientosIds, $diagnosticoId) {
+        if (count($procedimientosIds) > 1) {
+            return back()
+                ->withErrors(['items_tipos' => 'Solo se puede seleccionar un procedimiento.'])
+                ->withInput();
+        }
+
+        DB::transaction(function () use ($pacienteId, $historiaId, $citaId, $alergiasIds, $procedimientosIds, $diagnosticoId) {
 
             if (!empty($alergiasIds)) {
                 $paciente = Paciente::findOrFail($pacienteId);
                 $paciente->alergias()->syncWithoutDetaching($alergiasIds);
             }
 
-            $historia = HistoriaClinica::findOrFail($historiaId);
+            if (empty($historiaId)) {
+                $historia = HistoriaClinica::firstOrCreate(
+                    ['paciente_id' => $pacienteId],
+                    ['created_by' => Auth::id()]
+                );
+            } else {
+                $historia = HistoriaClinica::findOrFail($historiaId);
+            }
 
             if (!empty($diagnosticoId)) {
                 $historia->diagnostico_principal_id = $diagnosticoId;
@@ -133,8 +150,10 @@ class CatalogoController extends Controller
 
             $historia->save();
 
-            if (!empty($procedimientosIds)) {
-                $historia->procedimientos()->syncWithoutDetaching($procedimientosIds);
+            if (!empty($procedimientosIds) && $citaId) {
+                foreach ($procedimientosIds as $procId) {
+                    $historia->procedimientos()->attach($procId, ['cita_id' => $citaId]);
+                }
             }
         });
 

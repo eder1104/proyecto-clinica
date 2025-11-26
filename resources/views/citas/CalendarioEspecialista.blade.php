@@ -82,10 +82,14 @@
                 document.querySelectorAll(".estado-select").forEach(select => {
                     const fecha = select.dataset.fecha;
                     if (data[fecha]) {
-                        select.value = data[fecha];
+                        const estadoBackend = data[fecha];
+                        const estadoNormalizado = estadoBackend.charAt(0).toUpperCase() + estadoBackend.slice(1).toLowerCase();
+                        
+                        select.value = estadoNormalizado;
+                        
                         updateDayColor(select);
 
-                        if (data[fecha] === 'Parcial') {
+                        if (estadoNormalizado === 'Parcial') {
                             select.closest(".calendar-day").style.cursor = "pointer";
                             select.closest(".calendar-day").onclick = e => {
                                 if (!e.target.classList.contains("estado-select")) {
@@ -94,7 +98,7 @@
                             };
                         }
 
-                        if (data[fecha] === 'Bloqueado') {
+                        if (estadoNormalizado === 'Bloqueado') {
                             select.closest(".calendar-day").style.cursor = "pointer";
                             select.closest(".calendar-day").onclick = e => {
                                 if (!e.target.classList.contains("estado-select")) {

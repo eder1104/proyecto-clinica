@@ -53,7 +53,17 @@
                 </td>
 
                 <td class="px-6 py-4 text-sm text-gray-500">
-                    {!! $registro->observacion_descriptiva !!}
+                    @php
+                        $rawObs = $registro->observacion;
+                        $finalOutput = '';
+
+                        if (is_array($rawObs) && isset($rawObs['observacion'])) {
+                            $finalOutput = $rawObs['observacion'];
+                        } else {
+                            $finalOutput = $registro->observacion_descriptiva ?? 'Detalles no disponibles';
+                        }
+                    @endphp
+                    {!! $finalOutput !!}
                 </td>
 
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

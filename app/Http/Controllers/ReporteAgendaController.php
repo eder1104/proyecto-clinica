@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Cita;
 use App\Models\BloqueoAgenda;
+use App\Models\DoctorParcialidad;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -12,45 +12,65 @@ class ReporteAgendaController extends Controller
 {
     public function index()
     {
+
         $fecha = Carbon::today()->toDateString();
 
         $citas = Cita::with(['paciente'])
             ->whereDate('fecha', $fecha)
-            ->orderBy('hora_inicio', 'asc')
+            ->orderBy('hora_inicio')
             ->get();
 
-        $citas->transform(function ($cita) {
-            $cita->tipo_examen_nombre = $cita->tipo_examen == 1 ? 'Optometría' : 'Examen';
-            return $cita;
+        $bloqueosRaw = BloqueoAgenda::with(['doctor.user'])
+            ->whereDate('fecha', $fecha)
+            ->orderBy('hora_inicio')
+            ->get();
+
+        $bloqueos = $bloqueosRaw->map(function ($b) {
+            return [
+                'doctor' => $b->doctor && $b->doctor->user
+                    ? $b->doctor->user->nombres . ' ' . $b->doctor->user->apellidos
+                    : 'Desconocido',
+                'fecha' => $b->fecha,
+                'hora_inicio' => $b->hora_inicio,
+                'hora_fin' => $b->hora_fin,
+                'motivo' => $b->motivo ?? 'No especificado',
+            ];
+        });
+
+        $parcialesRaw = DoctorParcialidad::with(['doctor.user'])
+            ->whereDate('fecha', $fecha)
+            ->orderBy('hora_inicio')
+            ->get();
+
+        $parciales = $parcialesRaw->map(function ($p) {
+            return [
+                'doctor' => $p->doctor && $p->doctor->user
+                    ? $p->doctor->user->nombres . ' ' . $p->doctor->user->apellidos
+                    : 'Desconocido',
+                'fecha' => $p->fecha,
+                'hora_inicio' => $p->hora_inicio,
+                'hora_fin' => $p->hora_fin,
+                'motivo' => 'Sin motivo',
+            ];
         });
 
         $programadas = $citas->where('estado', 'programada')->count();
-        $canceladas = $citas->filter(function ($cita) {
-            return str_contains(strtolower($cita->estado), 'cancel');
-        })->count();
-        $atendidas   = $citas->where('estado', 'atendida')->count();
+        $canceladas = $citas->filter(fn($c) => str_contains(strtolower($c->estado), 'cancel'))->count();
+        $finalizada = $citas->where('estado', 'finalizada')->count();
 
-        $bloqueos = BloqueoAgenda::with('doctor')
-            ->whereDate('fecha', $fecha)
-            ->get();
-
-        $doctores = User::role('doctor')->get();
-
-        $bloqueadosIds = $bloqueos->pluck('creado_por')->filter()->unique()->values()->all();
-
-        $totalDoctores = $doctores->count();
-        $bloqueados = count($bloqueadosIds);
-        $totalHorarios = $totalDoctores - $bloqueados;
-
+        $numDoctores = User::role('doctor')->count();
+        $bloqueados = $bloqueos->count();
         $ocupados = $citas->count();
 
-        $bloqueosConDoctor = $bloqueos->map(function ($bloqueo) {
-            return [
-                'nombre_doctor' => $bloqueo->doctor ? "{$bloqueo->doctor->nombres} {$bloqueo->doctor->apellidos}" : 'Desconocido',
-                'fecha' => $bloqueo->fecha,
-                'motivo' => $bloqueo->motivo ?? 'No especificado',
-            ];
-        });
+        $horaInicio = 8; 
+        $horaFin = 18;   
+        $intervalo = 20; 
+
+        $totalMinutos = ($horaFin - $horaInicio) * 60;
+        $slotsPorDoctor = floor($totalMinutos / $intervalo);
+        $capacidadTotal = $numDoctores * $slotsPorDoctor;
+
+        $totalHorarios = $capacidadTotal - $ocupados;
 
         return view('citas.AgendaDia', [
             'fecha' => $fecha,
@@ -59,9 +79,11 @@ class ReporteAgendaController extends Controller
             'bloqueados' => $bloqueados,
             'programadas' => $programadas,
             'canceladas' => $canceladas,
-            'atendidas' => $atendidas,
+            'finalizada' => $finalizada,
             'citas' => $citas,
-            'bloqueos' => $bloqueosConDoctor,
+            'bloqueos' => $bloqueos,
+            'parciales' => $parciales,
+            'numDoctores' => $numDoctores
         ]);
     }
 }

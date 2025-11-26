@@ -11,8 +11,12 @@ class BitacoraAuditoriaController extends Controller
 {
     public static function registrar($usuarioId, $modulo, $accion, $registroId = null, $observacion = null)
     {
-        if (!is_array($observacion)) {
-            $observacion = $observacion ? ['detalle' => $observacion] : [];
+        $detallesParaGuardar = [];
+
+        if (is_array($observacion)) {
+            $detallesParaGuardar = $observacion;
+        } elseif ($observacion) {
+            $detallesParaGuardar = ['observacion' => $observacion];
         }
 
         $bitacora = new BitacoraAuditoria();
@@ -20,7 +24,9 @@ class BitacoraAuditoriaController extends Controller
         $bitacora->modulo = $modulo;
         $bitacora->accion = $accion;
         $bitacora->registro_afectado = $registroId;
-        $bitacora->observacion = $observacion;
+        
+        $bitacora->observacion = $detallesParaGuardar; 
+        
         $bitacora->fecha_hora = Carbon::now();
         $bitacora->save();
 

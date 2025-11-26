@@ -1,11 +1,55 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    use App\Models\User;
+    use Carbon\Carbon;
+
+    $citasParaJs = $citas->map(function($c) {
+        return [
+            'hora_inicio' => $c->hora_inicio,
+            'hora_fin' => $c->hora_fin,
+        ];
+    });
+
+    $disponibilidadDoctores = [];
+    $doctores = User::where('role', 'doctor')->get();
+
+    foreach($doctores as $doc) {
+        $nombreCompleto = trim($doc->nombres . ' ' . $doc->apellidos);
+        $disponibilidadDoctores[$nombreCompleto] = 30;
+    }
+
+    foreach($citas as $cita) {
+        if ($cita->doctor && $cita->doctor->user) {
+            $nombre = trim($cita->doctor->user->nombres . ' ' . $cita->doctor->user->apellidos);
+            if (isset($disponibilidadDoctores[$nombre])) {
+                $inicio = Carbon::parse($cita->hora_inicio);
+                $fin = Carbon::parse($cita->hora_fin);
+                $slotsUsados = ceil($fin->diffInMinutes($inicio) / 20);
+                $disponibilidadDoctores[$nombre] -= $slotsUsados;
+            }
+        }
+    }
+
+    $bloqueosYParciales = array_merge($bloqueos->toArray() ?? [], $parciales->toArray() ?? []);
+    
+    foreach($bloqueosYParciales as $item) {
+        $nombre = $item['doctor'] ?? '';
+        if (isset($disponibilidadDoctores[$nombre])) {
+            $inicio = Carbon::parse($item['hora_inicio']);
+            $fin = Carbon::parse($item['hora_fin']);
+            $slotsUsados = ceil($fin->diffInMinutes($inicio) / 20);
+            $disponibilidadDoctores[$nombre] -= $slotsUsados;
+        }
+    }
+@endphp
+
 <div class="agenda-container mt-5" id="agenda-completa">
     <div class="titulo-fecha text-center mb-5">
         <h2 class="fw-bold text-primary">Agenda del Día</h2>
         <h4 class="fecha">
-            {{ \Carbon\Carbon::parse($fecha)->locale('es')->isoFormat('dddd D [de] MMMM [de] YYYY') }}
+            {{ Carbon::parse($fecha)->locale('es')->isoFormat('dddd D [de] MMMM [de] YYYY') }}
         </h4>
     </div>
 
@@ -13,7 +57,7 @@
         <table class="resumen-table">
             <thead>
                 <tr>
-                    <th>Total Horarios</th>
+                    <th>Total Horarios (Disponibilidad)</th>
                     <th>Ocupados</th>
                     <th>Bloqueados</th>
                     <th>Programadas</th>
@@ -23,40 +67,86 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>{{ $totalHorarios }}</td>
+                    <td>
+                        <select class="form-select" style="width: 100%; padding: 5px; text-align: center; border: 1px solid #dee2e6; border-radius: 5px;">
+                            <option selected disabled>Ver disponibilidad...</option>
+                            @foreach($disponibilidadDoctores as $nombre => $slots)
+                                @php $slots = max(0, $slots); @endphp
+                                <option value="{{ $nombre }}">
+                                    {{ $nombre }} - {{ $slots }} Slots Disp.
+                                </option>
+                            @endforeach
+                        </select>
+                    </td>
                     <td>{{ $ocupados }}</td>
                     <td>{{ $bloqueados }}</td>
                     <td>{{ $programadas }}</td>
                     <td>{{ $canceladas }}</td>
-                    <td>{{ $atendidas }}</td>
+                    <td>{{ $finalizada }}</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-    @if(isset($bloqueos) && count($bloqueos) > 0)
     <div class="bloqueos-container mb-5">
-        <div class="bloqueos-header">Doctores que bloquearon su agenda</div>
+        <div class="bloqueos-header">Bloqueos</div>
         <table class="bloqueos-table">
             <thead>
                 <tr>
                     <th>Doctor</th>
                     <th>Fecha Bloqueo</th>
+                    <th>Hora Inicio</th>
+                    <th>Hora Fin</th>
                     <th>Motivo</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($bloqueos as $bloqueo)
+                @forelse(($bloqueos ?? collect()) as $b)
                 <tr>
-                    <td>{{ $bloqueo['nombre_doctor'] }}</td>
-                    <td>{{ \Carbon\Carbon::parse($bloqueo['fecha'])->format('d/m/Y') }}</td>
-                    <td>{{ $bloqueo['motivo'] ?? 'No especificado' }}</td>
+                    <td>{{ $b['doctor'] }}</td>
+                    <td>{{ Carbon::parse($b['fecha'])->format('d/m/Y') }}</td>
+                    <td>{{ $b['hora_inicio'] }}</td>
+                    <td>{{ $b['hora_fin'] }}</td>
+                    <td>{{ $b['motivo'] }}</td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="5" class="sin-citas">No hay bloqueos completos.</td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
-    @endif
+
+    <div class="bloqueos-container mb-5">
+        <div class="bloqueos-header">Parciales</div>
+        <table class="bloqueos-table">
+            <thead>
+                <tr>
+                    <th>Doctor</th>
+                    <th>Fecha</th>
+                    <th>Hora Inicio</th>
+                    <th>Hora Fin</th>
+                    <th>Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse(($parciales ?? collect()) as $p)
+                <tr>
+                    <td>{{ $p['doctor'] }}</td>
+                    <td>{{ Carbon::parse($p['fecha'])->format('d/m/Y') }}</td>
+                    <td>{{ $p['hora_inicio'] }}</td>
+                    <td>{{ $p['hora_fin'] }}</td>
+                    <td>{{ $p['motivo'] }}</td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="5" class="sin-citas">No hay bloqueos parciales.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 
     <div class="detalle-container">
         <div class="detalle-header">Detalle de Citas del Día</div>
@@ -73,16 +163,17 @@
             <tbody>
                 @forelse($citas as $cita)
                 <tr>
-                    <td>{{ \Carbon\Carbon::parse($cita->hora_inicio)->format('H:i') }}</td>
-                    <td>{{ \Carbon\Carbon::parse($cita->hora_fin)->format('H:i') }}</td>
+                    <td>{{ Carbon::parse($cita->hora_inicio)->format('H:i') }}</td>
+                    <td>{{ Carbon::parse($cita->hora_fin)->format('H:i') }}</td>
                     <td>{{ $cita->paciente->nombres }} {{ $cita->paciente->apellidos }}</td>
                     <td>
-                        <span class="estado 
-                            @if($cita->estado == 'programada') estado-programada 
-                            @elseif($cita->estado == 'atendida') estado-atendida 
-                            @elseif($cita->estado == 'cancelada') estado-cancelada
-                            @elseif($cita->estado == 'finalizada') estado-finalizada
-                            @else estado-default @endif">
+                        <span class="estado
+                                @if($cita->estado == 'programada') estado-programada
+                                @elseif($cita->estado == 'atendida') estado-atendida
+                                @elseif($cita->estado == 'cancelada') estado-cancelada
+                                @elseif($cita->estado == 'finalizada') estado-finalizada
+                                @elseif($cita->estado == 'modificada') estado-modificada
+                                @else estado-default @endif">
                             {{ ucfirst($cita->estado) }}
                         </span>
                     </td>
@@ -96,7 +187,6 @@
                         @else
                         N/A
                         @endif
-
                     </td>
                 </tr>
                 @empty
@@ -107,50 +197,20 @@
             </tbody>
         </table>
     </div>
-
-    <div class="text-center mt-5">
-        <button id="btn-imprimir" class="btn-imprimir" onclick="imprimirAgenda()">🖨️ Imprimir Agenda Completa</button>
+    <div class="d-flex justify-content-end mb-4">
+        <button id="btn-imprimir" class="btn-imprimir" onclick="imprimirAgenda()">Imprimir Agenda</button>
     </div>
 </div>
 
 <script>
     function imprimirAgenda() {
         const boton = document.getElementById('btn-imprimir');
-
         boton.style.display = 'none';
 
         setTimeout(() => {
+            window.print();
             boton.style.display = 'inline-block';
-        }, 1000);
-
-        const agendaHTML = document.getElementById('agenda-completa').outerHTML;
-        const ventana = window.open('', '_blank');
-        ventana.document.write(`
-        <html>
-        <head>
-            <title>Agenda del Día</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 40px; color: #333; }
-                h2 { text-align: center; color: #0d6efd; margin-bottom: 0; }
-                h4 { text-align: center; color: #495057; font-weight: 500; margin-top: 5px; }
-                table { width: 100%; border-collapse: collapse; margin-top: 25px; font-size: 14px; }
-                th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-                th { background-color: #0d6efd; color: white; text-transform: uppercase; letter-spacing: 0.5px; }
-                tr:nth-child(even) { background-color: #f8f9fa; }
-                .estado-programada { background-color: #0dcaf0; color: white; padding: 6px 14px; border-radius: 20px; }
-                .estado-atendida { background-color: #198754; color: white; padding: 6px 14px; border-radius: 20px; }
-                .estado-cancelada { background-color: #dc3545; color: white; padding: 6px 14px; border-radius: 20px; }
-                .estado-default { background-color: #6c757d; color: white; padding: 6px 14px; border-radius: 20px; }
-                .detalle-header, .bloqueos-header { text-align: center; background-color: #0d6efd; color: white; padding: 12px; font-weight: bold; border-radius: 6px; margin-top: 40px; }
-            </style>
-        </head>
-        <body>
-            ${agendaHTML}
-        </body>
-        </html>
-    `);
-        ventana.document.close();
-        ventana.print();
+        }, 300);
     }
 </script>
 
@@ -253,9 +313,13 @@
     .estado-cancelada {
         background-color: #dc3545;
     }
-    
-     .estado-finalizada{
+
+    .estado-finalizada {
         background-color: green;
+    }
+
+    .estado-modificada {
+        background-color: #ffc107;
     }
 
     .estado-default {
@@ -284,6 +348,12 @@
     .btn-imprimir:hover {
         background-color: #0b5ed7;
         transform: scale(1.03);
+    }
+
+    @media print {
+        .btn-imprimir {
+            display: none !important;
+        }
     }
 </style>
 @endsection

@@ -39,33 +39,33 @@
                         @enderror
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block font-medium">Hora inicio</label>
-                        <input
-                            type="time"
-                            name="hora_inicio"
-                            value="{{ old('hora_inicio', \Carbon\Carbon::parse($cita->hora_inicio)->format('H:i')) }}"
-                            class="w-full border-gray-300 rounded-md shadow-sm"
-                            @if($cita->estado === 'finalizada') disabled @endif
-                        >
-                        @error('hora_inicio')
-                            <span class="text-red-600 text-sm">{{ $message }}</span>
-                        @enderror
-                    </div>
+                    <select name="hora_inicio" id="hora_inicio"
+                    class="mt-1 block w-full rounded-md shadow-sm border-gray-300 hora-select">
+                    @php
+                    $times = [];
+                    for ($h = 8; $h < 18; $h++) {
+                        for ($m=0; $m < 60; $m +=20) {
+                        $value=sprintf('%02d:%02d', $h, $m);
+                        $ampm=date('g:i A', strtotime($value));
+                        $times[]=['value'=> $value, 'label' => "$value ($ampm)"];
+                        }
+                        }
+                        @endphp
 
-                    <div class="mb-4">
-                        <label class="block font-medium">Hora fin</label>
-                        <input
-                            type="time"
-                            name="hora_fin"
-                            value="{{ old('hora_fin', \Carbon\Carbon::parse($cita->hora_fin)->format('H:i')) }}"
-                            class="w-full border-gray-300 rounded-md shadow-sm"
-                            @if($cita->estado === 'finalizada') disabled @endif
-                        >
-                        @error('hora_fin')
-                            <span class="text-red-600 text-sm">{{ $message }}</span>
-                        @enderror
-                    </div>
+                        <option value="">-- Seleccione la hora --</option>
+
+                        @foreach ($times as $t)
+                        <option value="{{ $t['value'] }}">
+                            {{ $t['label'] }}
+                        </option>
+                        @endforeach
+                </select>
+
+
+                <div class="mb-4" style="display:none;">
+                    <label class="block text-gray-700">Hora de fin</label>
+                    <input type="time" name="hora_fin" id="hora_fin" value="{{ old('hora_fin') }}" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                </div>
 
                     <div class="mb-4">
                         <label class="block font-medium">Paciente</label>

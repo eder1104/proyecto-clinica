@@ -53,12 +53,15 @@ class CitasParcialController extends Controller
         $parcialidad = new DoctorParcialidad($datosParaGuardar);
         $parcialidad->save();
 
+        $observacion = "Creación de rango parcial para la fecha {$validated['fecha']} de {$validated['hora_inicio']} a {$validated['hora_fin']}.";
+        $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
+
         BitacoraAuditoriaController::registrar(
             Auth::id(),
             'parcialidad',
             'crear',
             $parcialidad->id,
-            $validated
+            $datosBitacora
         );
 
         return redirect()->route('citas.parcial', [
@@ -69,18 +72,24 @@ class CitasParcialController extends Controller
 
     public function destroy(DoctorParcialidad $doctorParcialidad)
     {
+        $datosEliminados = [
+            'fecha' => $doctorParcialidad->fecha,
+            'hora_inicio' => $doctorParcialidad->hora_inicio,
+            'hora_fin' => $doctorParcialidad->hora_fin,
+        ];
+
+        $observacion = "Eliminación de rango parcial para la fecha {$doctorParcialidad->fecha} de {$doctorParcialidad->hora_inicio} a {$doctorParcialidad->hora_fin}.";
+        $datosBitacora = array_merge($datosEliminados, ['observacion' => $observacion]);
+
+        $idEliminado = $doctorParcialidad->id;
         $doctorParcialidad->delete();
 
         BitacoraAuditoriaController::registrar(
             Auth::id(),
             'parcialidad',
             'eliminar',
-            $doctorParcialidad->id,
-            [
-                'fecha' => $doctorParcialidad->fecha,
-                'hora_inicio' => $doctorParcialidad->hora_inicio,
-                'hora_fin' => $doctorParcialidad->hora_fin,
-            ]
+            $idEliminado,
+            $datosBitacora
         );
 
         return back()->with('success', 'Rango eliminado.');

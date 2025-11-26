@@ -31,10 +31,30 @@
                     <input type="date" name="fecha" value="{{ old('fecha') }}" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-700">Hora de inicio</label>
-                    <input type="time" name="hora_inicio" id="hora_inicio" value="{{ old('hora_inicio') }}" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
-                </div>
+
+                <label class="block text-gray-700">Hora</label>
+                <select name="hora_inicio" id="hora_inicio"
+                    class="mt-1 block w-full rounded-md shadow-sm border-gray-300 hora-select">
+                    @php
+                    $times = [];
+                    for ($h = 8; $h < 18; $h++) {
+                        for ($m=0; $m < 60; $m +=20) {
+                        $value=sprintf('%02d:%02d', $h, $m);
+                        $ampm=date('g:i A', strtotime($value));
+                        $times[]=['value'=> $value, 'label' => "$value ($ampm)"];
+                        }
+                        }
+                        @endphp
+
+                        <option value="">-- Seleccione la hora --</option>
+
+                        @foreach ($times as $t)
+                        <option value="{{ $t['value'] }}">
+                            {{ $t['label'] }}
+                        </option>
+                        @endforeach
+                </select>
+
 
                 <div class="mb-4" style="display:none;">
                     <label class="block text-gray-700">Hora de fin</label>
@@ -127,134 +147,162 @@
         </div>
     </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const pacienteIdInput = document.getElementById('paciente_id');
-    const formCita = document.getElementById('form-cita');
-    const tipoCita = document.getElementById('tipo_cita_id');
-    const campoExamenes = document.getElementById('campo-examenes');
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const pacienteIdInput = document.getElementById('paciente_id');
+            const formCita = document.getElementById('form-cita');
+            const tipoCita = document.getElementById('tipo_cita_id');
+            const campoExamenes = document.getElementById('campo-examenes');
 
-    const obtenerDatosPaciente = () => ({
-        tipo_documento: document.getElementById('tipo_documento').value,
-        documento: document.getElementById('numero_documento').value,
-        nombres: document.getElementById('nombres').value,
-        apellidos: document.getElementById('apellidos').value,
-        telefono: document.getElementById('telefono').value,
-        direccion: document.getElementById('direccion').value,
-        email: document.getElementById('email').value,
-        fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
-        sexo: document.getElementById('sexo').value
-    });
-
-    const actualizarCamposPaciente = (data) => {
-        pacienteIdInput.value = data.id;
-        document.getElementById('tipo_documento').value = data.tipo_documento;
-        document.getElementById('numero_documento').value = data.documento;
-        document.getElementById('nombres').value = data.nombres;
-        document.getElementById('apellidos').value = data.apellidos;
-        document.getElementById('telefono').value = data.telefono;
-        document.getElementById('direccion').value = data.direccion;
-        document.getElementById('email').value = data.email;
-        document.getElementById('fecha_nacimiento').value = data.fecha_nacimiento ?? '';
-        document.getElementById('sexo').value = data.sexo ?? '';
-    };
-
-    const limpiarCamposCompletos = () => {
-        pacienteIdInput.value = '';
-        document.getElementById('tipo_documento').value = 'CC';
-        document.getElementById('numero_documento').value = '';
-        document.getElementById('nombres').value = '';
-        document.getElementById('apellidos').value = '';
-        document.getElementById('telefono').value = '';
-        document.getElementById('direccion').value = '';
-        document.getElementById('email').value = '';
-        document.getElementById('fecha_nacimiento').value = '';
-        document.getElementById('sexo').value = 'M';
-    };
-
-    const limpiarResultados = () => {
-        pacienteIdInput.value = '';
-        document.getElementById('nombres').value = '';
-        document.getElementById('apellidos').value = '';
-        document.getElementById('telefono').value = '';
-        document.getElementById('direccion').value = '';
-        document.getElementById('email').value = '';
-        document.getElementById('fecha_nacimiento').value = '';
-        document.getElementById('sexo').value = 'M';
-    };
-
-    const numeroInput = document.getElementById('numero_documento');
-    const tipoInput = document.getElementById('tipo_documento');
-
-    let timeout = null;
-    numeroInput.addEventListener('input', () => {
-        clearTimeout(timeout);
-        timeout = setTimeout(async () => {
-            const numero = numeroInput.value.trim();
-            const tipo = tipoInput.value;
-            if (!numero) { limpiarCamposCompletos(); return; }
-
-            try {
-                const response = await fetch(`{{ route('pacientes.buscar') }}?tipo=${tipo}&numero=${numero}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    credentials: 'same-origin'
-                });
-                const data = await response.json();
-                if (!response.ok || !data.id) { limpiarResultados(); return; }
-                actualizarCamposPaciente(data);
-            } catch { limpiarResultados(); }
-        }, 500);
-    });
-
-    formCita.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        if (!pacienteIdInput.value) { alert('Debe ingresar un paciente válido antes de guardar la cita.'); return; }
-
-        const pacienteId = pacienteIdInput.value;
-        const datosPaciente = obtenerDatosPaciente();
-
-        try {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            const response = await fetch(`{{ route('pacientes.actualizarApi', ['id' => 'ID_REEMPLAZAR']) }}`.replace('ID_REEMPLAZAR', pacienteId), {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
-                credentials: 'same-origin',
-                body: JSON.stringify(datosPaciente)
+            const obtenerDatosPaciente = () => ({
+                tipo_documento: document.getElementById('tipo_documento').value,
+                documento: document.getElementById('numero_documento').value,
+                nombres: document.getElementById('nombres').value,
+                apellidos: document.getElementById('apellidos').value,
+                telefono: document.getElementById('telefono').value,
+                direccion: document.getElementById('direccion').value,
+                email: document.getElementById('email').value,
+                fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
+                sexo: document.getElementById('sexo').value
             });
-            if (!response.ok) {
-                const err = await response.json().catch(() => ({}));
-                alert('Error al actualizar paciente: ' + (err?.mensaje || `HTTP ${response.status}`));
-                return;
-            }
-            formCita.submit();
-        } catch { alert('Error de conexión al actualizar paciente.'); }
-    });
 
-    const toggleExamenes = () => {
-        const selectedOption = tipoCita.options[tipoCita.selectedIndex];
-        if (selectedOption) {
-            const esExamen = selectedOption.dataset.esExamen === '1';
-            campoExamenes.style.display = esExamen ? 'block' : 'none';
-            if (!esExamen) {
-                document.getElementById('tipo_examen').value = '';
-            }
-        }
-    };
+            const actualizarCamposPaciente = (data) => {
+                pacienteIdInput.value = data.id;
+                document.getElementById('tipo_documento').value = data.tipo_documento;
+                document.getElementById('numero_documento').value = data.documento;
+                document.getElementById('nombres').value = data.nombres;
+                document.getElementById('apellidos').value = data.apellidos;
+                document.getElementById('telefono').value = data.telefono;
+                document.getElementById('direccion').value = data.direccion;
+                document.getElementById('email').value = data.email;
+                document.getElementById('fecha_nacimiento').value = data.fecha_nacimiento ?? '';
+                document.getElementById('sexo').value = data.sexo ?? '';
+            };
 
-    tipoCita.addEventListener('change', toggleExamenes);
-    toggleExamenes();
+            const limpiarCamposCompletos = () => {
+                pacienteIdInput.value = '';
+                document.getElementById('tipo_documento').value = 'CC';
+                document.getElementById('numero_documento').value = '';
+                document.getElementById('nombres').value = '';
+                document.getElementById('apellidos').value = '';
+                document.getElementById('telefono').value = '';
+                document.getElementById('direccion').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('fecha_nacimiento').value = '';
+                document.getElementById('sexo').value = 'M';
+            };
 
-    const horaInicio = document.getElementById('hora_inicio');
-    const horaFin = document.getElementById('hora_fin');
+            const limpiarResultados = () => {
+                pacienteIdInput.value = '';
+                document.getElementById('nombres').value = '';
+                document.getElementById('apellidos').value = '';
+                document.getElementById('telefono').value = '';
+                document.getElementById('direccion').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('fecha_nacimiento').value = '';
+                document.getElementById('sexo').value = 'M';
+            };
 
-    horaInicio.addEventListener('change', () => {
-        const value = horaInicio.value;
-        if (!value) return;
-        let [h, m] = value.split(':').map(Number);
-        h = (h + 1) % 24;
-        horaFin.value = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-    });
-});
-</script>
+            const numeroInput = document.getElementById('numero_documento');
+            const tipoInput = document.getElementById('tipo_documento');
+
+            let timeout = null;
+            numeroInput.addEventListener('input', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(async () => {
+                    const numero = numeroInput.value.trim();
+                    const tipo = tipoInput.value;
+                    if (!numero) {
+                        limpiarCamposCompletos();
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`{{ route('pacientes.buscar') }}?tipo=${tipo}&numero=${numero}`, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            credentials: 'same-origin'
+                        });
+                        const data = await response.json();
+                        if (!response.ok || !data.id) {
+                            limpiarResultados();
+                            return;
+                        }
+                        actualizarCamposPaciente(data);
+                    } catch {
+                        limpiarResultados();
+                    }
+                }, 500);
+            });
+
+            formCita.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                if (!pacienteIdInput.value) {
+                    alert('Debe ingresar un paciente válido antes de guardar la cita.');
+                    return;
+                }
+
+                const pacienteId = pacienteIdInput.value;
+                const datosPaciente = obtenerDatosPaciente();
+
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    const response = await fetch(`{{ route('pacientes.actualizarApi', ['id' => 'ID_REEMPLAZAR']) }}`.replace('ID_REEMPLAZAR', pacienteId), {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(datosPaciente)
+                    });
+                    if (!response.ok) {
+                        const err = await response.json().catch(() => ({}));
+                        alert('Error al actualizar paciente: ' + (err?.mensaje || `HTTP ${response.status}`));
+                        return;
+                    }
+                    formCita.submit();
+                } catch {
+                    alert('Error de conexión al actualizar paciente.');
+                }
+            });
+
+            const toggleExamenes = () => {
+                const selectedOption = tipoCita.options[tipoCita.selectedIndex];
+                if (selectedOption) {
+                    const esExamen = selectedOption.dataset.esExamen === '1';
+                    campoExamenes.style.display = esExamen ? 'block' : 'none';
+                    if (!esExamen) {
+                        document.getElementById('tipo_examen').value = '';
+                    }
+                }
+            };
+
+            tipoCita.addEventListener('change', toggleExamenes);
+            toggleExamenes();
+
+            const horaInicio = document.getElementById('hora_inicio');
+            const horaFin = document.getElementById('hora_fin');
+
+            horaInicio.addEventListener('change', () => {
+                const value = horaInicio.value;
+                if (!value) return;
+
+                let [h, m] = value.split(':').map(Number);
+
+                m += 20;
+                if (m >= 60) {
+                    m -= 60;
+                    h++;
+                    if (h >= 24) h = 0;
+                }
+
+                horaFin.value = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+            });
+
+        });
+    </script>
 
 </x-app-layout>

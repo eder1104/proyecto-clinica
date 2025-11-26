@@ -20,16 +20,31 @@
                 <div>
                     <label for="hora_inicio">Hora Inicio</label>
                     <select id="hora_inicio" name="hora_inicio" required>
-                        @for ($i = 0; $i < 24; $i++)
-                            <option value="{{ sprintf('%02d:00', $i) }}">{{ date("g:i A", strtotime("$i:00")) }}</option>
+                        @for ($h = 8; $h < 18; $h++)
+                            @for ($m=0; $m < 60; $m +=20)
+                            @php
+                            $time=sprintf('%02d:%02d', $h, $m);
+                            @endphp
+                            <option value="{{ $time }}">{{ date("g:i A", strtotime($time)) }}</option>
+                            @endfor
                             @endfor
                     </select>
                 </div>
                 <div>
                     <label for="hora_fin">Hora Fin</label>
                     <select id="hora_fin" name="hora_fin" required>
-                        @for ($i = 1; $i <= 24; $i++)
-                            <option value="{{ sprintf('%02d:00', $i == 24 ? 0 : $i) }}" @if ($i==1) selected @endif>{{ date("g:i A", strtotime("$i:00")) }}</option>
+                        @for ($h = 8; $h <= 18; $h++)
+                            @if ($h < 18)
+                            @for ($m=0; $m < 60; $m +=20)
+                            @php
+                            $time=sprintf('%02d:%02d', $h, $m);
+                            $selected=($h==13 && $m==0) ? 'selected' : '' ;
+                            @endphp
+                            <option value="{{ $time }}" {{ $selected }}>{{ date("g:i A", strtotime($time)) }}</option>
+                            @endfor
+                            @else
+                            <option value="18:00">6:00 PM</option>
+                            @endif
                             @endfor
                     </select>
                 </div>
@@ -66,7 +81,6 @@
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         background-color: #f4f7f6 !important;
-        /* !important para sobreescribir el layout */
         color: #333;
     }
 

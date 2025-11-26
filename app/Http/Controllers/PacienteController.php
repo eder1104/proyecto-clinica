@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\BitacoraAuditoriaController;
 
 class PacienteController extends Controller
 {
@@ -40,7 +41,7 @@ class PacienteController extends Controller
             'sexo'             => 'nullable|in:M,F',
         ]);
 
-        Paciente::create([
+        $paciente = Paciente::create([
             'tipo_documento'   => $validated['tipo_documento'],
             'nombres'          => $validated['nombres'],
             'apellidos'        => $validated['apellidos'],
@@ -52,6 +53,17 @@ class PacienteController extends Controller
             'sexo'             => $validated['sexo'] ?? null,
             'created_by'       => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
         ]);
+
+        $observacion = "Creación de nuevo paciente: {$validated['nombres']} {$validated['apellidos']} (Documento: {$validated['documento']}).";
+        $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
+
+        BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'pacientes',
+            'crear',
+            $paciente->id,
+            $datosBitacora
+        );
 
         return redirect()->route('pacientes.index')->with('success', 'Paciente creado correctamente.');
     }
@@ -82,11 +94,15 @@ class PacienteController extends Controller
 
         $datosNuevos = $paciente->fresh()->toArray();
 
+        $observacion = "Actualización de datos del paciente ID {$paciente->id}.";
+        $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
+
         $bitacoraId = BitacoraAuditoriaController::registrar(
             Auth::id(),
             'pacientes',
             'editar',
-            $paciente->id
+            $paciente->id,
+            $datosBitacora
         );
 
         if (array_diff_assoc($datosNuevos, $datosAnteriores)) {
@@ -106,10 +122,26 @@ class PacienteController extends Controller
 
     public function destroy(Paciente $paciente)
     {
-        $paciente->delete();
+        $datosEliminados = $paciente->toArray();
+        $observacion = "Eliminación del paciente ID {$paciente->id}: {$paciente->nombres} {$paciente->apellidos}.";
+        $datosBitacora = array_merge($datosEliminados, ['observacion' => $observacion]);
+
+        $idEliminado = $paciente->id;
+        
         $paciente->update([
             'cancelled_by'   => Auth::id(),
         ]);
+        
+        $paciente->delete();
+
+        BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'pacientes',
+            'eliminar',
+            $idEliminado,
+            $datosBitacora
+        );
+
         return redirect()->route('pacientes.index')->with('success', 'Paciente eliminado correctamente.');
     }
 
@@ -151,6 +183,7 @@ class PacienteController extends Controller
     {
         try {
             $paciente = Paciente::findOrFail($id);
+            $datosAnteriores = $paciente->toArray();
 
             $validated = $request->validate([
                 'tipo_documento'   => 'required|string|max:20',
@@ -166,6 +199,27 @@ class PacienteController extends Controller
 
             $validated['updated_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
             $paciente->update($validated);
+            $datosNuevos = $paciente->fresh()->toArray();
+
+            $observacion = "Actualización vía API del paciente ID {$paciente->id}.";
+            $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
+
+            $bitacoraId = BitacoraAuditoriaController::registrar(
+                Auth::id(),
+                'pacientes',
+                'editar API',
+                $paciente->id,
+                $datosBitacora
+            );
+
+            if (array_diff_assoc($datosNuevos, $datosAnteriores)) {
+                BitacoraAuditoriaController::registrarCambio(
+                    $bitacoraId,
+                    $paciente->id,
+                    $datosAnteriores,
+                    $datosNuevos
+                );
+            }
 
             return response()->json([
                 'mensaje' => 'Paciente actualizado correctamente.',

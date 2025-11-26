@@ -15,6 +15,7 @@ class CatalogosRequest extends FormRequest
     {
         return [
             'paciente_id' => 'required|exists:pacientes,id',
+            'historia_id' => ['nullable', 'sometimes', 'integer', 'exists:historia_clinicas,id'],
             'items_ids'   => 'nullable|array',
             'items_tipos' => 'nullable|array',
             'items_ids.*' => 'nullable|integer',
@@ -36,7 +37,7 @@ class CatalogosRequest extends FormRequest
             if ($diagnosticosCount > 1) {
                 $validator->errors()->add(
                     'items_tipos',
-                    'Solo se permite un diagnóstico por consulta.'
+                    'Solo se permite seleccionar un diagnóstico principal.'
                 );
             }
         });
@@ -46,7 +47,9 @@ class CatalogosRequest extends FormRequest
     {
         return [
             'paciente_id.required' => 'Debe enviar el paciente.',
+            'paciente_id.exists' => 'El paciente seleccionado no es válido.',
             'historia_id.required' => 'Debe enviar la historia clínica.',
+            'historia_id.exists' => 'La historia clínica no es válida.',
             'items_ids.array' => 'La lista de IDs no es válida.',
             'items_tipos.array' => 'La lista de tipos no es válida.',
             'items_tipos.*.in' => 'Uno de los tipos enviados no es válido.',

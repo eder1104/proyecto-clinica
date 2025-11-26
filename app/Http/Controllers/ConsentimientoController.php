@@ -9,6 +9,7 @@ use App\Models\Paciente;
 use App\Models\doctores;
 use App\Models\Cita;
 use App\Models\BloqueoAgenda;
+use App\Http\Controllers\BitacoraAuditoriaController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
@@ -109,16 +110,17 @@ class ConsentimientoController extends Controller
     public function store(Request $request)
     {
         $tipoFirmante = $request->input('tipo_firmante');
+        $validatedData = [];
 
         if ($tipoFirmante === 'paciente') {
-            $request->validate([
+            $validatedData = $request->validate([
                 'fecha_firma'  => 'required',
                 'imagen_firma' => 'required|image|mimes:jpeg,png|max:2048',
                 'paciente_id'  => 'required|integer',
                 'cita_id'      => 'nullable|integer',
             ]);
         } elseif ($tipoFirmante === 'acompanante') {
-            $request->validate([
+            $validatedData = $request->validate([
                 'nombre_acompanante'   => 'required|string|max:255',
                 'apellido_acompanante' => 'required|string|max:255',
                 'cedula_acompanante'   => 'required|string|max:20',
@@ -149,7 +151,7 @@ class ConsentimientoController extends Controller
 
         $fechaFormateada = Carbon::createFromFormat('d/m/Y', $request->fecha_firma)->format('Y-m-d');
 
-        ConsentimientoPaciente::create([
+        $consentimiento = ConsentimientoPaciente::create([
             'plantilla_id'    => $request->plantilla_id,
             'nombre_firmante' => $nombreFirmante,
             'fecha_firma'     => $fechaFormateada,
@@ -161,6 +163,17 @@ class ConsentimientoController extends Controller
             'nombre_doctor'   => $nombreDoctor,
             'activo'          => true,
         ]);
+
+        $observacion = "Registro de consentimiento firmado por {$tipoFirmante}: {$nombreFirmante}, para el paciente {$nombrePaciente}.";
+        $datosBitacora = array_merge($validatedData, ['observacion' => $observacion]);
+
+        BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'consentimientos',
+            'Crear',
+            $consentimiento->id,
+            $datosBitacora
+        );
 
         return redirect()
             ->route('citas.atencion', ['cita' => $request->cita_id])

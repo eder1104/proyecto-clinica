@@ -83,16 +83,16 @@ class CitaController extends Controller
         return view('citas.create', compact('pacientes', 'admisiones', 'tipos_citas'));
     }
 
-    public function store(CitaRequest $request)
+ public function store(CitaRequest $request)
     {
         $validated = $request->validated();
         $validated['created_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
         $validated['estado'] = 'programada';
 
-        Cita::create([
+        $cita = Cita::create([
             'fecha'           => $validated['fecha'],
             'hora_inicio'     => $validated['hora_inicio'],
-            'hora_fin'        => $validated['hora_fin'],
+            'hora_fin'        => $validated['hora_fin'] ?? $request->input('hora_fin'),
             'paciente_id'     => $validated['paciente_id'],
             'tipo_cita_id'    => $validated['tipo_cita_id'],
             'tipo_examen'     => $request->input('tipo_examen'),
@@ -100,6 +100,17 @@ class CitaController extends Controller
             'estado'          => $validated['estado'],
             'created_by'      => $validated['created_by'],
         ]);
+
+        $observacion = "Creación de cita programada para el paciente ID {$validated['paciente_id']} el día {$validated['fecha']}.";
+        $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
+
+        BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'Citas',
+            'Crear',
+            $cita->id,
+            $datosBitacora
+        );
 
         return redirect()->route('citas.index')->with('success', 'Cita creada correctamente.');
     }
@@ -231,6 +242,17 @@ class CitaController extends Controller
             'cancel_reason' => $motivo,
         ]);
 
+        $observacion = "Cancelación de cita ID {$cita->id}. Motivo: {$motivo}.";
+        $datosBitacora = ['motivo' => $motivo, 'observacion' => $observacion];
+
+        BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'Citas',
+            'Cancelar',
+            $cita->id,
+            $datosBitacora
+        );
+
         return redirect()->route('citas.index')->with('success', 'Cita cancelada correctamente.');
     }
 
@@ -251,6 +273,18 @@ class CitaController extends Controller
         }
 
         $cita->update(['estado' => 'finalizada']);
+
+        $observacion = "Se ha finalizado la cita ID {$cita->id}.";
+        $datosBitacora = ['estado' => 'finalizada', 'observacion' => $observacion];
+
+        BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'Citas',
+            'Finalizar',
+            $cita->id,
+            $datosBitacora
+        );
+
         return redirect()->route('citas.preexamen')->with('success', 'Cita finalizada correctamente.');
     }
 
@@ -285,6 +319,17 @@ class CitaController extends Controller
 
     public function atencion(Cita $cita)
     {
+        $observacion = "Inicio de atención para la cita ID {$cita->id}.";
+        $datosBitacora = ['observacion' => $observacion];
+
+        BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'Citas',
+            'Iniciar Atención',
+            $cita->id,
+            $datosBitacora
+        );
+
         switch ($cita->tipo_cita_id) {
             case 1:
                 return redirect()->route('plantillas.optometria', ['cita' => $cita->id]);

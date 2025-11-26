@@ -23,6 +23,7 @@ class Cita extends Model
         'estado',
         'created_by',
         'paciente_id',
+        'doctor_id',
         'updated_by',
         'cancelled_by',
         'cancel_reason',
@@ -40,6 +41,11 @@ class Cita extends Model
     public function paciente(): BelongsTo
     {
         return $this->belongsTo(Paciente::class, 'paciente_id');
+    }
+
+    public function doctor(): BelongsTo
+    {
+return $this->belongsTo(Doctores::class, 'doctor_id');
     }
 
     public function getTipoCitaNombreAttribute(): string

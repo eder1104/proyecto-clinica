@@ -13,34 +13,37 @@ use App\Models\DiagnosticoOftalmologico;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Alergia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Routing\Redirector;
+use App\Http\Controllers\BitacoraAuditoriaController;
+use App\Models\Doctores;
 
 class PlantillaControllerOptometria extends Controller
 {
-public function index($cita_id)
-{
-    $cita = Cita::with('paciente')->findOrFail($cita_id);
+    public function index($cita_id)
+    {
+        $cita = Cita::with('paciente')->findOrFail($cita_id);
 
-    $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
-    $citas = Cita::with('paciente')->orderBy('fecha', 'desc')->get();
-    $doctores = User::where('role', 'doctor')->get();
-    $id = $plantilla ? $plantilla->id : null;
+        $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
+        $citas = Cita::with('paciente')->orderBy('fecha', 'desc')->get();
+        $doctores = User::where('role', 'doctor')->get();
+        $id = $plantilla ? $plantilla->id : null;
 
-    $historia = HistoriaClinica::where('paciente_id', $cita->paciente_id)
-        ->with(['diagnostico', 'procedimientos'])
-        ->first();
+        $historia = HistoriaClinica::where('paciente_id', $cita->paciente_id)
+            ->with(['diagnostico', 'procedimientos'])
+            ->first();
 
-    $alergiasPrevias = $cita->paciente->alergias()->get();
+        $alergiasPrevias = $cita->paciente->alergias()->get();
 
-    return view('plantillas.optometria', compact(
-        'id',
-        'plantilla',
-        'citas',
-        'cita',
-        'doctores',
-        'historia',
-        'alergiasPrevias'
-    ));
-}
+        return view('plantillas.optometria', compact(
+            'id',
+            'plantilla',
+            'citas',
+            'cita',
+            'doctores',
+            'historia',
+            'alergiasPrevias'
+        ));
+    }
 
     public function edit(Cita $cita)
     {
@@ -65,8 +68,10 @@ public function index($cita_id)
 
         if ($historia) {
             foreach ($historia->procedimientos as $proc) {
-                $proc->tipo_catalogo = 'procedimiento';
-                $items->push($proc);
+                if ($proc->pivot->cita_id == $cita->id) {
+                    $proc->tipo_catalogo = 'procedimiento';
+                    $items->push($proc);
+                }
             }
         }
 
@@ -86,8 +91,6 @@ public function index($cita_id)
 
         return view('historias.optometria_edit', compact('plantilla', 'cita', 'doctores', 'historia'));
     }
-
-
 
     public function store(PlantillaOptometriaRequest $request, $cita_id)
     {
@@ -109,10 +112,9 @@ public function index($cita_id)
             $merged['historia_id'] = $historia->id;
         }
 
-
         $catalogoRequest = app(\App\Http\Requests\CatalogosRequest::class);
         $catalogoRequest->setContainer(app());
-        $catalogoRequest->setRedirector(app('redirect'));
+        $catalogoRequest->setRedirector(app(Redirector::class));
         $catalogoRequest->merge($merged);
         $catalogoRequest->validateResolved();
 
@@ -120,7 +122,10 @@ public function index($cita_id)
             return back()->withErrors(['optometra' => 'El usuario logueado no tiene el rol de doctor.'])->withInput();
         }
 
-        return DB::transaction(function () use ($request, $cita, $user) {
+        $doctorProfile = Doctores::where('user_id', $user->id)->first();
+        $doctorId = $doctorProfile ? $doctorProfile->id : null;
+
+        return DB::transaction(function () use ($request, $cita, $user, $doctorId) {
 
             $data = [
                 'paciente_id' => $cita->paciente_id,
@@ -151,18 +156,31 @@ public function index($cita_id)
                 'causa_motivo_atencion' => $request->causa_motivo_atencion,
             ];
 
-            Plantilla_Optometria::create($data);
+            $plantilla = Plantilla_Optometria::create($data);
 
             $this->procesarCatalogos($request, $cita);
 
-            $cita->update(['estado' => 'finalizada']);
+            $cita->update([
+                'estado' => 'finalizada',
+                'doctor_id' => $doctorId
+            ]);
+
+            $observacion = "Registro de plantilla de optometría para la cita ID {$cita->id}.";
+            $datosBitacora = array_merge($data, ['observacion' => $observacion]);
+
+            BitacoraAuditoriaController::registrar(
+                Auth::id(),
+                'plantillas_optometria',
+                'Crear',
+                $plantilla->id,
+                $datosBitacora
+            );
 
             return redirect()
                 ->route('historias.cita', ['paciente' => $cita->paciente_id])
                 ->with('success', 'Cita finalizada y plantilla registrada correctamente.');
         });
     }
-
 
     public function update(PlantillaOptometriaRequest $request, Cita $cita)
     {
@@ -176,6 +194,7 @@ public function index($cita_id)
         return DB::transaction(function () use ($request, $cita, $idOptometraLogeado) {
 
             $plantilla = Plantilla_Optometria::where('cita_id', $cita->id)->first();
+            $datosAnteriores = $plantilla ? $plantilla->toArray() : [];
 
             $data = $request->all();
             $data['consulta_completa'] = $request->has('consulta_completa') ? 1 : 0;
@@ -184,7 +203,7 @@ public function index($cita_id)
             if ($plantilla) {
                 $plantilla->update($data);
             } else {
-                Plantilla_Optometria::create(array_merge(
+                $plantilla = Plantilla_Optometria::create(array_merge(
                     $data,
                     [
                         'cita_id' => $cita->id,
@@ -195,7 +214,28 @@ public function index($cita_id)
 
             $this->procesarCatalogos($request, $cita);
 
-            return redirect()->route('historias.index', $cita->id)
+            $datosNuevos = $plantilla->fresh()->toArray();
+            $observacion = "Actualización de plantilla de optometría ID {$plantilla->id} (Cita {$cita->id}).";
+            $datosBitacora = array_merge($data, ['observacion' => $observacion]);
+
+            $bitacoraId = BitacoraAuditoriaController::registrar(
+                Auth::id(),
+                'plantillas_optometria',
+                'Editar',
+                $plantilla->id,
+                $datosBitacora
+            );
+
+            if ($datosAnteriores) {
+                BitacoraAuditoriaController::registrarCambio(
+                    $bitacoraId,
+                    $plantilla->id,
+                    $datosAnteriores,
+                    $datosNuevos
+                );
+            }
+
+            return redirect()->route('historias.cita', ['paciente' => $cita->paciente_id])
                 ->with('success', 'Plantilla de optometría actualizada correctamente.');
         });
     }
@@ -229,30 +269,32 @@ public function index($cita_id)
 
         if ($diagnosticoId) {
             $historia->diagnostico_principal_id = $diagnosticoId;
-            $historia->save();
+        } else {
+            $historia->diagnostico_principal_id = null;
         }
+        $historia->save();
 
-        if (!empty($procedimientosIds)) {
-
-            $syncData = [];
-            foreach ($procedimientosIds as $pid) {
-                $syncData[$pid] = ['cita_id' => $cita->id];
+        if ($historia) {
+            $historia->procedimientos()->wherePivot('cita_id', $cita->id)->detach();
+            
+            if (!empty($procedimientosIds)) {
+                $syncData = [];
+                foreach ($procedimientosIds as $pid) {
+                    $syncData[$pid] = ['cita_id' => $cita->id];
+                }
+                $historia->procedimientos()->attach($syncData);
             }
-
-            $historia->procedimientos()->sync($syncData);
         }
 
-        if (!empty($alergiasIds) && $cita->paciente) {
-
+        if ($cita->paciente && !empty($alergiasIds)) {
             $syncAlergias = [];
             foreach ($alergiasIds as $aid) {
                 $syncAlergias[$aid] = ['cita_id' => $cita->id];
             }
-
-            $cita->paciente->alergias()->syncWithoutDetaching($syncAlergias);
+            
+            $cita->paciente->alergias()->sync($syncAlergias);
         }
     }
-
 
     public function atender(Cita $cita)
     {
@@ -276,7 +318,22 @@ public function index($cita_id)
     public function destroy($id)
     {
         $plantilla = Plantilla_Optometria::findOrFail($id);
+
+        $datosEliminados = $plantilla->toArray();
+        $observacion = "Eliminación de plantilla de optometría ID {$plantilla->id}.";
+        $datosBitacora = array_merge($datosEliminados, ['observacion' => $observacion]);
+
+        $idEliminado = $plantilla->id;
         $plantilla->delete();
+
+        BitacoraAuditoriaController::registrar(
+            Auth::id(),
+            'plantillas_optometria',
+            'Eliminar',
+            $idEliminado,
+            $datosBitacora
+        );
+
         return redirect()->back()->with('success', 'Plantilla eliminada correctamente.');
     }
 }

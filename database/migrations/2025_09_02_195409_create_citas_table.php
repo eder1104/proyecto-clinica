@@ -30,7 +30,7 @@ return new class extends Migration {
 
             $table->date('fecha');
             $table->time('hora_inicio');
-            $table->time('hora_fin');
+            $table->time('hora_fin')->nullable();
 
             $table->string('motivo_consulta')->nullable();
             $table->string('tipo_examen')->nullable();
