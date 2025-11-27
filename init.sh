@@ -22,9 +22,6 @@ php artisan key:generate --force
 echo "🗄️ Reseteando base de datos y ejecutando migraciones/seeders..."
 php artisan migrate:fresh --seed --force
 
-echo "🔗 Creando storage link..."
-php artisan storage:link || true
-
 if [ ! -d "node_modules" ]; then
     echo "📦 Instalando dependencias de NPM..."
     npm install
