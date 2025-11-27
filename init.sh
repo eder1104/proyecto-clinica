@@ -16,17 +16,14 @@ else
     echo "🔧 Archivo .env ya existe. No se sobrescribirá."
 fi
 
-
 echo "🔑 Generando clave de la aplicación..."
 php artisan key:generate --force
 
-
-echo "🗄️ Ejecutando migraciones y seeders..."
-php artisan migrate --seed --force
+echo "🗄️ Reseteando base de datos y ejecutando migraciones/seeders..."
+php artisan migrate:fresh --seed --force
 
 echo "🔗 Creando storage link..."
 php artisan storage:link || true
-
 
 if [ ! -d "node_modules" ]; then
     echo "📦 Instalando dependencias de NPM..."
