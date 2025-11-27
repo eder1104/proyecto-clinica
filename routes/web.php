@@ -9,7 +9,6 @@ use App\Http\Controllers\{
     PacienteController,
     HistoriaClinicaController,
     Auth\RegisteredUserController,
-    PreExamenController,
     CalendarioController,
     ConsentimientoController,
     BitacoraAuditoriaController,
@@ -20,21 +19,20 @@ use App\Http\Controllers\{
     CatalogoController,
     ReporteAgendaController,
 };
-use App\Http\Middleware\Bitacora;
 use App\Http\Middleware\CheckRole;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('welcome'));
 Route::get('/dashboard', fn() => view('dashboard'))->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware(['auth', Bitacora::class])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 
-Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones', Bitacora::class])->group(function () {
+Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones'])->group(function () {
     Route::get('pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
     Route::get('pacientes/crear', [PacienteController::class, 'create'])->name('pacientes.create');
     Route::post('pacientes', [PacienteController::class, 'store'])->name('pacientes.store');
@@ -84,7 +82,7 @@ Route::middleware(['auth', 'checkrole:doctor,callcenter,admisiones', Bitacora::c
     Route::get('/calendario/estado-dia/{fecha}', [CalendarioController::class, 'estadoDia'])->name('calendario.estadoDia');
 });
 
-Route::middleware(['auth', 'checkrole:admin', Bitacora::class])->group(function () {
+Route::middleware(['auth', 'checkrole:admin'])->group(function () {
     Route::get('/administracion', fn() => view('administracion'))->name('administracion');
     Route::resource('users', UserController::class)->except(['show']);
     Route::patch('/users/{user}', [UserController::class, 'toggleStatus'])->name('users.toggle');
@@ -107,7 +105,8 @@ Route::middleware(['auth'])->group(function () {
 
 Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
 
-Route::middleware(['auth', 'checkrole:admin,admisiones', Bitacora::class])->group(function () {
+Route::middleware(['auth', 'checkrole:admin,admisiones'])->group(function () {
+    
     Route::get('/bitacora', [BitacoraAuditoriaController::class, 'index'])->name('citas.bitacora');
     Route::get('/agenda-doctores', [DoctorAgendaController::class, 'index'])->name('citas.DoctorAgenda');
     Route::get('/calendario-especialista', [CalendarioEspecialistaController::class, 'index'])->name('citas.CalendarioEspecialista');
@@ -116,9 +115,14 @@ Route::middleware(['auth', 'checkrole:admin,admisiones', Bitacora::class])->grou
     
     Route::post('/bloqueo-especialista/store', [CitasBloqueadoController::class, 'store'])->name('citas.bloqueado.store');
     
-    Route::get('/bloqueo-especialista/{doctorId}/{fecha}', [CalendarioEspecialistaController::class, 'vistaBloqueo'])->name('citas.bloqueado');
+Route::get('/bloqueo-especialista/{doctorId}/{fecha}', 
+    [CalendarioEspecialistaController::class, 'vistaBloqueo']
+)->name('citas.bloqueado');
 
-    Route::delete('/bloqueo-especialista/{id}', [CitasBloqueadoController::class, 'destroy'])->name('citas.bloqueado.destroy');
+Route::delete('/bloqueo-especialista/{doctorId}/{fecha}/{id}', 
+    [CitasBloqueadoController::class, 'destroy']
+)->name('citas.bloqueado.destroy');
+
 
     Route::get('/vista-parcial/{doctorId}/{fecha}', [CitasParcialController::class, 'index'])->name('citas.parcial');
     Route::post('/parcialidades', [CitasParcialController::class, 'store'])->name('citas.parcial.store');

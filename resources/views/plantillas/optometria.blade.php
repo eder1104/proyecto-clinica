@@ -393,7 +393,7 @@ for ($i = -10.0; $i <= 10.0001; $i +=0.5) {
             });
 
             function actualizarEstadoBusqueda() {
-                
+
             }
 
             function crearBuscador(inputId, botonId, listaId, contenedorId, ruta) {

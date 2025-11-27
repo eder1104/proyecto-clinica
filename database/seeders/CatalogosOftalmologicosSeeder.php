@@ -47,7 +47,7 @@ class CatalogosOftalmologicosSeeder extends Seeder
         $alergias = [
             ['nombre' => 'Lágrimas artificiales', 'tipo' => 'Medicamento'],
             ['nombre' => 'Anestésico tópico', 'tipo' => 'Medicamento'],
-            ['nombre' => 'Yodo povidona', 'tipo' => 'Sustancia'],
+            ['nombre' => 'Yodo povidona', 'tipo' => 'medicamento'],
         ];
 
         $contador = 1;

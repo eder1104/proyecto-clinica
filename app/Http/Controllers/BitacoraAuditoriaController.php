@@ -11,12 +11,8 @@ class BitacoraAuditoriaController extends Controller
 {
     public static function registrar($usuarioId, $modulo, $accion, $registroId = null, $observacion = null)
     {
-        $detallesParaGuardar = [];
-
-        if (is_array($observacion)) {
-            $detallesParaGuardar = $observacion;
-        } elseif ($observacion) {
-            $detallesParaGuardar = ['observacion' => $observacion];
+        if (!$observacion) {
+            $observacion = ['observacion' => 'Detalles no disponibles'];
         }
 
         $bitacora = new BitacoraAuditoria();
@@ -24,9 +20,9 @@ class BitacoraAuditoriaController extends Controller
         $bitacora->modulo = $modulo;
         $bitacora->accion = $accion;
         $bitacora->registro_afectado = $registroId;
-        
-        $bitacora->observacion = $detallesParaGuardar; 
-        
+
+        $bitacora->observacion = $observacion;
+
         $bitacora->fecha_hora = Carbon::now();
         $bitacora->save();
 
@@ -46,9 +42,14 @@ class BitacoraAuditoriaController extends Controller
 
             $valorAnterior = $datosAnteriores[$key] ?? null;
 
-            if ($valorAnterior != $nuevoValor) {
-                $cambiosAntes[$key] = $valorAnterior;
-                $cambiosDespues[$key] = $nuevoValor;
+            $valorAnteriorString = is_scalar($valorAnterior) ? (string)$valorAnterior : json_encode($valorAnterior);
+            $nuevoValorString = is_scalar($nuevoValor) ? (string)$nuevoValor : json_encode($nuevoValor);
+
+            if ($valorAnteriorString !== $nuevoValorString) {
+                if (!in_array($key, ['created_at', 'updated_at', 'deleted_at', 'created_by'])) {
+                    $cambiosAntes[$key] = $valorAnterior;
+                    $cambiosDespues[$key] = $nuevoValor;
+                }
             }
         }
 
@@ -59,14 +60,13 @@ class BitacoraAuditoriaController extends Controller
         $cambio = new HistorialCambio();
         $cambio->bitacora_id = $bitacoraId;
         $cambio->registro_afectado = $registroId;
-        $cambio->datos_anteriores = $cambiosAntes;
-        $cambio->datos_nuevos = $cambiosDespues;
+        $cambio->datos_anteriores = json_encode($cambiosAntes);
+        $cambio->datos_nuevos = json_encode($cambiosDespues);
         $cambio->fecha_cambio = now();
         $cambio->save();
 
         return $cambio->id;
     }
-
 
     public function index()
     {

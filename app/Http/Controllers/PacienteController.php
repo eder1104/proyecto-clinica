@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Paciente;
 use App\Http\Requests\PacientesRequest;
 use App\Models\Cita;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -27,42 +26,23 @@ class PacienteController extends Controller
         return view('pacientes.create');
     }
 
-    public function store(PacientesRequest $request, User $user)
+    public function store(PacientesRequest $request)
     {
-        $validated = $request->validate([
-            'tipo_documento'   => 'required|string|max:20',
-            'nombres'          => 'required|string|max:255',
-            'apellidos'        => 'required|string|max:255',
-            'documento'        => 'required|string|max:20|unique:pacientes',
-            'telefono'         => 'required|string|max:10',
-            'direccion'        => 'required|string|max:255',
-            'email'            => 'nullable|email|unique:pacientes',
-            'fecha_nacimiento' => 'nullable|date',
-            'sexo'             => 'nullable|in:M,F',
-        ]);
+        $validated = $request->validated();
 
-        $paciente = Paciente::create([
-            'tipo_documento'   => $validated['tipo_documento'],
-            'nombres'          => $validated['nombres'],
-            'apellidos'        => $validated['apellidos'],
-            'documento'        => $validated['documento'],
-            'telefono'         => $validated['telefono'],
-            'direccion'        => $validated['direccion'],
-            'email'            => $validated['email'] ?? null,
-            'fecha_nacimiento' => $validated['fecha_nacimiento'] ?? null,
-            'sexo'             => $validated['sexo'] ?? null,
-            'created_by'       => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
-        ]);
+        $paciente = Paciente::create(array_merge(
+            $validated,
+            ['created_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos]
+        ));
 
-        $observacion = "Creación de nuevo paciente: {$validated['nombres']} {$validated['apellidos']} (Documento: {$validated['documento']}).";
-        $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
+        $observacion = "Creación de nuevo paciente: {$paciente->nombres} {$paciente->apellidos} (Documento: {$paciente->documento}).";
 
         BitacoraAuditoriaController::registrar(
             Auth::id(),
             'pacientes',
             'crear',
             $paciente->id,
-            $datosBitacora
+            array_merge($validated, ['observacion' => $observacion])
         );
 
         return redirect()->route('pacientes.index')->with('success', 'Paciente creado correctamente.');
@@ -75,71 +55,70 @@ class PacienteController extends Controller
 
     public function update(PacientesRequest $request, Paciente $paciente)
     {
-        $validated = $request->validate([
-            'tipo_documento'   => 'required|string|max:20',
-            'nombres'          => 'required|string|max:255',
-            'apellidos'        => 'required|string|max:255',
-            'documento'        => 'required|string|max:50|unique:pacientes,documento,' . $paciente->id,
-            'telefono'         => 'required|string|max:20',
-            'direccion'        => 'required|string|max:255',
-            'email'            => 'nullable|email|unique:pacientes,email,' . $paciente->id,
-            'fecha_nacimiento' => 'nullable|date',
-            'sexo'             => 'nullable|in:M,F',
-        ]);
+        $validated = $request->validated();
 
         $datosAnteriores = $paciente->toArray();
 
         $validated['updated_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
-        $paciente->update($validated);
 
-        $datosNuevos = $paciente->fresh()->toArray();
+        $paciente->fill($validated);
 
-        $observacion = "Actualización de datos del paciente ID {$paciente->id}.";
-        $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
+        if ($paciente->isDirty()) {
 
-        $bitacoraId = BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'pacientes',
-            'editar',
-            $paciente->id,
-            $datosBitacora
-        );
+            Paciente::withoutEvents(function () use ($paciente) {
+                $paciente->save();
+            });
 
-        if (array_diff_assoc($datosNuevos, $datosAnteriores)) {
-            BitacoraAuditoriaController::registrarCambio(
-                $bitacoraId,
+            $datosNuevos = $paciente->toArray();
+
+            $observacion = "Actualización de datos del paciente ID {$paciente->id}.";
+            $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
+
+            $bitacoraId = BitacoraAuditoriaController::registrar(
+                Auth::id(),
+                'pacientes',
+                'editar',
                 $paciente->id,
-                $datosAnteriores,
-                $datosNuevos
+                $datosBitacora
             );
+
+            $diferencias = array_diff_assoc($datosNuevos, $datosAnteriores);
+
+            if (!empty($diferencias)) {
+                BitacoraAuditoriaController::registrarCambio(
+                    $bitacoraId,
+                    $paciente->id,
+                    $datosAnteriores,
+                    $datosNuevos
+                );
+            }
         }
 
         return redirect()
-            ->route('pacientes.index', $paciente)
+            ->route('pacientes.index')
             ->with('success', 'Paciente actualizado correctamente.');
     }
-
 
     public function destroy(Paciente $paciente)
     {
         $datosEliminados = $paciente->toArray();
         $observacion = "Eliminación del paciente ID {$paciente->id}: {$paciente->nombres} {$paciente->apellidos}.";
-        $datosBitacora = array_merge($datosEliminados, ['observacion' => $observacion]);
 
         $idEliminado = $paciente->id;
-        
-        $paciente->update([
-            'cancelled_by'   => Auth::id(),
-        ]);
-        
-        $paciente->delete();
+
+        Paciente::withoutEvents(function () use ($paciente) {
+            $paciente->update([
+                'cancelled_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
+            ]);
+            $paciente->delete();
+        });
 
         BitacoraAuditoriaController::registrar(
             Auth::id(),
             'pacientes',
             'eliminar',
             $idEliminado,
-            $datosBitacora
+            array_merge($datosEliminados, ['observacion' => $observacion])
         );
 
         return redirect()->route('pacientes.index')->with('success', 'Paciente eliminado correctamente.');
@@ -161,15 +140,8 @@ class PacienteController extends Controller
             return response()->json(['error' => 'Solicitud inválida'], 400);
         }
 
-        $tipo = $request->query('tipo');
-        $numero = $request->query('numero');
-
-        if (!$numero) {
-            return response()->json(['error' => 'Debe ingresar el número de documento'], 422);
-        }
-
-        $paciente = Paciente::where('tipo_documento', $tipo)
-            ->where('documento', $numero)
+        $paciente = Paciente::where('tipo_documento', $request->tipo)
+            ->where('documento', $request->numero)
             ->first();
 
         if (!$paciente) {
@@ -183,7 +155,6 @@ class PacienteController extends Controller
     {
         try {
             $paciente = Paciente::findOrFail($id);
-            $datosAnteriores = $paciente->toArray();
 
             $validated = $request->validate([
                 'tipo_documento'   => 'required|string|max:20',
@@ -197,36 +168,16 @@ class PacienteController extends Controller
                 'sexo'             => 'nullable|in:M,F',
             ]);
 
-            $validated['updated_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
             $paciente->update($validated);
-            $datosNuevos = $paciente->fresh()->toArray();
-
-            $observacion = "Actualización vía API del paciente ID {$paciente->id}.";
-            $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
-
-            $bitacoraId = BitacoraAuditoriaController::registrar(
-                Auth::id(),
-                'pacientes',
-                'editar API',
-                $paciente->id,
-                $datosBitacora
-            );
-
-            if (array_diff_assoc($datosNuevos, $datosAnteriores)) {
-                BitacoraAuditoriaController::registrarCambio(
-                    $bitacoraId,
-                    $paciente->id,
-                    $datosAnteriores,
-                    $datosNuevos
-                );
-            }
 
             return response()->json([
-                'mensaje' => 'Paciente actualizado correctamente.',
+                'mensaje'  => 'Paciente actualizado correctamente.',
                 'paciente' => $paciente
             ]);
+
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
+
         } catch (\Throwable $e) {
             return response()->json(['mensaje' => 'Error interno al actualizar el paciente.'], 500);
         }
@@ -234,20 +185,17 @@ class PacienteController extends Controller
 
     public function Paciente_buscar(Request $request)
     {
-        $nombre = $request->input('nombre');
-        $documento = $request->input('documento');
-
         $query = Paciente::query();
 
-        if ($nombre) {
-            $query->where(function ($q) use ($nombre) {
-                $q->where('nombres', 'LIKE', "%{$nombre}%")
-                    ->orWhere('apellidos', 'LIKE', "%{$nombre}%");
+        if ($request->nombre) {
+            $query->where(function ($q) use ($request) {
+                $q->where('nombres', 'LIKE', "%{$request->nombre}%")
+                  ->orWhere('apellidos', 'LIKE', "%{$request->nombre}%");
             });
         }
 
-        if ($documento) {
-            $query->where('documento', 'LIKE', "%{$documento}%");
+        if ($request->documento) {
+            $query->where('documento', 'LIKE', "%{$request->documento}%");
         }
 
         $pacientes = $query->paginate(10)->withQueryString();

@@ -5,13 +5,6 @@
     use App\Models\User;
     use Carbon\Carbon;
 
-    $citasParaJs = $citas->map(function($c) {
-        return [
-            'hora_inicio' => $c->hora_inicio,
-            'hora_fin' => $c->hora_fin,
-        ];
-    });
-
     $disponibilidadDoctores = [];
     $doctores = User::where('role', 'doctor')->get();
 
@@ -20,27 +13,36 @@
         $disponibilidadDoctores[$nombreCompleto] = 30;
     }
 
-    foreach($citas as $cita) {
-        if ($cita->doctor && $cita->doctor->user) {
-            $nombre = trim($cita->doctor->user->nombres . ' ' . $cita->doctor->user->apellidos);
-            if (isset($disponibilidadDoctores[$nombre])) {
-                $inicio = Carbon::parse($cita->hora_inicio);
-                $fin = Carbon::parse($cita->hora_fin);
-                $slotsUsados = ceil($fin->diffInMinutes($inicio) / 20);
-                $disponibilidadDoctores[$nombre] -= $slotsUsados;
+    $doctoresConParcial = [];
+
+    foreach(($parciales ?? []) as $p) {
+        $nombre = $p['doctor'] ?? '';
+        
+        if (isset($disponibilidadDoctores[$nombre])) {
+            if (!in_array($nombre, $doctoresConParcial)) {
+                $disponibilidadDoctores[$nombre] = 0;
+                $doctoresConParcial[] = $nombre;
             }
+
+            $inicio = Carbon::parse($p['hora_inicio']);
+            $fin = Carbon::parse($p['hora_fin']);
+            $minutos = abs($fin->diffInMinutes($inicio));
+            $slotsCalculados = floor($minutos / 20);
+            
+            $disponibilidadDoctores[$nombre] += $slotsCalculados;
         }
     }
 
-    $bloqueosYParciales = array_merge($bloqueos->toArray() ?? [], $parciales->toArray() ?? []);
-    
-    foreach($bloqueosYParciales as $item) {
-        $nombre = $item['doctor'] ?? '';
+    foreach(($bloqueos ?? []) as $b) {
+        $nombre = $b['doctor'] ?? '';
+        
         if (isset($disponibilidadDoctores[$nombre])) {
-            $inicio = Carbon::parse($item['hora_inicio']);
-            $fin = Carbon::parse($item['hora_fin']);
-            $slotsUsados = ceil($fin->diffInMinutes($inicio) / 20);
-            $disponibilidadDoctores[$nombre] -= $slotsUsados;
+            $inicio = Carbon::parse($b['hora_inicio']);
+            $fin = Carbon::parse($b['hora_fin']);
+            $minutos = abs($fin->diffInMinutes($inicio));
+            $slotsDescontar = ceil($minutos / 20);
+            
+            $disponibilidadDoctores[$nombre] -= $slotsDescontar;
         }
     }
 @endphp
@@ -57,7 +59,7 @@
         <table class="resumen-table">
             <thead>
                 <tr>
-                    <th>Total Horarios (Disponibilidad)</th>
+                    <th>Filtrar Bloqueos/Parciales (Disponibilidad)</th>
                     <th>Ocupados</th>
                     <th>Bloqueados</th>
                     <th>Programadas</th>
@@ -68,8 +70,8 @@
             <tbody>
                 <tr>
                     <td>
-                        <select class="form-select" style="width: 100%; padding: 5px; text-align: center; border: 1px solid #dee2e6; border-radius: 5px;">
-                            <option selected disabled>Ver disponibilidad...</option>
+                        <select id="filtroDoctor" class="form-select" onchange="aplicarFiltrosYPaginacion()" style="width: 100%; padding: 5px; text-align: center; border: 1px solid #dee2e6; border-radius: 5px;">
+                            <option value="">Ver todos los doctores...</option>
                             @foreach($disponibilidadDoctores as $nombre => $slots)
                                 @php $slots = max(0, $slots); @endphp
                                 <option value="{{ $nombre }}">
@@ -100,9 +102,9 @@
                     <th>Motivo</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="tabla-bloqueos-body">
                 @forelse(($bloqueos ?? collect()) as $b)
-                <tr>
+                <tr class="fila-bloqueo" data-doctor="{{ $b['doctor'] }}">
                     <td>{{ $b['doctor'] }}</td>
                     <td>{{ Carbon::parse($b['fecha'])->format('d/m/Y') }}</td>
                     <td>{{ $b['hora_inicio'] }}</td>
@@ -130,9 +132,9 @@
                     <th>Motivo</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="tabla-parciales-body">
                 @forelse(($parciales ?? collect()) as $p)
-                <tr>
+                <tr class="fila-parcial" data-doctor="{{ $p['doctor'] }}">
                     <td>{{ $p['doctor'] }}</td>
                     <td>{{ Carbon::parse($p['fecha'])->format('d/m/Y') }}</td>
                     <td>{{ $p['hora_inicio'] }}</td>
@@ -149,7 +151,7 @@
     </div>
 
     <div class="detalle-container">
-        <div class="detalle-header">Detalle de Citas del Día</div>
+        <div class="detalle-header">Detalle de Citas del Día (Todas)</div>
         <table class="detalle-table">
             <thead>
                 <tr>
@@ -160,9 +162,14 @@
                     <th>Tipo de Examen</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="tabla-citas-body">
                 @forelse($citas as $cita)
-                <tr>
+                @php
+                    $nombreDocCita = $cita->doctor && $cita->doctor->user 
+                        ? trim($cita->doctor->user->nombres . ' ' . $cita->doctor->user->apellidos) 
+                        : '';
+                @endphp
+                <tr class="fila-cita">
                     <td>{{ Carbon::parse($cita->hora_inicio)->format('H:i') }}</td>
                     <td>{{ Carbon::parse($cita->hora_fin)->format('H:i') }}</td>
                     <td>{{ $cita->paciente->nombres }} {{ $cita->paciente->apellidos }}</td>
@@ -191,26 +198,106 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="sin-citas">No hay citas registradas para hoy.</td>
+                    <td colspan="6" class="sin-citas">No hay citas registradas para hoy.</td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
+        
+        <div id="paginacion-container" class="paginacion-container">
+            <button id="btn-prev" onclick="cambiarPagina(-1)">Anterior</button>
+            <span id="info-pagina">Página 1</span>
+            <button id="btn-next" onclick="cambiarPagina(1)">Siguiente</button>
+        </div>
     </div>
+    
     <div class="d-flex justify-content-end mb-4">
         <button id="btn-imprimir" class="btn-imprimir" onclick="imprimirAgenda()">Imprimir Agenda</button>
     </div>
 </div>
 
 <script>
+    let paginaActual = 1;
+    const filasPorPagina = 5;
+    let filasTodasCitas = [];
+
+    document.addEventListener("DOMContentLoaded", function() {
+        aplicarFiltrosYPaginacion();
+    });
+
     function imprimirAgenda() {
         const boton = document.getElementById('btn-imprimir');
+        const paginacion = document.getElementById('paginacion-container');
+        
+        const filas = document.querySelectorAll('.fila-cita');
+        filas.forEach(fila => {
+            fila.style.display = "table-row";
+        });
+
         boton.style.display = 'none';
+        paginacion.style.display = 'none';
 
         setTimeout(() => {
             window.print();
             boton.style.display = 'inline-block';
+            paginacion.style.display = 'flex';
+            renderizarTablaCitas(); 
         }, 300);
+    }
+
+    function aplicarFiltrosYPaginacion() {
+        const select = document.getElementById('filtroDoctor');
+        const doctorSeleccionado = select.value;
+
+        filtrarSimple('.fila-bloqueo', doctorSeleccionado);
+        filtrarSimple('.fila-parcial', doctorSeleccionado);
+
+        const nodeListCitas = document.querySelectorAll('.fila-cita');
+        filasTodasCitas = Array.from(nodeListCitas);
+
+        nodeListCitas.forEach(fila => fila.style.display = 'none');
+
+        paginaActual = 1;
+        renderizarTablaCitas();
+    }
+
+    function filtrarSimple(selectorClase, doctorSeleccionado) {
+        const filas = document.querySelectorAll(selectorClase);
+        filas.forEach(fila => {
+            const docFila = fila.getAttribute('data-doctor');
+            if (doctorSeleccionado === "" || docFila === doctorSeleccionado) {
+                fila.style.display = "table-row";
+            } else {
+                fila.style.display = "none";
+            }
+        });
+    }
+
+    function renderizarTablaCitas() {
+        const totalPaginas = Math.ceil(filasTodasCitas.length / filasPorPagina);
+        
+        if (paginaActual < 1) paginaActual = 1;
+        if (paginaActual > totalPaginas && totalPaginas > 0) paginaActual = totalPaginas;
+
+        const inicio = (paginaActual - 1) * filasPorPagina;
+        const fin = inicio + filasPorPagina;
+
+        document.querySelectorAll('.fila-cita').forEach(f => f.style.display = 'none');
+
+        const filasAmostrar = filasTodasCitas.slice(inicio, fin);
+        filasAmostrar.forEach(fila => fila.style.display = 'table-row');
+
+        document.getElementById('info-pagina').innerText = totalPaginas > 0 
+            ? `Página ${paginaActual} de ${totalPaginas}` 
+            : 'Sin resultados';
+
+        document.getElementById('btn-prev').disabled = paginaActual === 1;
+        document.getElementById('btn-next').disabled = paginaActual === totalPaginas || totalPaginas === 0;
+    }
+
+    function cambiarPagina(delta) {
+        paginaActual += delta;
+        renderizarTablaCitas();
     }
 </script>
 
@@ -302,29 +389,12 @@
         display: inline-block;
     }
 
-    .estado-programada {
-        background-color: #0dcaf0;
-    }
-
-    .estado-atendida {
-        background-color: #198754;
-    }
-
-    .estado-cancelada {
-        background-color: #dc3545;
-    }
-
-    .estado-finalizada {
-        background-color: green;
-    }
-
-    .estado-modificada {
-        background-color: #ffc107;
-    }
-
-    .estado-default {
-        background-color: #6c757d;
-    }
+    .estado-programada { background-color: #0dcaf0; }
+    .estado-atendida { background-color: #198754; }
+    .estado-cancelada { background-color: #dc3545; }
+    .estado-finalizada { background-color: green; }
+    .estado-modificada { background-color: #ffc107; }
+    .estado-default { background-color: #6c757d; }
 
     .sin-citas {
         text-align: center;
@@ -350,8 +420,44 @@
         transform: scale(1.03);
     }
 
+    .paginacion-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 15px;
+        background-color: #fff;
+        border-top: 1px solid #dee2e6;
+        gap: 15px;
+    }
+
+    .paginacion-container button {
+        padding: 5px 15px;
+        border: 1px solid #0d6efd;
+        background-color: white;
+        color: #0d6efd;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .paginacion-container button:hover:not(:disabled) {
+        background-color: #0d6efd;
+        color: white;
+    }
+
+    .paginacion-container button:disabled {
+        border-color: #ccc;
+        color: #ccc;
+        cursor: not-allowed;
+    }
+
+    #info-pagina {
+        font-weight: bold;
+        color: #495057;
+    }
+
     @media print {
-        .btn-imprimir {
+        .btn-imprimir, .paginacion-container {
             display: none !important;
         }
     }

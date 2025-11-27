@@ -20,16 +20,14 @@
                 @php
                     $inicio = strtotime("08:00");
                     $fin = strtotime("18:00");
-                    $intervalo = 20 * 60; 
+                    $intervalo = 20 * 60;
                 @endphp
 
                 <div>
                     <label for="hora_inicio">Hora Inicio</label>
                     <select id="hora_inicio" name="hora_inicio" required style="max-height: 200px; overflow-y: auto;">
                         @for ($t = $inicio; $t < $fin; $t += $intervalo)
-                            <option value="{{ date('H:i', $t) }}">
-                            {{ date('g:i A', $t) }}
-                            </option>
+                            <option value="{{ date('H:i', $t) }}">{{ date('g:i A', $t) }}</option>
                         @endfor
                     </select>
                 </div>
@@ -38,9 +36,7 @@
                     <label for="hora_fin">Hora Fin</label>
                     <select id="hora_fin" name="hora_fin" required style="max-height: 200px; overflow-y: auto;">
                         @for ($t = $inicio + $intervalo; $t <= $fin; $t += $intervalo)
-                            <option value="{{ date('H:i', $t) }}">
-                            {{ date('g:i A', $t) }}
-                            </option>
+                            <option value="{{ date('H:i', $t) }}">{{ date('g:i A', $t) }}</option>
                         @endfor
                     </select>
                 </div>
@@ -52,19 +48,20 @@
 
     <div class="list-section">
         <h2>Bloqueos Guardados</h2>
+
         <div class="parcialidades-lista">
             @forelse ($bloqueos_guardados as $bloqueo)
-            <div class="parcialidad-item">
-                <span>{{ date("g:i A", strtotime($bloqueo->hora_inicio)) }} - {{ date("g:i A", strtotime($bloqueo->hora_fin)) }}</span>
+                <div class="parcialidad-item">
+                    <span>{{ date("g:i A", strtotime($bloqueo->hora_inicio)) }} - {{ date("g:i A", strtotime($bloqueo->hora_fin)) }}</span>
 
-                <form action="{{ route('citas.bloqueado.destroy', $bloqueo->id) }}" method="POST" style="display:inline;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit">Eliminar</button>
-                </form>
-            </div>
+                    <form action="{{ route('citas.bloqueado.destroy', ['doctorId' => $doctorId, 'fecha' => $dia, 'id' => $bloqueo->id]) }}" method="POST" style="display:inline-block;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit">Eliminar</button>
+                    </form>
+                </div>
             @empty
-            <p style="color: #718096;">No hay bloqueos registrados para este día.</p>
+                <p style="color: #718096;">No hay bloqueos registrados para este día.</p>
             @endforelse
         </div>
     </div>
@@ -81,7 +78,6 @@
         background-color: #f4f7f6 !important;
         color: #333;
     }
-
     .container.parcial-container {
         max-width: 700px;
         margin: 20px auto;
@@ -90,52 +86,43 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         overflow: hidden;
     }
-
     .header {
         padding: 25px 30px;
         background-color: #f9fafb;
         border-bottom: 1px solid #e6e9eb;
     }
-
     .header h1 {
         margin: 0;
         font-size: 22px;
         color: #1a202c;
     }
-
     .header p {
         margin: 5px 0 0;
         font-size: 15px;
         color: #718096;
     }
-
     .form-section,
     .list-section {
         padding: 30px;
         border-bottom: 1px solid #e6e9eb;
     }
-
     .list-section {
         border-bottom: none;
     }
-
     .range-group {
         display: flex;
         gap: 20px;
         align-items: flex-end;
     }
-
-    .range-group>div {
+    .range-group > div {
         flex: 1;
     }
-
     label {
         display: block;
         margin-bottom: 8px;
         font-weight: 500;
         font-size: 14px;
     }
-
     select {
         width: 100%;
         padding: 10px;
@@ -143,7 +130,6 @@
         border-radius: 6px;
         box-sizing: border-box;
     }
-
     .btn {
         padding: 10px 20px;
         border: none;
@@ -151,27 +137,19 @@
         font-size: 14px;
         font-weight: 600;
         cursor: pointer;
-        transition: background-color 0.3s;
         white-space: nowrap;
         text-decoration: none;
         line-height: 1.4;
         box-sizing: border-box;
     }
-
     .btn-add {
         background-color: #ef4444;
         color: white;
         height: 40px;
     }
-
-    .btn-add:hover {
-        background-color: #dc2626;
-    }
-
     .parcialidades-lista {
         margin-top: 15px;
     }
-
     .parcialidad-item {
         display: flex;
         justify-content: space-between;
@@ -183,7 +161,6 @@
         color: #991b1b;
         font-weight: 600;
     }
-
     .parcialidad-item button {
         background: none;
         border: none;
@@ -191,7 +168,6 @@
         cursor: pointer;
         font-weight: 600;
     }
-
     .footer {
         padding: 20px 30px;
         background-color: #f9fafb;
@@ -200,17 +176,10 @@
         justify-content: space-between;
         align-items: center;
     }
-
     .btn-save {
         background-color: #2563eb;
         color: white;
     }
-
-    .btn-save:hover {
-        background-color: #1d4ed8;
-        color: white;
-    }
-
     .btn-back {
         background-color: transparent;
         color: #555;

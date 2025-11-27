@@ -15,7 +15,6 @@ class CitasBloqueadoController extends Controller
 {
     public function store(BloqueoRequest $request)
     {
-
         $doctorProfile = Doctores::where('user_id', $request->doctor_id)->firstOrFail();
 
         $bloqueo = BloqueoAgenda::create([
@@ -27,12 +26,16 @@ class CitasBloqueadoController extends Controller
             'creado_por' => Auth::id(),
         ]);
 
+        $observacion = [
+            'observacion' => "Bloqueo creado para el {$bloqueo->fecha} desde {$bloqueo->hora_inicio} hasta {$bloqueo->hora_fin}. Motivo: {$bloqueo->motivo}"
+        ];
+
         BitacoraAuditoriaController::registrar(
             Auth::id(),
             'agenda',
             'crear bloqueo',
             $bloqueo->id,
-            $bloqueo->toArray()
+            $observacion
         );
 
         return redirect()->back()->with('success', 'Bloqueo de agenda creado correctamente.');
@@ -64,7 +67,7 @@ class CitasBloqueadoController extends Controller
         ];
 
         $observacion = "Eliminación de bloqueo de agenda para la fecha {$bloqueo->fecha} de {$bloqueo->hora_inicio} a {$bloqueo->hora_fin}. Motivo: " . ($bloqueo->motivo ?? 'No especificado');
-        
+
         $datosBitacora = array_merge($datosEliminados, ['observacion' => $observacion]);
 
         $idEliminado = $bloqueo->id;
@@ -78,7 +81,7 @@ class CitasBloqueadoController extends Controller
             $datosBitacora
         );
 
-        $otrosBloqueos = BloqueoAgenda::where('creado_por', $doctorUserId)
+        $otrosBloqueos = BloqueoAgenda::where('doctor_id', $bloqueo->doctor_id)
             ->where('fecha', $fecha)
             ->exists();
 

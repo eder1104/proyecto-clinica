@@ -12,7 +12,6 @@ class ReporteAgendaController extends Controller
 {
     public function index()
     {
-
         $fecha = Carbon::today()->toDateString();
 
         $citas = Cita::with(['paciente'])
@@ -66,11 +65,27 @@ class ReporteAgendaController extends Controller
         $horaFin = 18;   
         $intervalo = 20; 
 
-        $totalMinutos = ($horaFin - $horaInicio) * 60;
-        $slotsPorDoctor = floor($totalMinutos / $intervalo);
+        $totalMinutosDia = ($horaFin - $horaInicio) * 60;
+        $slotsPorDoctor = floor($totalMinutosDia / $intervalo);
         $capacidadTotal = $numDoctores * $slotsPorDoctor;
 
-        $totalHorarios = $capacidadTotal - $ocupados;
+        $slotsBloqueados = 0;
+
+        foreach ($bloqueosRaw as $b) {
+            $inicio = Carbon::parse($b->hora_inicio);
+            $fin = Carbon::parse($b->hora_fin);
+            $minutos = $fin->diffInMinutes($inicio);
+            $slotsBloqueados += ceil($minutos / $intervalo);
+        }
+
+        foreach ($parcialesRaw as $p) {
+            $inicio = Carbon::parse($p->hora_inicio);
+            $fin = Carbon::parse($p->hora_fin);
+            $minutos = $fin->diffInMinutes($inicio);
+            $slotsBloqueados += ceil($minutos / $intervalo);
+        }
+
+        $totalHorarios = max(0, $capacidadTotal - $slotsBloqueados);
 
         return view('citas.AgendaDia', [
             'fecha' => $fecha,
