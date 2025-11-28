@@ -281,24 +281,4 @@ class CalendarioController extends Controller
 
         return response()->json($result);
     }
-
-    public function crearBloqueo(Request $request)
-    {
-        $data = $request->validate([
-            'fecha' => 'required|date',
-            'hora_inicio' => 'required|date_format:H:i',
-            'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
-            'motivo' => 'nullable|string|max:255'
-        ]);
-
-        BloqueoAgenda::create([
-            'fecha' => $data['fecha'],
-            'hora_inicio' => $data['hora_inicio'] . ':00',
-            'hora_fin' => $data['hora_fin'] . ':00',
-            'motivo' => $data['motivo'] ?? null,
-            'creado_por' => Auth::id()
-        ]);
-
-        return back()->with('success', 'Bloqueo creado correctamente.');
-    }
 }
