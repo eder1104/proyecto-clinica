@@ -1,3 +1,4 @@
+#!/bin/bash
 set -euo pipefail
 
 echo "🚀 Iniciando instalación del proyecto Laravel..."
@@ -19,17 +20,10 @@ fi
 echo "🔑 Generando clave de la aplicación..."
 php artisan key:generate --force
 
-echo "Reiniciando tablas"
-php artisan migrate freshe
+echo "🗄️  Reiniciando base de datos y cargando datos de prueba..."
+php artisan migrate:fresh --seed --force
 
-php artisan migrate:fresh --seed
-
-if [ ! -d "node_modules" ]; then
-    echo "📦 Instalando dependencias de NPM..."
-    npm install
-else
-    echo "📦 'node_modules/' ya existe. Saltando npm install."
-fi
-
-echo "✔️ Todo listo. Ahora puedes ejecutar:"
-echo "👉 npm run dev"
+echo ""
+echo "✔️  Instalación finalizada correctamente."
+echo "👉 Ahora puedes ejecutar el proyecto sin depender de Node:"
+echo "   php artisan serve"
