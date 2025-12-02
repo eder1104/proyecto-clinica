@@ -1,4 +1,3 @@
-#!/bin/bash
 set -euo pipefail
 
 echo "🚀 Iniciando instalación del proyecto Laravel..."
@@ -22,8 +21,3 @@ php artisan key:generate --force
 
 echo "🗄️  Reiniciando base de datos y cargando datos de prueba..."
 php artisan migrate:fresh --seed --force
-
-echo ""
-echo "✔️  Instalación finalizada correctamente."
-echo "👉 Ahora puedes ejecutar el proyecto sin depender de Node:"
-echo "   php artisan serve"
