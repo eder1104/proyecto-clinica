@@ -9,7 +9,6 @@ use App\Models\Paciente;
 use App\Models\doctores;
 use App\Models\Cita;
 use App\Models\BloqueoAgenda;
-use App\Http\Controllers\BitacoraAuditoriaController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
@@ -163,17 +162,6 @@ class ConsentimientoController extends Controller
             'nombre_doctor'   => $nombreDoctor,
             'activo'          => true,
         ]);
-
-        $observacion = "Registro de consentimiento firmado por {$tipoFirmante}: {$nombreFirmante}, para el paciente {$nombrePaciente}.";
-        $datosBitacora = array_merge($validatedData, ['observacion' => $observacion]);
-
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'consentimientos',
-            'Crear',
-            $consentimiento->id,
-            $datosBitacora
-        );
 
         return redirect()
             ->route('citas.atencion', ['cita' => $request->cita_id])

@@ -26,18 +26,6 @@ class CitasBloqueadoController extends Controller
             'creado_por' => Auth::id(),
         ]);
 
-        $observacion = [
-            'observacion' => "Bloqueo creado para el {$bloqueo->fecha} desde {$bloqueo->hora_inicio} hasta {$bloqueo->hora_fin}. Motivo: {$bloqueo->motivo}"
-        ];
-
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'agenda',
-            'crear bloqueo',
-            $bloqueo->id,
-            $observacion
-        );
-
         return redirect()->back()->with('success', 'Bloqueo de agenda creado correctamente.');
     }
 
@@ -56,30 +44,7 @@ class CitasBloqueadoController extends Controller
         $doctorProfile = Doctores::where('user_id', $doctorUserId)->first();
         $doctor_table_id = $doctorProfile ? $doctorProfile->id : null;
 
-        $datosEliminados = [
-            'id' => $bloqueo->id,
-            'fecha' => $bloqueo->fecha,
-            'hora_inicio' => $bloqueo->hora_inicio,
-            'hora_fin' => $bloqueo->hora_fin,
-            'motivo' => $bloqueo->motivo ?? 'No especificado',
-            'creado_por' => $bloqueo->creado_por,
-            'doctor_id' => $bloqueo->doctor_id
-        ];
-
-        $observacion = "Eliminación de bloqueo de agenda para la fecha {$bloqueo->fecha} de {$bloqueo->hora_inicio} a {$bloqueo->hora_fin}. Motivo: " . ($bloqueo->motivo ?? 'No especificado');
-
-        $datosBitacora = array_merge($datosEliminados, ['observacion' => $observacion]);
-
-        $idEliminado = $bloqueo->id;
         $bloqueo->delete();
-
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'agenda',
-            'eliminar bloqueo',
-            $idEliminado,
-            $datosBitacora
-        );
 
         $otrosBloqueos = BloqueoAgenda::where('doctor_id', $bloqueo->doctor_id)
             ->where('fecha', $fecha)
@@ -87,8 +52,8 @@ class CitasBloqueadoController extends Controller
 
         $tieneParcialidades = $doctor_table_id
             ? DoctorParcialidad::where('doctor_id', $doctor_table_id)
-                ->where('fecha', $fecha)
-                ->exists()
+            ->where('fecha', $fecha)
+            ->exists()
             : false;
 
         if (!$otrosBloqueos && !$tieneParcialidades && $doctor_table_id) {

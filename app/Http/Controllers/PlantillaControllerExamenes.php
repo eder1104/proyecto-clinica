@@ -16,7 +16,7 @@ class PlantillaControllerExamenes extends Controller
         $examenes = Plantilla_Examenes::all();
         $citas = Cita::with('paciente')->orderBy('fecha', 'desc')->get();
         $users = User::where('role', 'admisiones')->get();
-        
+
         return view('plantillas.examenes', compact('examenes', 'citas', 'users'));
     }
 
@@ -57,17 +57,6 @@ class PlantillaControllerExamenes extends Controller
         }
 
         $cita->update(['estado' => 'finalizada']);
-
-        $observacion = "{$accion} examen de tipo {$data['tipoExamen']} para la cita ID {$cita->id}.";
-        $datosBitacora = array_merge($data, ['observacion' => $observacion]);
-
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'examenes',
-            $accion,
-            $plantilla->id,
-            $datosBitacora
-        );
 
         return redirect()->route('citas.index')->with('success', 'Examen guardado y cita finalizada correctamente.');
     }
@@ -119,27 +108,6 @@ class PlantillaControllerExamenes extends Controller
             ));
         }
 
-        $datosNuevos = $plantilla->fresh()->toArray();
-        $observacion = "Edición de examen ID {$plantilla->id} (Cita {$cita->id}).";
-        $datosBitacora = array_merge($data, ['observacion' => $observacion]);
-
-        $bitacoraId = BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'examenes',
-            'Editar',
-            $plantilla->id,
-            $datosBitacora
-        );
-
-        if ($datosAnteriores) {
-            BitacoraAuditoriaController::registrarCambio(
-                $bitacoraId,
-                $plantilla->id,
-                $datosAnteriores,
-                $datosNuevos
-            );
-        }
-
         return redirect()->route('historias.index', $cita->id)
             ->with('success', 'Examen actualizado correctamente.');
     }
@@ -147,21 +115,10 @@ class PlantillaControllerExamenes extends Controller
     public function destroy($id)
     {
         $examen = Plantilla_Examenes::findOrFail($id);
-        
-        $datosEliminados = $examen->toArray();
-        $observacion = "Eliminación de examen ID {$examen->id} del tipo {$examen->tipoExamen}.";
-        $datosBitacora = array_merge($datosEliminados, ['observacion' => $observacion]);
 
-        $idEliminado = $examen->id;
         $examen->delete();
 
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'examenes',
-            'Eliminar',
-            $idEliminado,
-            $datosBitacora
-        );
+
 
         return response()->json(['message' => 'Examen eliminado correctamente']);
     }

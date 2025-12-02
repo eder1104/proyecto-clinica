@@ -44,17 +44,6 @@ class UserController extends Controller
             'created_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
         ]);
 
-        $observacion = "Creación de usuario: {$user->nombres} {$user->apellidos} (Rol: {$user->role}).";
-        $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
-
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'usuarios',
-            'crear',
-            $user->id,
-            $datosBitacora
-        );
-
         return redirect()->route('users.index')
             ->with('success', 'Usuario creado correctamente. ✅');
     }
@@ -84,7 +73,6 @@ class UserController extends Controller
             'password.min'       => 'La contraseña debe tener al menos 8 caracteres.',
         ]);
 
-        $datosAnteriores = $user->toArray();
 
         $data = [
             'nombres'    => trim($request->nombres),
@@ -98,31 +86,6 @@ class UserController extends Controller
         }
 
         $user->update($data);
-
-        $datosNuevos = $user->fresh()->toArray();
-
-        $cambios = array_diff_assoc($datosNuevos, $datosAnteriores);
-        $camposCambiados = implode(', ', array_keys($cambios));
-        $observacion = "Edición de usuario ID {$user->id}. Campos modificados: {$camposCambiados}.";
-        
-        $datosBitacora = array_merge($data, ['observacion' => $observacion]);
-
-        $bitacoraId = BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'usuarios',
-            'editar',
-            $user->id,
-            $datosBitacora
-        );
-
-        if (array_diff_assoc($datosNuevos, $datosAnteriores)) {
-            BitacoraAuditoriaController::registrarCambio(
-                $bitacoraId,
-                $user->id,
-                $datosAnteriores,
-                $datosNuevos
-            );
-        }
 
         return redirect()
             ->route('users.index')
@@ -150,26 +113,6 @@ class UserController extends Controller
             'updated_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
         ]);
 
-        $despues = $user->toArray();
-
-        $observacion = 'Cambio de rol a: ' . $user->role;
-        $datosBitacora = array_merge($request->all(), ['observacion' => $observacion]);
-
-        $bitacoraId = BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'Usuarios',
-            'editar',
-            $user->id,
-            $datosBitacora
-        );
-
-        BitacoraAuditoriaController::registrarCambio(
-            $bitacoraId,
-            $user->id,
-            $antes,
-            $despues
-        );
-
         return redirect()->route('users.index')
             ->with('success', "El rol de {$user->nombres} fue actualizado a '{$user->role}' correctamente. ✅");
     }
@@ -177,25 +120,11 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        $datosEliminados = $user->toArray();
-        $observacion = "Eliminación de usuario: {$user->nombres} {$user->apellidos} (ID: {$user->id}).";
-        $datosBitacora = array_merge($datosEliminados, ['observacion' => $observacion]);
-
-        $idEliminado = $user->id;
-
         $user->update([
             'cancelled_by' => Auth::id(),
         ]);
 
         $user->delete();
-
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'Usuarios',
-            'eliminar',
-            $idEliminado,
-            $datosBitacora
-        );
 
         return redirect()->route('users.index')
             ->with('success', 'Usuario eliminado correctamente. 🗑️');
@@ -208,30 +137,6 @@ class UserController extends Controller
         $user->status = $user->status === 'activo' ? 'inactivo' : 'activo';
         $user->updated_by = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
         $user->save();
-
-        $despues = $user->toArray();
-
-        $observacion = 'Cambio de estado: '
-            . ($antes['status'] === 'activo' ? 'Activo' : 'Inactivo')
-            . ' → '
-            . ($despues['status'] === 'activo' ? 'Activo' : 'Inactivo');
-
-        $datosBitacora = ['observacion' => $observacion];
-
-        $bitacoraId = BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'Usuarios',
-            'editar',
-            $user->id,
-            $datosBitacora
-        );
-
-        BitacoraAuditoriaController::registrarCambio(
-            $bitacoraId,
-            $user->id,
-            $antes,
-            $despues
-        );
 
         return redirect()->route('users.index')
             ->with('success', 'Estado actualizado correctamente. 🔄');

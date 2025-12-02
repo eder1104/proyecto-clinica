@@ -34,17 +34,7 @@ class PacienteController extends Controller
             $validated,
             ['created_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos]
         ));
-
-        $observacion = "Creación de nuevo paciente: {$paciente->nombres} {$paciente->apellidos} (Documento: {$paciente->documento}).";
-
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'pacientes',
-            'crear',
-            $paciente->id,
-            array_merge($validated, ['observacion' => $observacion])
-        );
-
+        
         return redirect()->route('pacientes.index')->with('success', 'Paciente creado correctamente.');
     }
 
@@ -68,30 +58,6 @@ class PacienteController extends Controller
             Paciente::withoutEvents(function () use ($paciente) {
                 $paciente->save();
             });
-
-            $datosNuevos = $paciente->toArray();
-
-            $observacion = "Actualización de datos del paciente ID {$paciente->id}.";
-            $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
-
-            $bitacoraId = BitacoraAuditoriaController::registrar(
-                Auth::id(),
-                'pacientes',
-                'editar',
-                $paciente->id,
-                $datosBitacora
-            );
-
-            $diferencias = array_diff_assoc($datosNuevos, $datosAnteriores);
-
-            if (!empty($diferencias)) {
-                BitacoraAuditoriaController::registrarCambio(
-                    $bitacoraId,
-                    $paciente->id,
-                    $datosAnteriores,
-                    $datosNuevos
-                );
-            }
         }
 
         return redirect()
@@ -101,25 +67,12 @@ class PacienteController extends Controller
 
     public function destroy(Paciente $paciente)
     {
-        $datosEliminados = $paciente->toArray();
-        $observacion = "Eliminación del paciente ID {$paciente->id}: {$paciente->nombres} {$paciente->apellidos}.";
-
-        $idEliminado = $paciente->id;
-
         Paciente::withoutEvents(function () use ($paciente) {
             $paciente->update([
                 'cancelled_by' => Auth::user()->nombres . ' ' . Auth::user()->apellidos,
             ]);
             $paciente->delete();
         });
-
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'pacientes',
-            'eliminar',
-            $idEliminado,
-            array_merge($datosEliminados, ['observacion' => $observacion])
-        );
 
         return redirect()->route('pacientes.index')->with('success', 'Paciente eliminado correctamente.');
     }

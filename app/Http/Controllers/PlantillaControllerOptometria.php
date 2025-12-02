@@ -165,17 +165,6 @@ class PlantillaControllerOptometria extends Controller
                 'doctor_id' => $doctorId
             ]);
 
-            $observacion = "Registro de plantilla de optometría para la cita ID {$cita->id}.";
-            $datosBitacora = array_merge($data, ['observacion' => $observacion]);
-
-            BitacoraAuditoriaController::registrar(
-                Auth::id(),
-                'plantillas_optometria',
-                'Crear',
-                $plantilla->id,
-                $datosBitacora
-            );
-
             return redirect()
                 ->route('historias.cita', ['paciente' => $cita->paciente_id])
                 ->with('success', 'Cita finalizada y plantilla registrada correctamente.');
@@ -213,27 +202,6 @@ class PlantillaControllerOptometria extends Controller
             }
 
             $this->procesarCatalogos($request, $cita);
-
-            $datosNuevos = $plantilla->fresh()->toArray();
-            $observacion = "Actualización de plantilla de optometría ID {$plantilla->id} (Cita {$cita->id}).";
-            $datosBitacora = array_merge($data, ['observacion' => $observacion]);
-
-            $bitacoraId = BitacoraAuditoriaController::registrar(
-                Auth::id(),
-                'plantillas_optometria',
-                'Editar',
-                $plantilla->id,
-                $datosBitacora
-            );
-
-            if ($datosAnteriores) {
-                BitacoraAuditoriaController::registrarCambio(
-                    $bitacoraId,
-                    $plantilla->id,
-                    $datosAnteriores,
-                    $datosNuevos
-                );
-            }
 
             return redirect()->route('historias.cita', ['paciente' => $cita->paciente_id])
                 ->with('success', 'Plantilla de optometría actualizada correctamente.');
@@ -319,20 +287,7 @@ class PlantillaControllerOptometria extends Controller
     {
         $plantilla = Plantilla_Optometria::findOrFail($id);
 
-        $datosEliminados = $plantilla->toArray();
-        $observacion = "Eliminación de plantilla de optometría ID {$plantilla->id}.";
-        $datosBitacora = array_merge($datosEliminados, ['observacion' => $observacion]);
-
-        $idEliminado = $plantilla->id;
         $plantilla->delete();
-
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'plantillas_optometria',
-            'Eliminar',
-            $idEliminado,
-            $datosBitacora
-        );
 
         return redirect()->back()->with('success', 'Plantilla eliminada correctamente.');
     }

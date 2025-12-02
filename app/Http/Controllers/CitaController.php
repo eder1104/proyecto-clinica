@@ -63,7 +63,7 @@ class CitaController extends Controller
 
         $pacientes = Paciente::select('id', 'nombres', 'apellidos')->orderBy('apellidos', 'asc')->get();
         $plantillas = PlantillaConsentimiento::select('id', 'titulo')->where('activo', true)->orderBy('titulo', 'asc')->get();
-        $consentimientos = ConsentimientoPaciente::with(['paciente', 'plantilla'])->orderBy('created_at', 'desc')->get();
+        $consentimientos = ConsentimientoPaciente::with(['paciente', 'plantilla'])->orderBy('created_at', direction: 'desc')->get();
 
         $calendarioController = app(CalendarioController::class);
         $dias = $calendarioController->obtenerDatosCalendario();
@@ -100,17 +100,6 @@ class CitaController extends Controller
             'estado'          => $validated['estado'],
             'created_by'      => $validated['created_by'],
         ]);
-
-        $observacion = "Creación de cita programada para el paciente ID {$validated['paciente_id']} el día {$validated['fecha']}.";
-        $datosBitacora = array_merge($validated, ['observacion' => $observacion]);
-
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'Citas',
-            'Crear',
-            $cita->id,
-            $datosBitacora
-        );
 
         return redirect()->route('citas.index')->with('success', 'Cita creada correctamente.');
     }
@@ -202,22 +191,6 @@ class CitaController extends Controller
             $observacion = 'Sin cambios';
         }
 
-        $bitacoraId = BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'Citas',
-            'Editò',
-            $cita->id,
-            trim($observacion)
-        );
-
-        HistorialCambio::create([
-            'bitacora_id' => $bitacoraId,
-            'registro_afectado' => $cita->id,
-            'datos_anteriores' => $antes,
-            'datos_nuevos' => $despues,
-            'fecha_cambio' => now()
-        ]);
-
         return redirect()->route('citas.index')->with('success', 'Cita actualizada correctamente.');
     }
 
@@ -242,17 +215,6 @@ class CitaController extends Controller
             'cancel_reason' => $motivo,
         ]);
 
-        $observacion = "Cancelación de cita ID {$cita->id}. Motivo: {$motivo}.";
-        $datosBitacora = ['motivo' => $motivo, 'observacion' => $observacion];
-
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'Citas',
-            'Cancelar',
-            $cita->id,
-            $datosBitacora
-        );
-
         return redirect()->route('citas.index')->with('success', 'Cita cancelada correctamente.');
     }
 
@@ -273,17 +235,6 @@ class CitaController extends Controller
         }
 
         $cita->update(['estado' => 'finalizada']);
-
-        $observacion = "Se ha finalizado la cita ID {$cita->id}.";
-        $datosBitacora = ['estado' => 'finalizada', 'observacion' => $observacion];
-
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'Citas',
-            'Finalizar',
-            $cita->id,
-            $datosBitacora
-        );
 
         return redirect()->route('citas.preexamen')->with('success', 'Cita finalizada correctamente.');
     }
@@ -319,17 +270,6 @@ class CitaController extends Controller
 
     public function atencion(Cita $cita)
     {
-        $observacion = "Inicio de atención para la cita ID {$cita->id}.";
-        $datosBitacora = ['observacion' => $observacion];
-
-        BitacoraAuditoriaController::registrar(
-            Auth::id(),
-            'Citas',
-            'Iniciar Atención',
-            $cita->id,
-            $datosBitacora
-        );
-
         switch ($cita->tipo_cita_id) {
             case 1:
                 return redirect()->route('plantillas.optometria', ['cita' => $cita->id]);

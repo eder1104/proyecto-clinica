@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Cita;
-use App\Models\CalendarioDisponibilidad;
 use App\Models\DoctorParcialidad;
 use App\Models\BloqueoAgenda;
 use App\Models\doctores;

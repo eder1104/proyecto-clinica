@@ -3,71 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\BitacoraAuditoria;
-use App\Models\HistorialCambio;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 
 class BitacoraAuditoriaController extends Controller
 {
-    public static function registrar($usuarioId, $modulo, $accion, $registroId = null, $observacion = null)
-    {
-        if (!$observacion) {
-            $observacion = ['observacion' => 'Detalles no disponibles'];
-        }
-
-        $bitacora = new BitacoraAuditoria();
-        $bitacora->usuario_id = $usuarioId;
-        $bitacora->modulo = $modulo;
-        $bitacora->accion = $accion;
-        $bitacora->registro_afectado = $registroId;
-
-        $bitacora->observacion = $observacion;
-
-        $bitacora->fecha_hora = Carbon::now();
-        $bitacora->save();
-
-        return $bitacora->id;
-    }
-
-    public static function registrarCambio($bitacoraId, $registroId, $datosAnteriores = null, $datosNuevos = null)
-    {
-        if (!$datosAnteriores || !$datosNuevos) {
-            return null;
-        }
-
-        $cambiosAntes = [];
-        $cambiosDespues = [];
-
-        foreach ($datosNuevos as $key => $nuevoValor) {
-
-            $valorAnterior = $datosAnteriores[$key] ?? null;
-
-            $valorAnteriorString = is_scalar($valorAnterior) ? (string)$valorAnterior : json_encode($valorAnterior);
-            $nuevoValorString = is_scalar($nuevoValor) ? (string)$nuevoValor : json_encode($nuevoValor);
-
-            if ($valorAnteriorString !== $nuevoValorString) {
-                if (!in_array($key, ['created_at', 'updated_at', 'deleted_at', 'created_by'])) {
-                    $cambiosAntes[$key] = $valorAnterior;
-                    $cambiosDespues[$key] = $nuevoValor;
-                }
-            }
-        }
-
-        if (empty($cambiosAntes) && empty($cambiosDespues)) {
-            return null;
-        }
-
-        $cambio = new HistorialCambio();
-        $cambio->bitacora_id = $bitacoraId;
-        $cambio->registro_afectado = $registroId;
-        $cambio->datos_anteriores = json_encode($cambiosAntes);
-        $cambio->datos_nuevos = json_encode($cambiosDespues);
-        $cambio->fecha_cambio = now();
-        $cambio->save();
-
-        return $cambio->id;
-    }
-
     public function index()
     {
         $bitacoras = BitacoraAuditoria::with(['usuario', 'historialCambios'])
