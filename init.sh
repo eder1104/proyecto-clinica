@@ -25,5 +25,6 @@ php artisan key:generate --force
 
 php artisan config:clear
 php artisan cache:clear
+php artisan migrate
 
 php artisan migrate:fresh --seed --force
