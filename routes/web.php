@@ -35,9 +35,34 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
 
     Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
 
-    Route::get('/consentimientos', [ConsentimientoController::class, 'create'])->name('consentimientos.create');
-    Route::post('/consentimientos', [ConsentimientoController::class, 'store'])->name('consentimientos.store');
-    Route::get('/consentimientos/generar', [ConsentimientoController::class, 'generar'])->name('consentimientos.generar');
+    Route::middleware(['checkrole:admin'])->group(function () {
+        Route::get('/administracion', fn() => view('administracion'))->name('administracion');
+
+        Route::patch('/users/{user}/toggle', [UserController::class, 'toggleStatus'])->name('users.toggle');
+        Route::get('/users/buscar/lista', [UserController::class, 'Usuario_buscar'])->name('users.buscar.lista');
+        Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update.role');
+        Route::resource('users', UserController::class)->except(['show']);
+    });
+
+    Route::middleware(['checkrole:admin,admisiones'])->group(function () {
+        Route::get('/bitacora', [BitacoraAuditoriaController::class, 'index'])->name('citas.bitacora');
+
+        Route::get('/agenda-doctores', [DoctorAgendaController::class, 'index'])->name('citas.DoctorAgenda');
+        Route::get('/calendario-especialista', [CalendarioEspecialistaController::class, 'index'])->name('citas.CalendarioEspecialista');
+        Route::get('/calendario-especialista/{doctorId}/{mes}', [CalendarioEspecialistaController::class, 'obtenerCalendario'])->name('calendario.obtener');
+        Route::post('/calendario-especialista/update', [CalendarioEspecialistaController::class, 'actualizarEstado'])->name('calendario.update');
+
+        Route::post('/bloqueo-especialista/store', [CitasBloqueadoController::class, 'store'])->name('citas.bloqueado.store');
+        Route::get('/bloqueo-especialista/{doctorId}/{fecha}', [CalendarioEspecialistaController::class, 'vistaBloqueo'])->name('citas.bloqueado');
+        Route::delete('/bloqueo-especialista/{bloqueoAgenda}', [CitasBloqueadoController::class, 'destroy'])->name('citas.bloqueado.destroy');
+
+        Route::get('/citas/reporte', [ReporteAgendaController::class, 'index'])->name('citas.reporte');
+
+        Route::get('/vista-parcial/{doctorId}/{fecha}', [CitasParcialController::class, 'index'])->name('citas.parcial');
+        Route::post('/parcialidades', [CitasParcialController::class, 'store'])->name('citas.parcial.store');
+        Route::put('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'update'])->name('citas.parcial.update');
+        Route::delete('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'destroy'])->name('citas.parcial.destroy');
+    });
 
     Route::middleware(['checkrole:doctor,callcenter,admisiones'])->group(function () {
 
@@ -52,7 +77,13 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
         Route::patch('citas/{cita}/motivo', [CitaController::class, 'updateMotivo'])->name('citas.updateMotivo');
         Route::get('citas/{cita}/pdf', [CitaController::class, 'pdf'])->name('citas.pdf');
         Route::post('citas/{cita}/finalizar', [CitaController::class, 'finalizar'])->name('citas.finalizar');
+        
+        // El resource va al final para que no capture "reporte" como un ID
         Route::resource('citas', CitaController::class);
+
+        Route::get('/consentimientos', [ConsentimientoController::class, 'create'])->name('consentimientos.create');
+        Route::post('/consentimientos', [ConsentimientoController::class, 'store'])->name('consentimientos.store');
+        Route::get('/consentimientos/generar', [ConsentimientoController::class, 'generar'])->name('consentimientos.generar');
 
         Route::prefix('citas/{cita}')->group(function () {
             Route::post('examenes/store', [PlantillaControllerExamenes::class, 'store'])->name('examenes.store');
@@ -81,35 +112,6 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
         Route::get('/catalogos/buscar-diagnosticos', [CatalogoController::class, 'buscarDiagnosticos'])->name('catalogos.buscarDiagnosticos');
         Route::get('/catalogos/buscar-procedimientos', [CatalogoController::class, 'buscarProcedimientos'])->name('catalogos.buscarProcedimientos');
         Route::get('/catalogos/buscar-alergias', [CatalogoController::class, 'buscarAlergias'])->name('catalogos.buscarAlergias');
-    });
-
-    Route::middleware(['checkrole:admin'])->group(function () {
-        Route::get('/administracion', fn() => view('administracion'))->name('administracion');
-
-        Route::patch('/users/{user}/toggle', [UserController::class, 'toggleStatus'])->name('users.toggle');
-        Route::get('/users/buscar/lista', [UserController::class, 'Usuario_buscar'])->name('users.buscar.lista');
-        Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update.role');
-        Route::resource('users', UserController::class)->except(['show']);
-    });
-
-    Route::middleware(['checkrole:admin,admisiones'])->group(function () {
-        Route::get('/bitacora', [BitacoraAuditoriaController::class, 'index'])->name('citas.bitacora');
-
-        Route::get('/agenda-doctores', [DoctorAgendaController::class, 'index'])->name('citas.DoctorAgenda');
-        Route::get('/calendario-especialista', [CalendarioEspecialistaController::class, 'index'])->name('citas.CalendarioEspecialista');
-        Route::get('/calendario-especialista/{doctorId}/{mes}', [CalendarioEspecialistaController::class, 'obtenerCalendario'])->name('calendario.obtener');
-        Route::post('/calendario-especialista/update', [CalendarioEspecialistaController::class, 'actualizarEstado'])->name('calendario.update');
-
-        Route::post('/bloqueo-especialista/store', [CitasBloqueadoController::class, 'store'])->name('citas.bloqueado.store');
-        Route::get('/bloqueo-especialista/{doctorId}/{fecha}', [CalendarioEspecialistaController::class, 'vistaBloqueo'])->name('citas.bloqueado');
-        Route::delete('/bloqueo-especialista/{doctorId}/{fecha}/{id}', [CitasBloqueadoController::class, 'destroy'])->name('citas.bloqueado.destroy');
-
-        Route::get('/citas/reporte', [ReporteAgendaController::class, 'index'])->name('citas.reporte');
-
-        Route::get('/vista-parcial/{doctorId}/{fecha}', [CitasParcialController::class, 'index'])->name('citas.parcial');
-        Route::post('/parcialidades', [CitasParcialController::class, 'store'])->name('citas.parcial.store');
-        Route::put('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'update'])->name('citas.parcial.update');
-        Route::delete('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'destroy'])->name('citas.parcial.destroy');
     });
 });
 

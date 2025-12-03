@@ -8,7 +8,7 @@
         <div class="doctor-info-container">
             <h3 class="doctor-name">Dr. {{ $doctor->nombres }}</h3>
             <p class="doctor-doc">Documento: {{ $doctor->numero_documento }}</p>
-            <a href="{{ route('citas.CalendarioEspecialista') }}" class="btn-volver">Volver a la lista</a>
+            <a href="{{ route('citas.DoctorAgenda') }}" class="btn-volver">Volver a la lista</a>
         </div>
 
         <div class="calendar-box">

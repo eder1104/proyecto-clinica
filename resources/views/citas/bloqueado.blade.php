@@ -54,7 +54,7 @@
                 <div class="parcialidad-item">
                     <span>{{ date("g:i A", strtotime($bloqueo->hora_inicio)) }} - {{ date("g:i A", strtotime($bloqueo->hora_fin)) }}</span>
 
-                    <form action="{{ route('citas.bloqueado.destroy', ['doctorId' => $doctorId, 'fecha' => $dia, 'id' => $bloqueo->id]) }}" method="POST" style="display:inline-block;">
+                    <form action="{{ route('citas.bloqueado.destroy', ['bloqueoAgenda' => $bloqueo->id]) }}" method="POST" style="display:inline-block;">
                         @csrf
                         @method('DELETE')
                         <button type="submit">Eliminar</button>

@@ -48,7 +48,7 @@
                                 <th>Fecha</th>
                                 <th>Hora</th>
                                 <th>Paciente</th>
-                                <th>Atendido por</th>
+                                <th>Creada por</th>
                                 <th>Estado</th>
                                 <th>Observación</th>
                                 <th>Acciones</th>

@@ -8,7 +8,6 @@ use App\Models\Doctores;
 use App\Models\CalendarioDisponibilidad;
 use App\Models\DoctorParcialidad;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\BitacoraAuditoriaController;
 use App\Http\Requests\BloqueoRequest;
 
 class CitasBloqueadoController extends Controller
@@ -29,32 +28,27 @@ class CitasBloqueadoController extends Controller
         return redirect()->back()->with('success', 'Bloqueo de agenda creado correctamente.');
     }
 
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
         $bloqueo = BloqueoAgenda::findOrFail($id);
-
+        
         $usuario = Auth::user();
         if ($usuario->id !== (int)$bloqueo->creado_por && !in_array($usuario->role, ['admin', 'admisiones'])) {
             abort(403);
         }
 
         $fecha = $bloqueo->fecha;
-        $doctorUserId = $bloqueo->creado_por;
-
-        $doctorProfile = Doctores::where('user_id', $doctorUserId)->first();
-        $doctor_table_id = $doctorProfile ? $doctorProfile->id : null;
+        $doctor_table_id = $bloqueo->doctor_id;
 
         $bloqueo->delete();
 
-        $otrosBloqueos = BloqueoAgenda::where('doctor_id', $bloqueo->doctor_id)
+        $otrosBloqueos = BloqueoAgenda::where('doctor_id', $doctor_table_id)
             ->where('fecha', $fecha)
             ->exists();
 
-        $tieneParcialidades = $doctor_table_id
-            ? DoctorParcialidad::where('doctor_id', $doctor_table_id)
+        $tieneParcialidades = DoctorParcialidad::where('doctor_id', $doctor_table_id)
             ->where('fecha', $fecha)
-            ->exists()
-            : false;
+            ->exists();
 
         if (!$otrosBloqueos && !$tieneParcialidades && $doctor_table_id) {
             CalendarioDisponibilidad::updateOrCreate(
@@ -63,9 +57,6 @@ class CitasBloqueadoController extends Controller
             );
         }
 
-        return redirect()->route('citas.bloqueado', [
-            'doctorId' => $doctorUserId,
-            'fecha' => $fecha
-        ])->with('success', 'Bloqueo eliminado');
+        return redirect()->back()->with('success', 'Bloqueo eliminado correctamente.');
     }
 }

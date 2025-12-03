@@ -35,15 +35,19 @@ class CheckRole
             if (
                 !$request->is('citas*') &&
                 !$request->is('pacientes*') &&
-                !$request->is('historias*')
+                !$request->is('historias*') &&
+                !$request->is('calendario*') &&
+                !$request->is('consentimientos*') &&
+                !$request->is('catalogos*')
             ) {
                 return redirect()->route('citas.index')
-                    ->with('info', 'Tu rol ha cambiado. Ahora estás viendo la vista de citas.');
+                    ->with('error', 'Usted no está autorizado para ingresar a esta ruta');
             }
         }
 
         if (!$hasRequiredRole) {
-            return redirect()->back()->with('error', 'Tu rol actual no permite acceder a esa sección.');
+            return redirect()->route('dashboard')
+                ->with('error', 'Usted no está autorizado para ingresar a esta ruta');
         }
 
         return $next($request);

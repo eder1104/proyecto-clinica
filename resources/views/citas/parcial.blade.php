@@ -5,7 +5,7 @@
 <div class="container parcial-container">
     <div class="header">
         <h1>Configuración de Parcialidades</h1>
-        <p>Doctor ID: {{ $doctorId }}</p>
+        <p>Doctor ID user: {{ $doctorId }}</p>
         <p>Día a Editar: <strong>{{ \Carbon\Carbon::parse($dia)->isoFormat('dddd, D [de] MMMM [de] YYYY') }}</strong></p>
     </div>
 
