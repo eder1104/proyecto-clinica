@@ -14,43 +14,66 @@ class Bitacora
 {
     public function handle(Request $request, Closure $next)
     {
-        $datosOriginales = [];
+        $datosAntes = [];
         $metodo = strtolower($request->method());
+        $metodosAuditables = ['post', 'put', 'patch', 'delete'];
 
         if (in_array($metodo, ['put', 'patch', 'delete'])) {
             foreach ($request->route()->parameters() as $key => $parametro) {
                 if ($parametro instanceof Model) {
-                    $datosOriginales[$key] = $parametro->toArray();
+                    $datosAntes[$key] = $parametro->toArray();
                 }
             }
         }
 
         $response = $next($request);
 
-        if ($response->getStatusCode() < 400) {
-            
-            $this->procesarBitacora($request, $datosOriginales, strtoupper($metodo));
+        if (in_array($metodo, $metodosAuditables) && $response->getStatusCode() < 400) {
+            $this->registrarAuditoria($request, $datosAntes, strtoupper($metodo));
         }
 
         return $response;
     }
 
-    protected function procesarBitacora(Request $request, $datosOriginales, $accion)
+    protected function registrarAuditoria(Request $request, $datosAntes, $metodoOriginal)
     {
         $user = Auth::user();
         $modulo = explode('/', $request->path())[0] ?? 'general';
         
+        $acciones = [
+            'POST' => 'CREAR',
+            'PUT' => 'ACTUALIZAR',
+            'PATCH' => 'ACTUALIZAR',
+            'DELETE' => 'ELIMINAR'
+        ];
+        $accion = $acciones[$metodoOriginal] ?? $metodoOriginal;
+
         $registroId = null;
-        $modeloPrincipal = null;
+        $modeloEncontrado = null;
+        $cambios = [];
 
         foreach ($request->route()->parameters() as $key => $parametro) {
             if ($parametro instanceof Model) {
-                $modeloPrincipal = $parametro;
+                $modeloEncontrado = $parametro;
                 $registroId = $parametro->getKey();
-                break; 
+                break;
             } elseif (is_numeric($parametro)) {
                 $registroId = $parametro;
             }
+        }
+
+        if ($metodoOriginal === 'POST' && !$modeloEncontrado) {
+             $cambios = $request->except(['_token', '_method', 'password', 'password_confirmation']);
+        } elseif ($modeloEncontrado) {
+            $datosDespues = ($metodoOriginal === 'DELETE') ? [] : $modeloEncontrado->fresh()->toArray();
+            
+            $antes = $datosAntes[$modeloEncontrado->getTable()] ?? ($datosAntes[array_key_first($datosAntes)] ?? []);
+            
+            $cambios = $this->calcularDiferencias($antes, $datosDespues);
+        }
+
+        if (empty($cambios)) {
+            $cambios = "Se ejecutó la acción pero no se detectaron cambios en los datos monitoreados.";
         }
 
         $bitacora = new BitacoraAuditoria();
@@ -58,60 +81,68 @@ class Bitacora
         $bitacora->modulo = $modulo;
         $bitacora->accion = $accion;
         $bitacora->registro_afectado = $registroId;
-        
-        $bitacora->observacion = [
-            'input' => $request->except(['_token', 'password', 'password_confirmation']),
-            'url' => $request->fullUrl(),
-            'ip' => $request->ip()
-        ];
-        
+        $bitacora->observacion = json_encode($cambios, JSON_UNESCAPED_UNICODE);
         $bitacora->fecha_hora = Carbon::now();
         $bitacora->save();
 
-        if (!empty($datosOriginales)) {
-            foreach ($datosOriginales as $key => $antes) {
-                $modelo = $request->route($key);
-
-                if ($modelo instanceof Model) {
-                    $despues = $accion === 'DELETE' ? [] : $modelo->fresh()->toArray();
-                    
-                    $this->registrarCambios($bitacora->id, $modelo->getKey(), $antes, $despues);
-                }
-            }
+        if (is_array($cambios) && !empty($cambios)) {
+            $this->guardarHistorial($bitacora->id, $registroId, $cambios);
         }
     }
 
-    protected function registrarCambios($bitacoraId, $registroId, $datosAnteriores, $datosNuevos)
+    protected function calcularDiferencias($antes, $despues)
     {
-        $cambiosAntes = [];
-        $cambiosDespues = [];
+        $diferencias = [];
+        $ignorar = ['updated_at', 'created_at', 'deleted_at', 'email_verified_at', 'remember_token'];
 
-        $ignorar = ['created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by'];
+        if (empty($antes) && !empty($despues)) {
+            return $despues; 
+        }
 
-        if (empty($datosNuevos)) {
-            $cambiosAntes = $datosAnteriores;
-        } else {
-            foreach ($datosNuevos as $key => $nuevoValor) {
-                $valorAnterior = $datosAnteriores[$key] ?? null;
+        if (!empty($antes) && empty($despues)) {
+            return ['registro_eliminado' => $antes];
+        }
 
-                $v1 = is_scalar($valorAnterior) ? (string)$valorAnterior : json_encode($valorAnterior);
-                $v2 = is_scalar($nuevoValor) ? (string)$nuevoValor : json_encode($nuevoValor);
+        foreach ($despues as $key => $valorNuevo) {
+            $valorViejo = $antes[$key] ?? null;
 
-                if ($v1 !== $v2 && !in_array($key, $ignorar)) {
-                    $cambiosAntes[$key] = $valorAnterior;
-                    $cambiosDespues[$key] = $nuevoValor;
-                }
+            if (in_array($key, $ignorar)) continue;
+
+            $v1 = is_bool($valorViejo) ? ($valorViejo ? '1' : '0') : (string)$valorViejo;
+            $v2 = is_bool($valorNuevo) ? ($valorNuevo ? '1' : '0') : (string)$valorNuevo;
+
+            if ($v1 !== $v2) {
+                $diferencias[$key] = [
+                    'antes' => $valorViejo,
+                    'despues' => $valorNuevo
+                ];
             }
         }
 
-        if (!empty($cambiosAntes) || !empty($cambiosDespues)) {
-            $historial = new HistorialCambio();
-            $historial->bitacora_id = $bitacoraId;
-            $historial->registro_afectado = $registroId;
-            $historial->datos_anteriores = json_encode($cambiosAntes);
-            $historial->datos_nuevos = json_encode($cambiosDespues);
-            $historial->fecha_cambio = Carbon::now();
-            $historial->save();
+        return $diferencias;
+    }
+
+    protected function guardarHistorial($bitacoraId, $registroId, $cambios)
+    {
+        $historial = new HistorialCambio();
+        $historial->bitacora_id = $bitacoraId;
+        $historial->registro_afectado = $registroId;
+
+        $dataAntes = [];
+        $dataNuevos = [];
+
+        foreach ($cambios as $campo => $valores) {
+            if (is_array($valores) && isset($valores['antes'])) {
+                $dataAntes[$campo] = $valores['antes'];
+                $dataNuevos[$campo] = $valores['despues'];
+            } else {
+                $dataNuevos[$campo] = $valores;
+            }
         }
+
+        $historial->datos_anteriores = json_encode($dataAntes, JSON_UNESCAPED_UNICODE);
+        $historial->datos_nuevos = json_encode($dataNuevos, JSON_UNESCAPED_UNICODE);
+        $historial->fecha_cambio = Carbon::now();
+        $historial->save();
     }
 }
