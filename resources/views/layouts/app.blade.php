@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="font-sans antialiased bg-gray-100">
@@ -37,6 +37,29 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="//unpkg.com/alpinejs" defer></script>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('citasComponent', () => ({
+                open: true,
+                openPaciente: false,
+                openNuevoPaciente: false,
+                openEditar: false,
+                search: '',
+                citaSeleccionada: {},
+
+                setCita(cita) {
+                    this.citaSeleccionada = { ...cita }
+                    this.openEditar = true
+                }
+            }))
+
+            Alpine.data('navigationComponent', () => ({
+                open: false,
+            }))
+        })
+    </script>
+    
     @stack('scripts')
 </body>
 @include('layouts.footer')
