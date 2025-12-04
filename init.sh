@@ -26,8 +26,7 @@ sed -i 's/SESSION_DRIVER=database/SESSION_DRIVER=file/g' .env
 php artisan key:generate --force
 php artisan config:clear
 php artisan cache:clear
+php artisan migrate
 
 echo "🗄️ Ejecutando migraciones..."
 php artisan migrate:fresh --seed --force
-
-echo "✅ Instalación completada correctamente."
