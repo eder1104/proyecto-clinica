@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('header')
-<h2 class="font-semibold text-xl text-gray-800">
+<h2 class="page-title">
     {{ __('Usuarios') }}
 </h2>
 @endsection
 
 @section('content')
-<div class="max-w-5xl mx-auto py-6 px-4"
+<div class="main-container"
     x-data="{ 
         openRoleModal: false, 
         openCancelModal: false,
@@ -45,77 +45,74 @@
         }
     }">
 
-    <div class="bg-white shadow rounded-lg overflow-hidden">
-        <div class="flex justify-end p-4 bg-gray-50 border-b">
-            <a href="{{ route('users.create') }}"
-                class="inline-block px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2">
+    <div class="card-container">
+        <div class="card-header">
+            <a href="{{ route('users.create') }}" class="btn btn-primary">
                 ➕ Agregar Usuario
             </a>
-            <button onclick="abrirModalBuscar()"
-                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-md transition flex items-center">
+            <button onclick="abrirModalBuscar()" class="btn btn-success">
                 🔍 Buscar usuario
             </button>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+        <div class="table-responsive">
+            <table class="users-table">
+                <thead>
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody>
                     @forelse ($users as $user)
-                    <tr class="odd:bg-white even:bg-gray-50 hover:bg-gray-100 transition">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <tr>
+                        <td class="td-name">
                             {{ $user->nombres }} {{ $user->apellidos }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td class="td-email">
                             {{ $user->email }}
                         </td>
 
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <td class="td-role">
                             <button type="button"
                                 @click="openChangeRoleModal({{ $user->id }}, '{{ $user->role }}')"
-                                class="px-3 py-1 rounded-full text-xs font-semibold uppercase transition cursor-pointer">
+                                class="role-badge">
                                 {{ $user->role }}
                             </button>
                         </td>
 
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <td>
                             <form action="{{ route('users.toggle', $user->id) }}" method="POST">
                                 @csrf
                                 @method('PATCH')
                                 <button type="submit"
-                                    class="px-2 py-1 rounded {{ $user->status == 'activo' ? 'bg-green-200 text-green-800 hover:bg-green-300' : 'bg-red-200 text-red-800 hover:bg-red-300' }}">
+                                    class="status-badge {{ $user->status == 'activo' ? 'status-active' : 'status-inactive' }}">
                                     {{ $user->status == 'activo' ? 'Activo' : 'Inactivo' }}
                                 </button>
                             </form>
                         </td>
 
-                        <td class="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
+                        <td class="td-actions">
                             @if($user->status == 'activo')
-                            <a href="{{ route('users.edit', $user->id) }}"
-                                class="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-md shadow hover:bg-blue-700 editar">
+                            <a href="{{ route('users.edit', $user->id) }}" class="btn-action btn-edit editar">
                                 ✎ Editar
                             </a>
                             <button type="button"
                                 @click="openCancelUserModal({{ $user->id }}, '{{ $user->nombres }} {{ $user->apellidos }}')"
-                                class="px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md shadow hover:bg-red-700">
+                                class="btn-action btn-delete">
                                 ❌ Eliminar
                             </button>
                             @else
-                            <span class="text-gray-400 text-sm">usuario inactivo</span>
+                            <span class="text-inactive">usuario inactivo</span>
                             @endif
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-gray-500 text-sm">
+                        <td colspan="5" class="td-empty">
                             No hay usuarios registrados.
                         </td>
                     </tr>
@@ -124,21 +121,17 @@
             </table>
         </div>
 
-        <div x-show="openRoleModal" x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75"
-            @click.away="openRoleModal = false">
+        <div x-show="openRoleModal" x-cloak class="modal-overlay" @click.away="openRoleModal = false">
+            <div class="modal-content" @click.stop>
+                <h3 class="modal-title">Seleccionar Nuevo Rol</h3>
 
-            <div class="bg-white w-full max-w-sm rounded-lg shadow-2xl p-6 transform transition-all duration-300 ease-out" @click.stop>
-                <h3 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">Seleccionar Nuevo Rol</h3>
-
-                <form :action="'{{ url('/users') }}' + '/' + currentUserId + '/role'" method="POST" class="space-y-4">
+                <form :action="'{{ url('/users') }}' + '/' + currentUserId + '/role'" method="POST" class="modal-form">
                     @csrf
                     @method('PATCH')
 
                     <div class="form-group">
-                        <label for="role_select_modal" class="block text-sm font-medium text-gray-700">Rol</label>
-                        <select id="role_select_modal" name="role"
-                            class="w-full border-gray-300 rounded-md shadow-sm p-2 mt-1"
+                        <label for="role_select_modal" class="form-label">Rol</label>
+                        <select id="role_select_modal" name="role" class="form-select"
                             x-model="selectedRole"
                             @change="handleRoleChange($event.target.value)"
                             required>
@@ -149,13 +142,11 @@
                         </select>
                     </div>
 
-                    <div class="flex justify-end space-x-3 pt-4">
-                        <button type="button" @click="openRoleModal = false"
-                            class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md shadow">
+                    <div class="modal-footer">
+                        <button type="button" @click="openRoleModal = false" class="btn btn-secondary">
                             Cerrar
                         </button>
-                        <button type="submit"
-                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow">
+                        <button type="submit" class="btn btn-primary">
                             Guardar Rol
                         </button>
                     </div>
@@ -163,25 +154,21 @@
             </div>
         </div>
 
-        <div x-show="openConfirmSelfModal" x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full text-center">
-                <h3 class="text-lg font-semibold mb-4">Confirmar cambio de rol</h3>
-                <p class="text-gray-700 mb-6">¿Estás seguro de cambiar tu propio rol? Esto puede modificar tu acceso inmediato.</p>
-                <div class="flex justify-center gap-3">
-                    <button @click="confirmSelfChange()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Sí, cambiar</button>
-                    <button @click="openConfirmSelfModal=false" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Cancelar</button>
+        <div x-show="openConfirmSelfModal" x-cloak class="modal-overlay-dark">
+            <div class="modal-content-small">
+                <h3 class="modal-subtitle">Confirmar cambio de rol</h3>
+                <p class="modal-text">¿Estás seguro de cambiar tu propio rol? Esto puede modificar tu acceso inmediato.</p>
+                <div class="modal-footer-center">
+                    <button @click="confirmSelfChange()" class="btn btn-primary">Sí, cambiar</button>
+                    <button @click="openConfirmSelfModal=false" class="btn btn-secondary">Cancelar</button>
                 </div>
             </div>
         </div>
 
-        <div x-show="openCancelModal" x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75"
-            @click.away="openCancelModal = false">
-
-            <div class="bg-white w-full max-w-sm rounded-lg shadow-2xl p-6 transform transition-all duration-300 ease-out" @click.stop>
-                <h3 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">Confirmar Eliminación</h3>
-                <p class="text-gray-700 mb-4 text-sm">
+        <div x-show="openCancelModal" x-cloak class="modal-overlay" @click.away="openCancelModal = false">
+            <div class="modal-content" @click.stop>
+                <h3 class="modal-title">Confirmar Eliminación</h3>
+                <p class="modal-text">
                     ¿Estás seguro de que deseas eliminar al usuario <strong x-text="currentUserName"></strong>? <br>
                     Esta acción no se puede deshacer.
                 </p>
@@ -190,13 +177,11 @@
                     @csrf
                     @method('DELETE')
 
-                    <div class="flex justify-end space-x-3">
-                        <button type="button" @click="openCancelModal = false"
-                            class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md shadow">
+                    <div class="modal-footer">
+                        <button type="button" @click="openCancelModal = false" class="btn btn-secondary">
                             Cancelar
                         </button>
-                        <button type="submit"
-                            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md shadow">
+                        <button type="submit" class="btn btn-danger">
                             Eliminar
                         </button>
                     </div>
@@ -231,26 +216,24 @@
 </div>
 @endsection
 
-<div id="modalBuscar" class="fixed inset-0 z-50 hidden items-center justify-center">
-    <div onclick="cerrarModalBuscar()" class="absolute inset-0 bg-gray-900 bg-opacity-50"></div>
+<div id="modalBuscar" class="modal-hidden">
+    <div onclick="cerrarModalBuscar()" class="modal-backdrop"></div>
 
-    <div class="bg-white w-full max-w-lg rounded-lg shadow-2xl p-6 transform transition-all duration-300 ease-out z-10">
-        <h2 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">Buscar Usuario</h2>
+    <div class="modal-content-search">
+        <h2 class="modal-title">Buscar Usuario</h2>
 
-        <form action="{{ route('users.buscar.lista') }}" method="GET" class="space-y-4">
+        <form action="{{ route('users.buscar.lista') }}" method="GET" class="modal-form">
             <div>
-                <label class="block text-sm font-medium text-gray-700">Buscar por nombre o correo:</label>
-                <input type="text" name="query" class="w-full border-gray-300 rounded-md shadow-sm p-2 mt-1"
+                <label class="form-label">Buscar por nombre o correo:</label>
+                <input type="text" name="query" class="form-input"
                     placeholder="Escriba el nombre o correo del usuario" required>
             </div>
 
-            <div class="flex justify-end space-x-3 pt-4">
-                <button type="button" onclick="cerrarModalBuscar()"
-                    class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md shadow">
+            <div class="modal-footer">
+                <button type="button" onclick="cerrarModalBuscar()" class="btn btn-secondary">
                     Cerrar
                 </button>
-                <button type="submit"
-                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md shadow">
+                <button type="submit" class="btn btn-success">
                     Buscar
                 </button>
             </div>
@@ -259,6 +242,370 @@
 </div>
 
 <style>
+    /* Global & Typography */
+    .page-title {
+        font-weight: 600;
+        font-size: 1.25rem;
+        color: #1f2937;
+    }
+
+    /* Layout Containers */
+    .main-container {
+        max-width: 64rem;
+        margin-left: auto;
+        margin-right: auto;
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .card-container {
+        background-color: white;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: flex-end;
+        padding: 1rem;
+        background-color: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    /* Buttons */
+    .btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+    }
+
+    .btn-primary {
+        background-color: #2563eb;
+        color: white;
+        margin-right: 0.5rem;
+    }
+
+    .btn-primary:hover {
+        background-color: #1d4ed8;
+    }
+
+    .btn-success {
+        background-color: #16a34a;
+        color: white;
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-success:hover {
+        background-color: #15803d;
+    }
+
+    .btn-secondary {
+        background-color: #6b7280;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #4b5563;
+    }
+
+    .btn-danger {
+        background-color: #dc2626;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background-color: #b91c1c;
+    }
+
+    /* Table Styles */
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .users-table {
+        min-width: 100%;
+        border-collapse: collapse;
+    }
+
+    .users-table thead {
+        background-color: #f9fafb;
+    }
+
+    .users-table th {
+        padding: 0.75rem 1.5rem;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .users-table tbody {
+        background-color: white;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .users-table tr:nth-child(even) {
+        background-color: #f9fafb;
+    }
+
+    .users-table tr:nth-child(odd) {
+        background-color: white;
+    }
+
+    .users-table tr:hover {
+        background-color: #f3f4f6;
+        transition: background-color 0.2s;
+    }
+
+    .td-name {
+        padding: 1rem 1.5rem;
+        white-space: nowrap;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #111827;
+    }
+
+    .td-email {
+        padding: 1rem 1.5rem;
+        white-space: nowrap;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .td-role, .td-actions {
+        padding: 1rem 1.5rem;
+        white-space: nowrap;
+        font-size: 0.875rem;
+    }
+
+    .td-role {
+        font-weight: 500;
+    }
+
+    .td-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .td-empty {
+        padding: 1rem 1.5rem;
+        text-align: center;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    /* Badges & Specific Action Buttons */
+    .role-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        border: none;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+
+    .status-active {
+        background-color: #bbf7d0;
+        color: #166534;
+    }
+    .status-active:hover { background-color: #86efac; }
+
+    .status-inactive {
+        background-color: #fecaca;
+        color: #991b1b;
+    }
+    .status-inactive:hover { background-color: #fca5a5; }
+
+    .btn-action {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.375rem;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        text-decoration: none;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-edit {
+        background-color: #2563eb;
+    }
+    .btn-edit:hover { background-color: #1d4ed8; }
+
+    .btn-delete {
+        background-color: #dc2626;
+        padding: 0.5rem 0.75rem;
+    }
+    .btn-delete:hover { background-color: #b91c1c; }
+
+    .text-inactive {
+        color: #9ca3af;
+        font-size: 0.875rem;
+    }
+
+    .editar {
+        height: 2.6em;
+        align-items: center;
+        display: flex;
+    }
+
+    /* Modals */
+    .modal-overlay, .modal-overlay-dark {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-overlay {
+        background-color: rgba(17, 24, 39, 0.75);
+    }
+
+    .modal-overlay-dark {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content, .modal-content-small, .modal-content-search {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        padding: 1.5rem;
+        transform: scale(1);
+        transition: all 0.3s ease-out;
+    }
+
+    .modal-content {
+        width: 100%;
+        max-width: 24rem;
+    }
+
+    .modal-content-small {
+        width: 100%;
+        max-width: 24rem;
+        text-align: center;
+    }
+
+    .modal-content-search {
+        width: 100%;
+        max-width: 32rem;
+        z-index: 10;
+        position: relative;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #1f2937;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 0.5rem;
+    }
+
+    .modal-subtitle {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .modal-text {
+        color: #374151;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    .modal-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.25rem;
+    }
+
+    .form-select, .form-input {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        padding: 0.5rem;
+        margin-top: 0.25rem;
+        box-sizing: border-box;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding-top: 1rem;
+    }
+
+    .modal-footer-center {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    /* JavaScript Modal Logic Styles */
+    .modal-hidden {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: none; /* Default hidden */
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-flex {
+        display: flex !important;
+    }
+
+    .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background-color: rgba(17, 24, 39, 0.5);
+    }
+
+    /* Pagination */
     .pagination {
         display: flex;
         justify-content: center;
@@ -285,12 +632,6 @@
         border-color: #4a90e2;
     }
 
-    .editar {
-        height: 2.6em;
-        align-items: center;
-        display: flex;
-    }
-
     [x-cloak] {
         display: none !important;
     }
@@ -299,13 +640,13 @@
 <script>
     function abrirModalBuscar() {
         const modal = document.getElementById('modalBuscar');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        modal.classList.remove('modal-hidden');
+        modal.classList.add('modal-flex');
     }
 
     function cerrarModalBuscar() {
         const modal = document.getElementById('modalBuscar');
-        modal.classList.remove('flex');
-        modal.classList.add('hidden');
+        modal.classList.remove('modal-flex');
+        modal.classList.add('modal-hidden');
     }
 </script>

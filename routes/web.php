@@ -78,7 +78,6 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
         Route::get('citas/{cita}/pdf', [CitaController::class, 'pdf'])->name('citas.pdf');
         Route::post('citas/{cita}/finalizar', [CitaController::class, 'finalizar'])->name('citas.finalizar');
         
-        // El resource va al final para que no capture "reporte" como un ID
         Route::resource('citas', CitaController::class);
 
         Route::get('/consentimientos', [ConsentimientoController::class, 'create'])->name('consentimientos.create');

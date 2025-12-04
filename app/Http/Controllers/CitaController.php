@@ -17,7 +17,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use App\Http\Controllers\BitacoraAuditoriaController;
 use App\Models\HistorialCambio;
 
-
 class CitaController extends Controller
 {
     public function index(Request $request, AgendaService $agendaService)
@@ -63,7 +62,7 @@ class CitaController extends Controller
 
         $pacientes = Paciente::select('id', 'nombres', 'apellidos')->orderBy('apellidos', 'asc')->get();
         $plantillas = PlantillaConsentimiento::select('id', 'titulo')->where('activo', true)->orderBy('titulo', 'asc')->get();
-        $consentimientos = ConsentimientoPaciente::with(['paciente', 'plantilla'])->orderBy('created_at', direction: 'desc')->get();
+        $consentimientos = ConsentimientoPaciente::with(['paciente', 'plantilla'])->orderBy('created_at', 'desc')->get();
 
         $calendarioController = app(CalendarioController::class);
         $dias = $calendarioController->obtenerDatosCalendario();
@@ -83,7 +82,7 @@ class CitaController extends Controller
         return view('citas.create', compact('pacientes', 'admisiones', 'tipos_citas'));
     }
 
- public function store(CitaRequest $request)
+    public function store(CitaRequest $request)
     {
         $validated = $request->validated();
         $validated['created_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
@@ -236,7 +235,7 @@ class CitaController extends Controller
 
         $cita->update(['estado' => 'finalizada']);
 
-        return redirect()->route('citas.preexamen')->with('success', 'Cita finalizada correctamente.');
+        return redirect()->route('citas.preexamen', ['cita' => $cita->id])->with('success', 'Cita finalizada correctamente.');
     }
 
     public function preExamen(Cita $cita)
@@ -270,6 +269,10 @@ class CitaController extends Controller
 
     public function atencion(Cita $cita)
     {
+        if (in_array($cita->estado, ['finalizada', 'cancelada', 'no_asistida'])) {
+            return redirect()->route('citas.index')->with('error', 'La cita ya ha sido finalizada o cancelada y no se puede editar.');
+        }
+
         switch ($cita->tipo_cita_id) {
             case 1:
                 return redirect()->route('plantillas.optometria', ['cita' => $cita->id]);
