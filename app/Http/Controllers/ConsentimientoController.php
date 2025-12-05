@@ -65,7 +65,11 @@ class ConsentimientoController extends Controller
             return back()->with('error', 'No existe una plantilla para este tipo de examen.');
         }
 
-        $plantilla = PlantillaConsentimiento::where('tipo', $tipo)->first();
+        // Intento robusto de encontrar la plantilla para la vista
+        $plantilla = PlantillaConsentimiento::where('tipo', $tipo)
+            ->orWhere('tipo', str_replace('_', ' ', $tipo)) // Busca "fotocoagulacion laser"
+            ->orWhere('tipo', str_replace(' ', '_', $tipo)) // Busca "fotocoagulacion_laser"
+            ->first();
 
         return view($vistas[$tipo], [
             'cita_id' => $cita->id,
@@ -150,8 +154,28 @@ class ConsentimientoController extends Controller
 
         $fechaFormateada = Carbon::createFromFormat('d/m/Y', $request->fecha_firma)->format('Y-m-d');
 
+        // Lógica corregida para recuperar el ID de la plantilla
+        $plantillaId = $request->input('plantilla_id');
+
+        // Si no viene en el request, lo buscamos usando la cita
+        if (!$plantillaId && $request->cita_id) {
+            $cita = Cita::find($request->cita_id);
+            if ($cita && $cita->tipo_examen) {
+                // Buscamos coincidencia exacta o variantes (con guion bajo o espacios)
+                $plantillaEncontrada = PlantillaConsentimiento::where(function($query) use ($cita) {
+                    $query->where('tipo', $cita->tipo_examen)
+                          ->orWhere('tipo', str_replace(' ', '_', $cita->tipo_examen))
+                          ->orWhere('tipo', str_replace('_', ' ', $cita->tipo_examen));
+                })->first();
+
+                if ($plantillaEncontrada) {
+                    $plantillaId = $plantillaEncontrada->id;
+                }
+            }
+        }
+
         $consentimiento = ConsentimientoPaciente::create([
-            'plantilla_id'    => $request->plantilla_id,
+            'plantilla_id'    => $plantillaId,
             'nombre_firmante' => $nombreFirmante,
             'fecha_firma'     => $fechaFormateada,
             'firma'           => $rutaFirma,
@@ -162,7 +186,7 @@ class ConsentimientoController extends Controller
             'nombre_doctor'   => $nombreDoctor,
             'activo'          => true,
         ]);
-
+        
         return redirect()
             ->route('citas.atencion', ['cita' => $request->cita_id])
             ->with('success', 'Consentimiento registrado correctamente.');

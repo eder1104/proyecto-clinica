@@ -6,7 +6,6 @@ use App\Models\Plantilla_Examenes;
 use Illuminate\Http\Request;
 use App\Models\Cita;
 use App\Models\User;
-use App\Http\Controllers\BitacoraAuditoriaController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -23,8 +22,8 @@ class PlantillaControllerExamenes extends Controller
 
     public function store(Request $request, Cita $cita)
     {
-        if ($cita->estado == 'finalizada' || $cita->estado == 'cancelada') {
-            return redirect()->route('citas.index')->with('error', 'No se pueden agregar exámenes a una cita finalizada o cancelada.');
+        if ($cita->estado == 'cancelada') {
+            return redirect()->route('citas.index')->with('error', 'No se pueden agregar exámenes a una cita cancelada.');
         }
 
         $request->validate([
@@ -38,35 +37,25 @@ class PlantillaControllerExamenes extends Controller
             'ojoDiag' => 'nullable|string|in:Ojo Derecho,Ojo Izquierdo'
         ]);
 
-        $archivoPath = null;
-        if ($request->hasFile('archivo')) {
-            $archivoPath = $request->file('archivo')->store('archivos_examenes', 'public');
-        }
-
-        $data = $request->all();
+        $data = $request->except(['_token', 'archivo']);
         $data['cita_id'] = $cita->id;
-        $data['archivo'] = $archivoPath;
+        $data['paciente_id'] = $cita->paciente_id;
 
-        $plantilla = Plantilla_Examenes::where('cita_id', $cita->id)->first();
-
-        if ($plantilla) {
-            $plantilla->update($data);
-        } else {
-            Plantilla_Examenes::create(array_merge(
-                $data,
-                ['paciente_id' => $cita->paciente_id]
-            ));
+        if ($request->hasFile('archivo')) {
+            $data['archivo'] = $request->file('archivo')->store('archivos_examenes', 'public');
         }
 
-        $cita->update(['estado' => 'finalizada']);
+        Plantilla_Examenes::create($data);
+
+        Cita::where('id', $cita->id)->update(['estado' => 'finalizada']);
 
         return redirect()->route('citas.index')->with('success', 'Examen guardado y cita finalizada correctamente.');
     }
 
     public function edit(Cita $cita)
     {
-        if ($cita->estado == 'finalizada' || $cita->estado == 'cancelada') {
-            return redirect()->back()->with('error', 'No se puede editar una cita que ya está finalizada o cancelada.');
+        if ($cita->estado == 'cancelada') {
+            return redirect()->back()->with('error', 'No se puede editar una cita cancelada.');
         }
 
         $cita->load(['paciente']);
@@ -83,8 +72,8 @@ class PlantillaControllerExamenes extends Controller
 
     public function update(Request $request, Cita $cita)
     {
-        if ($cita->estado == 'finalizada' || $cita->estado == 'cancelada') {
-            return redirect()->route('citas.index')->with('error', 'No se puede actualizar una cita finalizada o cancelada.');
+        if ($cita->estado == 'cancelada') {
+            return redirect()->route('citas.index')->with('error', 'No se puede actualizar una cita cancelada.');
         }
 
         $request->validate([
@@ -98,26 +87,23 @@ class PlantillaControllerExamenes extends Controller
             'ojoDiag' => 'nullable|string|in:Ojo Derecho,Ojo Izquierdo'
         ]);
 
-        $plantilla = Plantilla_Examenes::where('cita_id', $cita->id)->first();
+        $plantilla = Plantilla_Examenes::where('cita_id', $cita->id)->latest()->first();
 
-        $archivoPath = $plantilla->archivo ?? null;
+        $data = $request->except(['_token', 'archivo']);
+        $data['cita_id'] = $cita->id;
+        $data['paciente_id'] = $cita->paciente_id;
+
         if ($request->hasFile('archivo')) {
-            $archivoPath = $request->file('archivo')->store('archivos_examenes', 'public');
+            $data['archivo'] = $request->file('archivo')->store('archivos_examenes', 'public');
         }
-
-        $data = $request->all();
-        $data['archivo'] = $archivoPath;
 
         if ($plantilla) {
             $plantilla->update($data);
         } else {
-            Plantilla_Examenes::create(array_merge(
-                $data,
-                ['cita_id' => $cita->id, 'paciente_id' => $cita->paciente_id]
-            ));
+            Plantilla_Examenes::create($data);
         }
 
-        $cita->update(['estado' => 'finalizada']);
+        Cita::where('id', $cita->id)->update(['estado' => 'finalizada']);
 
         return redirect()->route('historias.index', $cita->id)
             ->with('success', 'Examen actualizado y cita finalizada correctamente.');
@@ -128,8 +114,8 @@ class PlantillaControllerExamenes extends Controller
         $examen = Plantilla_Examenes::findOrFail($id);
         
         $cita = Cita::find($examen->cita_id);
-        if ($cita && ($cita->estado == 'finalizada' || $cita->estado == 'cancelada')) {
-            return response()->json(['message' => 'No se puede eliminar el examen de una cita finalizada'], 403);
+        if ($cita && $cita->estado == 'cancelada') {
+            return response()->json(['message' => 'No se puede eliminar el examen de una cita cancelada'], 403);
         }
 
         $examen->delete();

@@ -10,7 +10,7 @@
             <input type="hidden" name="plantilla_id" value="{{ $plantilla_id }}">
 
 
-            <h5 class="titulo-principal">Plantilla Consentimiento — Inteccion Intravitrea</h5>
+            <h5 class="titulo-principal">Plantilla Consentimiento — Inyeccion Intravitrea</h5>
 
             <p class="descripcion">
                 Procedimiento con láser utilizado para sellar vasos sanguíneos anormales o reducir inflamación retinal,
