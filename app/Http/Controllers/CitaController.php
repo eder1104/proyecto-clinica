@@ -83,7 +83,7 @@ class CitaController extends Controller
         return view('citas.create', compact('pacientes', 'admisiones', 'tipos_citas'));
     }
 
- public function store(CitaRequest $request)
+    public function store(CitaRequest $request)
     {
         $validated = $request->validated();
         $validated['created_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;

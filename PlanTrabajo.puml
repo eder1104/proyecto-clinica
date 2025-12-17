@@ -1,0 +1,93 @@
+@startuml
+skinparam style strictuml
+skinparam state {
+  BackgroundColor White
+  BorderColor #2C3E50
+  ArrowColor #2C3E50
+  FontName Arial
+}
+skinparam note {
+  BackgroundColor #ECF0F1
+  BorderColor #BDC3C7
+}
+
+start
+
+partition "SEMANA 1: Cimientos e Integración Legacy" {
+  :<b>Lunes-Martes: Infraestructura</b>
+  - Instalar Composer y NPM
+  - Configurar .env (BD y <b>QUEUE=redis</b>)
+  - Migraciones Base;
+  
+  :<b>Miércoles-Jueves: Frontend Legacy</b>
+  - Separar HTML en Layouts y Vistas Blade
+  - Mover CSS/JS a 'resources/'
+  - Configurar Vite y Compilar (npm run build);
+  
+  :<b>Viernes: Backend Legacy</b>
+  - Migrar lógica PHP al Controlador
+  - Migrar Stored Procedures (DB::unprepared);
+  note right
+    Meta: Que el sistema viejo cargue 
+    dentro de Laravel visualmente igual.
+  end note
+}
+
+partition "SEMANA 2: Desarrollo API RESTful" {
+  :<b>Lunes-Martes: Diseño API</b>
+  - Crear ApiController y Rutas
+  - Endpoint GET /disponibilidad;
+
+  :<b>Miércoles: Endpoint Crítico</b>
+  - POST /citas
+  - <b>Lógica Clave:</b> Validar solapamientos;
+  note right
+    No permitas guardar citas si el médico
+    ya está ocupado en esa hora.
+  end note
+
+  :<b>Jueves-Viernes: Gestión y Listados</b>
+  - POST /cancelar (con motivo)
+  - GET /citas (filtros)
+  - Estandarizar respuestas JSON;
+}
+
+partition "SEMANA 3: Automatización (Redis y Jobs)" {
+  :<b>Lunes: Preparación Asíncrona</b>
+  - Crear tabla 'recordatorios_cita'
+  - Modificar POST /citas;
+
+  :<b>Martes-Miércoles: El Motor</b>
+  - Configurar Scheduler (console.php)
+  - Crear Job (EnviarRecordatorioCitaJob);
+
+  :<b>Jueves-Viernes: Integración y Pruebas</b>
+  - Levantar Worker (queue:work)
+  - Simular flujo completo:
+    Cita -> Pendiente -> Cron -> Job -> Enviado;
+  note right
+    Verificar que los estados cambien
+    automáticamente en la base de datos.
+  end note
+}
+
+partition "SEMANA 4: Auditoría y Entregables" {
+  :<b>Lunes: Auditoría y Limpieza</b>
+  - Revisar Bitácora de eventos
+  - Limpiar código y comentarios;
+
+  :<b>Martes: Documentación</b>
+  - Escribir README técnico
+  - Guía de instalación (Redis/Vite);
+
+  :<b>Miércoles-Jueves: Grabación</b>
+  - Video 1: Funcionamiento (30 min)
+  - Video 2: Código (60 min);
+
+  :<b>Viernes: Entrega Final</b>
+  - Video 3: Opinión (10 min)
+  - Empaquetar y enviar;
+}
+
+stop
+@enduml

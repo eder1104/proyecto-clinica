@@ -16,18 +16,27 @@ use App\Http\Controllers\{
     CitasBloqueadoController,
     CalendarioEspecialistaController,
     DoctorAgendaController,
+    LegacyPacienteController,
     CatalogoController,
     ReporteAgendaController,
 };
+use App\Jobs\EnviarRecordatorioCita;
+use App\Models\Cita;
+use Illuminate\Support\Facades\Redis;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\Bitacora;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('welcome'));
 
+Route::post('/legacy/citas/registrar', [LegacyPacienteController::class, 'storeCita'])->name('legacy.citas.store');
+
 Route::middleware(['auth', Bitacora::class])->group(function () {
 
     Route::get('/dashboard', fn() => view('dashboard'))->middleware('verified')->name('dashboard');
+
+    Route::get('/legacy/pacientes', [LegacyPacienteController::class, 'index'])->name('legacy.pacientes');
+    Route::get('/legacy/api/buscar', [LegacyPacienteController::class, 'search'])->name('legacy.search');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -35,9 +44,46 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
 
     Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
 
-    Route::middleware(['checkrole:admin'])->group(function () {
-        Route::get('/administracion', fn() => view('administracion'))->name('administracion');
+    Route::get('/legacy/pacientes', [LegacyPacienteController::class, 'index'])->name('legacy.index');
+    Route::get('/legacy/buscar', [LegacyPacienteController::class, 'buscar'])->name('legacy.buscar');
+    Route::post('/legacy/agendar', [LegacyPacienteController::class, 'agendar'])->name('legacy.agendar');
 
+    Route::get('/test-redis', function () {
+        try {
+            Redis::set('prueba_redis', '¡Conexión exitosa con Redis!');
+            $valor = Redis::get('prueba_redis');
+            return response()->json([
+                'status' => 'OK',
+                'mensaje' => $valor,
+                'driver' => config('database.redis.client')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'ERROR',
+                'mensaje' => $e->getMessage()
+            ], 500);
+        }
+    });
+
+    Route::get('/test-job/{cita_id}', function ($cita_id) {
+        $cita = \App\Models\Cita::find($cita_id);
+
+        if (!$cita) {
+            return "Cita no encontrada en la base de datos.";
+        }
+
+        $recordatorio = \App\Models\RecordatorioCita::create([
+            'cita_id' => $cita->id,
+            'fecha_programada' => now(),
+            'estado' => 'pendiente'
+        ]);
+
+        EnviarRecordatorioCita::dispatch($recordatorio);
+
+        return "Éxito: Se creó el recordatorio ID: " . $recordatorio->id . " y se envió a la cola de Redis.";
+    });
+
+    Route::middleware(['checkrole:admin'])->group(function () {
         Route::patch('/users/{user}/toggle', [UserController::class, 'toggleStatus'])->name('users.toggle');
         Route::get('/users/buscar/lista', [UserController::class, 'Usuario_buscar'])->name('users.buscar.lista');
         Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update.role');
@@ -77,8 +123,7 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
         Route::patch('citas/{cita}/motivo', [CitaController::class, 'updateMotivo'])->name('citas.updateMotivo');
         Route::get('citas/{cita}/pdf', [CitaController::class, 'pdf'])->name('citas.pdf');
         Route::post('citas/{cita}/finalizar', [CitaController::class, 'finalizar'])->name('citas.finalizar');
-        
-        // El resource va al final para que no capture "reporte" como un ID
+
         Route::resource('citas', CitaController::class);
 
         Route::get('/consentimientos', [ConsentimientoController::class, 'create'])->name('consentimientos.create');
