@@ -4,7 +4,7 @@
 <div class="container mx-auto p-6">
     <h2 class="text-xl font-semibold mb-4">Bitácora de Auditoría</h2>
 
-    <table class="min-w-full divide-y divide-gray-200 bg-white shadow rounded-lg">
+    <table class="min-w-full divide-y divide-gray-200 bg-white shadow rounded-lg table-fixed-limits">
         <thead class="bg-gray-100">
             <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
@@ -52,7 +52,7 @@
                     {{ $registro->registro_afectado }}
                 </td>
 
-                <td class="px-6 py-4 text-sm text-gray-500">
+                <td class="px-6 py-4 text-sm text-gray-500 td-limit">
                     @php
                         $rawObs = $registro->observacion;
                         $finalOutput = '';
@@ -76,7 +76,7 @@
 
             @if(in_array(strtolower($registro->accion), ['editar', 'editò', 'editó', 'editado']) && $registro->historialCambios->isNotEmpty())
             <tr id="comparativa-{{ $registro->id }}" style="display: none;" class="bg-gray-50 transition-all duration-200">
-                <td colspan="6" class="p-4">
+                <td colspan="6" class="p-4 td-limit">
                     @foreach($registro->historialCambios as $cambio)
                     <div class="border rounded-lg p-3 mb-2 bg-white shadow-sm">
                         <strong class="text-blue-700">
@@ -86,11 +86,11 @@
                         <div class="grid grid-cols-2 gap-4 mt-2 text-sm">
                             <div>
                                 <h4 class="font-semibold text-gray-700 mb-1">Antes</h4>
-                                <pre class="bg-gray-100 p-2 rounded overflow-auto max-h-64">{{ json_encode($cambio->datos_anteriores, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                <pre class="bg-gray-100 p-2 rounded overflow-auto max-h-64 pre-wrap">{{ json_encode($cambio->datos_anteriores, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
                             </div>
                             <div>
                                 <h4 class="font-semibold text-gray-700 mb-1">Después</h4>
-                                <pre class="bg-gray-100 p-2 rounded overflow-auto max-h-64">{{ json_encode($cambio->datos_nuevos, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                <pre class="bg-gray-100 p-2 rounded overflow-auto max-h-64 pre-wrap">{{ json_encode($cambio->datos_nuevos, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
                             </div>
                         </div>
                     </div>
@@ -113,4 +113,19 @@
         fila.style.display = (fila.style.display === 'table-row') ? 'none' : 'table-row';
     }
 </script>
+
+<style>
+    .td-limit {
+        max-width: 300px;
+        white-space: normal !important;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+    }
+
+    .pre-wrap {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+</style>
 @endsection

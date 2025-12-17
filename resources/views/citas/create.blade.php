@@ -1,15 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">Crear Cita</h2>
+        <h2 class="page-title">Crear Cita</h2>
     </x-slot>
 
-    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div class="bg-white shadow rounded-lg p-6">
+    <div class="main-container">
+        <div class="card-container">
 
             @if ($errors->any())
-            <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
+            <div class="alert alert-danger">
                 <strong>Errores encontrados:</strong>
-                <ul class="list-disc list-inside">
+                <ul>
                     @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                     @endforeach
@@ -18,7 +18,7 @@
             @endif
 
             @if (session('success'))
-            <div class="mb-4 p-3 bg-green-100 text-green-700 rounded">
+            <div class="alert alert-success">
                 {{ session('success') }}
             </div>
             @endif
@@ -26,23 +26,22 @@
             <form action="{{ route('citas.store') }}" method="POST" id="form-cita">
                 @csrf
 
-                <div class="mb-4">
-                    <label class="block text-gray-700">Fecha</label>
-                    <input type="date" name="fecha" value="{{ old('fecha') }}" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                <div class="form-group">
+                    <label class="form-label">Fecha</label>
+                    <input type="date" name="fecha" value="{{ old('fecha') }}" class="form-input">
                 </div>
 
-
-                <label class="block text-gray-700">Hora</label>
-                <select name="hora_inicio" id="hora_inicio"
-                    class="mt-1 block w-full rounded-md shadow-sm border-gray-300 hora-select">
-                    @php
-                    $times = [];
-                    for ($h = 8; $h < 18; $h++) {
-                        for ($m=0; $m < 60; $m +=20) {
-                        $value=sprintf('%02d:%02d', $h, $m);
-                        $ampm=date('g:i A', strtotime($value));
-                        $times[]=['value'=> $value, 'label' => "$value ($ampm)"];
-                        }
+                <div class="form-group">
+                    <label class="form-label">Hora</label>
+                    <select name="hora_inicio" id="hora_inicio" class="form-select hora-select">
+                        @php
+                        $times = [];
+                        for ($h = 8; $h < 18; $h++) {
+                            for ($m=0; $m < 60; $m +=20) {
+                            $value=sprintf('%02d:%02d', $h, $m);
+                            $ampm=date('g:i A', strtotime($value));
+                            $times[]=['value'=> $value, 'label' => "$value ($ampm)"];
+                            }
                         }
                         @endphp
 
@@ -53,17 +52,17 @@
                             {{ $t['label'] }}
                         </option>
                         @endforeach
-                </select>
-
-
-                <div class="mb-4" style="display:none;">
-                    <label class="block text-gray-700">Hora de fin</label>
-                    <input type="time" name="hora_fin" id="hora_fin" value="{{ old('hora_fin') }}" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                    </select>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-700">Tipo de cita</label>
-                    <select name="tipo_cita_id" id="tipo_cita_id" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                <div class="form-group" style="display:none;">
+                    <label class="form-label">Hora de fin</label>
+                    <input type="time" name="hora_fin" id="hora_fin" value="{{ old('hora_fin') }}" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tipo de cita</label>
+                    <select name="tipo_cita_id" id="tipo_cita_id" class="form-select">
                         <option value="">-- Seleccione el tipo de cita --</option>
                         @foreach ($tipos_citas as $id => $nombre)
                         <option value="{{ $id }}" {{ old('tipo_cita_id') == $id ? 'selected' : '' }} data-es-examen="{{ \Illuminate\Support\Str::slug($nombre) === 'examenes' ? '1' : '0' }}">
@@ -73,9 +72,9 @@
                     </select>
                 </div>
 
-                <div class="mb-4" id="campo-examenes" style="display:none;">
-                    <label class="block text-gray-700">Tipo de Examen</label>
-                    <select name="tipo_examen" id="tipo_examen" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                <div class="form-group" id="campo-examenes" style="display:none;">
+                    <label class="form-label">Tipo de Examen</label>
+                    <select name="tipo_examen" id="tipo_examen" class="form-select">
                         <option value="">-- Seleccione un examen --</option>
                         <option value="inyeccion_intravitrea" {{ old('tipo_examen') == 'inyeccion_intravitrea' ? 'selected' : '' }}>Inyección intravítrea</option>
                         <option value="fotocoagulacion_laser" {{ old('tipo_examen') == 'fotocoagulacion_laser' ? 'selected' : '' }}>Fotocoagulación láser</option>
@@ -83,53 +82,53 @@
                     </select>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-700">Motivo de consulta</label>
-                    <input type="text" name="motivo_consulta" value="{{ old('motivo_consulta') }}" class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                <div class="form-group">
+                    <label class="form-label">Motivo de consulta</label>
+                    <input type="text" name="motivo_consulta" value="{{ old('motivo_consulta') }}" class="form-input">
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-700">Paciente</label>
-                    <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label">Paciente</label>
+                    <div class="patient-grid">
                         <div>
-                            <label>Tipo de Documento</label>
-                            <select name="tipo_documento" id="tipo_documento" class="border-gray-300 rounded-md shadow-sm w-full">
+                            <label class="sub-label">Tipo de Documento</label>
+                            <select name="tipo_documento" id="tipo_documento" class="form-select">
                                 <option value="CC">C.C.</option>
                                 <option value="TI">T.I.</option>
                                 <option value="CE">C.E.</option>
                             </select>
                         </div>
                         <div>
-                            <label>Número de Documento</label>
-                            <input type="text" name="numero_documento" id="numero_documento" placeholder="Número de documento" class="border-gray-300 rounded-md shadow-sm w-full">
+                            <label class="sub-label">Número de Documento</label>
+                            <input type="text" name="numero_documento" id="numero_documento" placeholder="Número de documento" class="form-input">
                         </div>
                         <div>
-                            <label>Nombres</label>
-                            <input type="text" name="nombres" id="nombres" class="border-gray-300 rounded-md shadow-sm w-full">
+                            <label class="sub-label">Nombres</label>
+                            <input type="text" name="nombres" id="nombres" class="form-input">
                         </div>
                         <div>
-                            <label>Apellidos</label>
-                            <input type="text" name="apellidos" id="apellidos" class="border-gray-300 rounded-md shadow-sm w-full">
+                            <label class="sub-label">Apellidos</label>
+                            <input type="text" name="apellidos" id="apellidos" class="form-input">
                         </div>
                         <div>
-                            <label>Teléfono</label>
-                            <input type="text" name="telefono" id="telefono" class="border-gray-300 rounded-md shadow-sm w-full">
+                            <label class="sub-label">Teléfono</label>
+                            <input type="text" name="telefono" id="telefono" class="form-input">
                         </div>
                         <div>
-                            <label>Dirección</label>
-                            <input type="text" name="direccion" id="direccion" class="border-gray-300 rounded-md shadow-sm w-full">
+                            <label class="sub-label">Dirección</label>
+                            <input type="text" name="direccion" id="direccion" class="form-input">
                         </div>
                         <div>
-                            <label>Email</label>
-                            <input type="email" name="email" id="email" class="border-gray-300 rounded-md shadow-sm w-full">
+                            <label class="sub-label">Email</label>
+                            <input type="email" name="email" id="email" class="form-input">
                         </div>
                         <div>
-                            <label>Fecha de Nacimiento</label>
-                            <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="border-gray-300 rounded-md shadow-sm w-full">
+                            <label class="sub-label">Fecha de Nacimiento</label>
+                            <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-input">
                         </div>
                         <div>
-                            <label>Sexo</label>
-                            <select name="sexo" id="sexo" class="border-gray-300 rounded-md shadow-sm w-full">
+                            <label class="sub-label">Sexo</label>
+                            <select name="sexo" id="sexo" class="form-select">
                                 <option value="M">M</option>
                                 <option value="F">F</option>
                             </select>
@@ -138,14 +137,138 @@
                     <input type="hidden" name="paciente_id" id="paciente_id">
                 </div>
 
-                <div class="flex justify-end space-x-2 mt-4">
-                    <a href="{{ route('citas.index') }}" class="px-4 py-2 rounded bg-gray-400 text-white hover:bg-gray-500">Cancelar</a>
-                    <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Guardar</button>
+                <div class="form-actions">
+                    <a href="{{ route('citas.index') }}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
                 </div>
 
             </form>
         </div>
     </div>
+
+    <style>
+        .page-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .main-container {
+            max-width: 80rem;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .card-container {
+            background-color: white;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .alert {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+        }
+
+        .alert-danger {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .alert-success {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+
+        .alert ul {
+            list-style-type: disc;
+            list-style-position: inside;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            color: #374151;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        .sub-label {
+            display: block;
+            font-size: 0.875rem;
+            color: #4b5563;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-input, .form-select {
+            display: block;
+            width: 100%;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            padding: 0.5rem;
+            margin-top: 0.25rem;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: #2563eb;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        .patient-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .patient-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s;
+        }
+
+        .btn-secondary {
+            background-color: #9ca3af;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #6b7280;
+        }
+
+        .btn-primary {
+            background-color: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+    </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {

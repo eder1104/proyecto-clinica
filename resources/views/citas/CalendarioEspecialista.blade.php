@@ -168,6 +168,7 @@
         justify-content: center;
         align-items: flex-start;
         padding: 50px 20px;
+        font-family: system-ui, -apple-system, sans-serif;
     }
 
     .calendar-wrapper {
@@ -185,7 +186,7 @@
     .doctor-info-container {
         padding: 15px 20px;
         background-color: #f3f4f6;
-        border-radius: 8px;
+        border-radius: 20px; 
         margin-bottom: 20px;
         text-align: center;
     }
@@ -207,9 +208,9 @@
         text-decoration: none;
         background: #6b7280;
         color: white;
-        padding: 8px 15px;
+        padding: 8px 20px;
         border: none;
-        border-radius: 6px;
+        border-radius: 50px;
         cursor: pointer;
         font-size: 0.9rem;
         transition: background-color 0.2s;
@@ -221,8 +222,9 @@
 
     .calendar-box {
         background: #fff;
-        border-radius: 12px;
+        border-radius: 24px;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
     }
 
     .calendar-header {
@@ -230,8 +232,23 @@
         justify-content: space-between;
         align-items: center;
         background: #f3f4f6;
-        padding: 10px 20px;
+        padding: 15px 20px;
         font-weight: 600;
+    }
+
+    .calendar-header button {
+        border: none;
+        background: white;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%; 
+        cursor: pointer;
+        color: #4b5563;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
     .calendar-weekdays {
@@ -254,8 +271,9 @@
 
     .calendar-day {
         position: relative;
-        height: 100px;
-        border-radius: 10px;
+        height: 110px;
+        width: 100%;
+        border-radius: 16px;
         transition: 0.2s;
         font-weight: 600;
         display: flex;
@@ -290,12 +308,14 @@
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
-        border-radius: 6px;
-        padding: 4px;
+        border-radius: 10px; 
+        padding: 1px 2px;
         border: 1px solid #ccc;
         font-size: 0.9rem;
         background-color: #f9fafb;
         cursor: pointer;
+        outline: none;
+        text-align: center;
     }
 
     .estado-select:disabled {
