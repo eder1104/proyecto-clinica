@@ -123,11 +123,7 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
         Route::patch('citas/{cita}/motivo', [CitaController::class, 'updateMotivo'])->name('citas.updateMotivo');
         Route::get('citas/{cita}/pdf', [CitaController::class, 'pdf'])->name('citas.pdf');
         Route::post('citas/{cita}/finalizar', [CitaController::class, 'finalizar'])->name('citas.finalizar');
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> 590b44e6edf40765024d411b0f0e1be5d2838256
         Route::resource('citas', CitaController::class);
 
         Route::get('/consentimientos', [ConsentimientoController::class, 'create'])->name('consentimientos.create');
