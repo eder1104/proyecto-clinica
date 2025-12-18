@@ -35,9 +35,6 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
 
     Route::get('/dashboard', fn() => view('dashboard'))->middleware('verified')->name('dashboard');
 
-    Route::get('/legacy/pacientes', [LegacyPacienteController::class, 'index'])->name('legacy.pacientes');
-    Route::get('/legacy/api/buscar', [LegacyPacienteController::class, 'search'])->name('legacy.search');
-
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
