@@ -24,8 +24,22 @@ class Paciente extends Model
         'email',
         'fecha_nacimiento',
         'sexo',
+        'pais_nacimiento_cod',
+        'pais_residencia_cod',
+        'depto_residencia_cod',
+        'municipio_residencia_cod',
+        'zona_cod',
+        'convenio_id',
+        'plan_id',
+        'rango',
+        'tipo_usuario',
+        'estado_afiliacion',
+        'exento_cuota',
+        'observaciones',
+        'telefono2',
         'created_by',
         'updated_by',
+        'cancelled_by',
     ];
 
     public function creador()

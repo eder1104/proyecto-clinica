@@ -1,30 +1,28 @@
 <?php
 
-use App\Http\Controllers\{
-    PlantillaControllerOptometria,
-    PlantillaControllerExamenes,
-    ProfileController,
-    UserController,
-    CitaController,
-    PacienteController,
-    HistoriaClinicaController,
-    Auth\RegisteredUserController,
-    CalendarioController,
-    ConsentimientoController,
-    BitacoraAuditoriaController,
-    CitasParcialController,
-    CitasBloqueadoController,
-    CalendarioEspecialistaController,
-    DoctorAgendaController,
-    LegacyPacienteController,
-    CatalogoController,
-    ReporteAgendaController,
-};
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\BitacoraAuditoriaController;
+use App\Http\Controllers\CalendarioController;
+use App\Http\Controllers\CalendarioEspecialistaController;
+use App\Http\Controllers\CatalogoController;
+use App\Http\Controllers\CitaController;
+use App\Http\Controllers\CitasBloqueadoController;
+use App\Http\Controllers\CitasParcialController;
+use App\Http\Controllers\ConsentimientoController;
+use App\Http\Controllers\DoctorAgendaController;
+use App\Http\Controllers\HistoriaClinicaController;
+use App\Http\Controllers\LegacyPacienteController;
+use App\Http\Controllers\PacienteController;
+use App\Http\Controllers\PlantillaControllerExamenes;
+use App\Http\Controllers\PlantillaControllerOptometria;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReporteAgendaController;
+use App\Http\Controllers\UserController;
+use App\Http\Middleware\Bitacora;
 use App\Jobs\EnviarRecordatorioCita;
 use App\Models\Cita;
+use App\Models\RecordatorioCita;
 use Illuminate\Support\Facades\Redis;
-use App\Http\Middleware\CheckRole;
-use App\Http\Middleware\Bitacora;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('welcome'));
@@ -35,125 +33,143 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
 
     Route::get('/dashboard', fn() => view('dashboard'))->middleware('verified')->name('dashboard');
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::controller(ProfileController::class)->group(function () {
+        Route::get('/profile', 'edit')->name('profile.edit');
+        Route::patch('/profile', 'update')->name('profile.update');
+        Route::delete('/profile', 'destroy')->name('profile.destroy');
+    });
 
     Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
 
-    Route::get('/legacy/pacientes', [LegacyPacienteController::class, 'index'])->name('legacy.index');
-    Route::get('/legacy/buscar', [LegacyPacienteController::class, 'buscar'])->name('legacy.buscar');
-    Route::post('/legacy/agendar', [LegacyPacienteController::class, 'agendar'])->name('legacy.agendar');
+    Route::controller(LegacyPacienteController::class)->group(function () {
+        Route::get('/convenios/{id}/planes', 'getPlanes');
+        Route::get('/legacy/pacientes', 'index')->name('legacy.index');
+        Route::get('/legacy/buscar', 'buscar')->name('legacy.buscar');
+        Route::post('/legacy/agendar', 'agendar')->name('legacy.agendar');
+        Route::post('/legacy/pacientes/store', 'store')->name('legacy.pacientes.store');
+    });
 
     Route::get('/test-redis', function () {
         try {
             Redis::set('prueba_redis', '¡Conexión exitosa con Redis!');
-            $valor = Redis::get('prueba_redis');
             return response()->json([
                 'status' => 'OK',
-                'mensaje' => $valor,
+                'mensaje' => Redis::get('prueba_redis'),
                 'driver' => config('database.redis.client')
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'ERROR',
-                'mensaje' => $e->getMessage()
-            ], 500);
+            return response()->json(['status' => 'ERROR', 'mensaje' => $e->getMessage()], 500);
         }
     });
 
     Route::get('/test-job/{cita_id}', function ($cita_id) {
-        $cita = \App\Models\Cita::find($cita_id);
+        $cita = Cita::find($cita_id);
+        if (!$cita) return "Cita no encontrada.";
 
-        if (!$cita) {
-            return "Cita no encontrada en la base de datos.";
-        }
-
-        $recordatorio = \App\Models\RecordatorioCita::create([
+        $recordatorio = RecordatorioCita::create([
             'cita_id' => $cita->id,
             'fecha_programada' => now(),
             'estado' => 'pendiente'
         ]);
 
         EnviarRecordatorioCita::dispatch($recordatorio);
-
-        return "Éxito: Se creó el recordatorio ID: " . $recordatorio->id . " y se envió a la cola de Redis.";
+        return "Éxito: Recordatorio ID " . $recordatorio->id . " creado.";
     });
 
     Route::middleware(['checkrole:admin'])->group(function () {
-        Route::patch('/users/{user}/toggle', [UserController::class, 'toggleStatus'])->name('users.toggle');
-        Route::get('/users/buscar/lista', [UserController::class, 'Usuario_buscar'])->name('users.buscar.lista');
-        Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update.role');
+        Route::controller(UserController::class)->group(function () {
+            Route::patch('/users/{user}/toggle', 'toggleStatus')->name('users.toggle');
+            Route::get('/users/buscar/lista', 'Usuario_buscar')->name('users.buscar.lista');
+            Route::patch('/users/{user}/role', 'updateRole')->name('users.update.role');
+        });
         Route::resource('users', UserController::class)->except(['show']);
     });
 
     Route::middleware(['checkrole:admin,admisiones'])->group(function () {
         Route::get('/bitacora', [BitacoraAuditoriaController::class, 'index'])->name('citas.bitacora');
-
         Route::get('/agenda-doctores', [DoctorAgendaController::class, 'index'])->name('citas.DoctorAgenda');
-        Route::get('/calendario-especialista', [CalendarioEspecialistaController::class, 'index'])->name('citas.CalendarioEspecialista');
-        Route::get('/calendario-especialista/{doctorId}/{mes}', [CalendarioEspecialistaController::class, 'obtenerCalendario'])->name('calendario.obtener');
-        Route::post('/calendario-especialista/update', [CalendarioEspecialistaController::class, 'actualizarEstado'])->name('calendario.update');
+        
+        Route::controller(CalendarioEspecialistaController::class)->group(function () {
+            Route::get('/calendario-especialista', 'index')->name('citas.CalendarioEspecialista');
+            Route::get('/calendario-especialista/{doctorId}/{mes}', 'obtenerCalendario')->name('calendario.obtener');
+            Route::post('/calendario-especialista/update', 'actualizarEstado')->name('calendario.update');
+            Route::get('/bloqueo-especialista/{doctorId}/{fecha}', 'vistaBloqueo')->name('citas.bloqueado');
+        });
 
         Route::post('/bloqueo-especialista/store', [CitasBloqueadoController::class, 'store'])->name('citas.bloqueado.store');
-        Route::get('/bloqueo-especialista/{doctorId}/{fecha}', [CalendarioEspecialistaController::class, 'vistaBloqueo'])->name('citas.bloqueado');
         Route::delete('/bloqueo-especialista/{bloqueoAgenda}', [CitasBloqueadoController::class, 'destroy'])->name('citas.bloqueado.destroy');
 
         Route::get('/citas/reporte', [ReporteAgendaController::class, 'index'])->name('citas.reporte');
 
-        Route::get('/vista-parcial/{doctorId}/{fecha}', [CitasParcialController::class, 'index'])->name('citas.parcial');
-        Route::post('/parcialidades', [CitasParcialController::class, 'store'])->name('citas.parcial.store');
-        Route::put('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'update'])->name('citas.parcial.update');
-        Route::delete('/parcialidades/{doctorParcialidad}', [CitasParcialController::class, 'destroy'])->name('citas.parcial.destroy');
+        Route::controller(CitasParcialController::class)->group(function () {
+            Route::get('/vista-parcial/{doctorId}/{fecha}', 'index')->name('citas.parcial');
+            Route::post('/parcialidades', 'store')->name('citas.parcial.store');
+            Route::put('/parcialidades/{doctorParcialidad}', 'update')->name('citas.parcial.update');
+            Route::delete('/parcialidades/{doctorParcialidad}', 'destroy')->name('citas.parcial.destroy');
+        });
     });
 
-    Route::middleware(['checkrole:doctor,callcenter,admisiones'])->group(function () {
-
-        Route::get('/pacientes/buscar', [PacienteController::class, 'buscar'])->name('pacientes.buscar');
-        Route::get('/pacientes/buscar/lista', [PacienteController::class, 'Paciente_buscar'])->name('pacientes.buscar.lista');
-        Route::put('/pacientes/{id}/actualizar', [PacienteController::class, 'actualizarApi'])->name('pacientes.actualizarApi');
+    Route::middleware(['checkrole:admin,doctor,callcenter,admisiones'])->group(function () {
+        Route::controller(PacienteController::class)->group(function () {
+            Route::get('/pacientes/buscar', 'buscar')->name('pacientes.buscar');
+            Route::get('/pacientes/buscar/lista', 'Paciente_buscar')->name('pacientes.buscar.lista');
+            Route::put('/pacientes/{id}/actualizar', 'actualizarApi')->name('pacientes.actualizarApi');
+        });
         Route::resource('pacientes', PacienteController::class);
 
-        Route::get('citas/cancelar/{id}', [CitaController::class, 'cancelar'])->name('citas.cancelar');
-        Route::get('citas/{cita}/atencion', [CitaController::class, 'atencion'])->name('citas.atencion');
-        Route::get('citas/{cita}/atencion_update', [CitaController::class, 'atencion_update'])->name('citas.atencion_update');
-        Route::patch('citas/{cita}/motivo', [CitaController::class, 'updateMotivo'])->name('citas.updateMotivo');
-        Route::get('citas/{cita}/pdf', [CitaController::class, 'pdf'])->name('citas.pdf');
-        Route::post('citas/{cita}/finalizar', [CitaController::class, 'finalizar'])->name('citas.finalizar');
-
+        Route::controller(CitaController::class)->group(function () {
+            Route::get('citas/cancelar/{id}', 'cancelar')->name('citas.cancelar');
+            Route::get('citas/{cita}/atencion', 'atencion')->name('citas.atencion');
+            Route::get('citas/{cita}/atencion_update', 'atencion_update')->name('citas.atencion_update');
+            Route::patch('citas/{cita}/motivo', 'updateMotivo')->name('citas.updateMotivo');
+            Route::get('citas/{cita}/pdf', 'pdf')->name('citas.pdf');
+            Route::post('citas/{cita}/finalizar', 'finalizar')->name('citas.finalizar');
+            Route::get('/pacientes/{id}/historia/pdf', 'descargarHistoriaPdf')->name('pacientes.historia.pdf');
+        });
         Route::resource('citas', CitaController::class);
 
-        Route::get('/consentimientos', [ConsentimientoController::class, 'create'])->name('consentimientos.create');
-        Route::post('/consentimientos', [ConsentimientoController::class, 'store'])->name('consentimientos.store');
-        Route::get('/consentimientos/generar', [ConsentimientoController::class, 'generar'])->name('consentimientos.generar');
-
-        Route::prefix('citas/{cita}')->group(function () {
-            Route::post('examenes/store', [PlantillaControllerExamenes::class, 'store'])->name('examenes.store');
-            Route::get('examenes/edit', [PlantillaControllerExamenes::class, 'edit'])->name('examenes.edit');
-            Route::put('examenes/update', [PlantillaControllerExamenes::class, 'update'])->name('examenes.update');
-            Route::get('examenes/index', [PlantillaControllerExamenes::class, 'index'])->name('examenes.index');
-            Route::delete('examenes/destroy', [PlantillaControllerExamenes::class, 'destroy'])->name('examenes.destroy');
-
-            Route::get('plantilla/optometria', [PlantillaControllerOptometria::class, 'index'])->name('plantillas.optometria');
-            Route::get('optometria/edit', [PlantillaControllerOptometria::class, 'edit'])->name('optometria.edit');
-            Route::post('optometria/store', [PlantillaControllerOptometria::class, 'store'])->name('optometria.store');
-            Route::put('optometria/update', [PlantillaControllerOptometria::class, 'update'])->name('optometria.update');
-            Route::get('optometria/show', [PlantillaControllerOptometria::class, 'show'])->name('optometria.show');
-            Route::delete('optometria/destroy', [PlantillaControllerOptometria::class, 'destroy'])->name('optometria.destroy');
+        Route::controller(ConsentimientoController::class)->group(function () {
+            Route::get('/consentimientos', 'create')->name('consentimientos.create');
+            Route::post('/consentimientos', 'store')->name('consentimientos.store');
+            Route::get('/consentimientos/generar', 'generar')->name('consentimientos.generar');
         });
 
-        Route::get('/pacientes/{id}/historia/pdf', [CitaController::class, 'descargarHistoriaPdf'])->name('pacientes.historia.pdf');
-        Route::get('/historias/historia', [HistoriaClinicaController::class, 'index'])->name('historias.index');
-        Route::get('/historias/cita/{paciente}', [HistoriaClinicaController::class, 'cita'])->name('historias.cita');
+        Route::prefix('citas/{cita}')->group(function () {
+            Route::controller(PlantillaControllerExamenes::class)->group(function () {
+                Route::post('examenes/store', 'store')->name('examenes.store');
+                Route::get('examenes/edit', 'edit')->name('examenes.edit');
+                Route::put('examenes/update', 'update')->name('examenes.update');
+                Route::get('examenes/index', 'index')->name('examenes.index');
+                Route::delete('examenes/destroy', 'destroy')->name('examenes.destroy');
+            });
+
+            Route::controller(PlantillaControllerOptometria::class)->group(function () {
+                Route::get('plantilla/optometria', 'index')->name('plantillas.optometria');
+                Route::get('optometria/edit', 'edit')->name('optometria.edit');
+                Route::post('optometria/store', 'store')->name('optometria.store');
+                Route::put('optometria/update', 'update')->name('optometria.update');
+                Route::get('optometria/show', 'show')->name('optometria.show');
+                Route::delete('optometria/destroy', 'destroy')->name('optometria.destroy');
+            });
+        });
+
+        Route::controller(HistoriaClinicaController::class)->group(function () {
+            Route::get('/historias/historia', 'index')->name('historias.index');
+            Route::get('/historias/cita/{paciente}', 'cita')->name('historias.cita');
+        });
         Route::resource('historias', HistoriaClinicaController::class)->except(['index']);
 
-        Route::get('/calendario', [CalendarioController::class, 'index'])->name('calendario.index');
-        Route::get('/calendario/citas/{fecha}', [CalendarioController::class, 'citasPorDia'])->name('calendario.citasPorDia');
-        Route::get('/calendario/estado-dia/{fecha}', [CalendarioController::class, 'estadoDia'])->name('calendario.estadoDia');
+        Route::controller(CalendarioController::class)->group(function () {
+            Route::get('/calendario', 'index')->name('calendario.index');
+            Route::get('/calendario/citas/{fecha}', 'citasPorDia')->name('calendario.citasPorDia');
+            Route::get('/calendario/estado-dia/{fecha}', 'estadoDia')->name('calendario.estadoDia');
+        });
 
-        Route::get('/catalogos/buscar-diagnosticos', [CatalogoController::class, 'buscarDiagnosticos'])->name('catalogos.buscarDiagnosticos');
-        Route::get('/catalogos/buscar-procedimientos', [CatalogoController::class, 'buscarProcedimientos'])->name('catalogos.buscarProcedimientos');
-        Route::get('/catalogos/buscar-alergias', [CatalogoController::class, 'buscarAlergias'])->name('catalogos.buscarAlergias');
+        Route::controller(CatalogoController::class)->group(function () {
+            Route::get('/catalogos/buscar-diagnosticos', 'buscarDiagnosticos')->name('catalogos.buscarDiagnosticos');
+            Route::get('/catalogos/buscar-procedimientos', 'buscarProcedimientos')->name('catalogos.buscarProcedimientos');
+            Route::get('/catalogos/buscar-alergias', 'buscarAlergias')->name('catalogos.buscarAlergias');
+        });
     });
 });
 

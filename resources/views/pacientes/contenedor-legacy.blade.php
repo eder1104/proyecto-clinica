@@ -15,11 +15,6 @@
                 <table border="0" style="width:90%; margin: 0 auto;">
                     <tbody>
                         <tr>
-                            <td colspan="3">
-                                <h4>Panel de Control</h4>
-                            </td>
-                        </tr>
-                        <tr>
                             <td style="width:70%; text-align:right;">
                                 <input type="text" id="txt_paciente_hc"
                                     placeholder="Buscar por nombre, documento o teléfono..."
@@ -31,11 +26,11 @@
                             </td>
                             <td style="text-align:center;">
                                 <input type="button" class="btnPrincipal" value="Nuevo"
-                                    onclick="mostrarSeccion('registro');">
+                                    onclick="mostrarSeccion('registro', true);">
                             </td>
                             <td>
                                 <input type="button" class="btnPrincipal" value="Importar"
-                                    onclick="mostrarSeccion('importar');">
+                                    onclick="mostrarSeccion('importar', false);">
                             </td>
                         </tr>
                     </tbody>
@@ -49,17 +44,6 @@
                 <fieldset style="width: 90%; margin: auto; border: 1px solid #ccc; padding: 20px;">
                     <legend style="font-weight:bold;">Importar pacientes:</legend>
 
-                    <div style="text-align: left;margin-bottom: 40px;">
-                        <ul>
-                            <li>Los siguientes planes de convenios han sido parametrizados:
-                                <ul>
-                                    <li><strong>Nueva EPS</strong>, resolución 14. del 19/12/2018</li>
-                                    <li><strong>Avanzar FOS</strong>, resolución 29. del 12/09/2018</li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-
                     <table border="0" style="width:100%; margin: 0 auto;">
                         <tbody>
                             <tr>
@@ -70,25 +54,17 @@
                             </tr>
                             <tr>
                                 <td style="text-align: left;">
-                                    <select class="select" style="width: 200px;" id="cmb_convenio" name="cmb_convenio"
-                                        onchange="getPlanes(this.value);">
+                                    <select class="select" style="width: 200px;" id="cmb_convenio_import"
+                                        name="cmb_convenio" onchange="getPlanes(this.value, 'import');">
                                         <option value="">Seleccione el Convenio</option>
-                                        <option value="62">ALLIANZ SAN GIL</option>
-                                        <option value="59">CONVENIO UT - SAN GIL</option>
-                                        <option value="66">COOPERATIVA DE CAFICULTORES</option>
-                                        <option value="61">ECOPETROL - SAN GIL</option>
-                                        <option value="63">FAMISANAR UT</option>
-                                        <option value="49">FOSCAL - AVANZAR UT</option>
-                                        <option value="48">FOSCAL - NUEVA EPS UT</option>
-                                        <option value="58">PARTICULAR - SAN GIL</option>
-                                        <option value="64">PARTICULAR UT</option>
-                                        <option value="60">SURAMERICANA - SAN GIL</option>
-                                        <option value="65">UIS UT</option>
+                                        @foreach($convenios as $convenio)
+                                            <option value="{{ $convenio->id }}">{{ $convenio->nombre }}</option>
+                                        @endforeach
                                     </select>
                                 </td>
                                 <td style="text-align: left;">
-                                    <div id="div_plan">
-                                        <select class="select" style="width: 200px;" id="cmb_plan" name="cmb_plan">
+                                    <div id="div_plan_import">
+                                        <select class="select" style="width: 200px;" id="cmb_plan_import" name="cmb_plan">
                                             <option value="">-- Seleccione el plan --</option>
                                         </select>
                                     </div>
@@ -103,274 +79,280 @@
                             </tr>
                         </tbody>
                     </table>
-
-                    <div id="resultadoImportarISS"></div>
-                    <div id="d_barra_progreso_adj" class="div_barra_progreso" style="display:none; margin:auto; width:50%">
-                        <div id="d_barra_progreso_adj_int" class="div_barra_progreso_int" style="width:1%;">1%</div>
-                    </div>
                 </fieldset>
             </div>
         </div>
 
         <div id="seccion_registro" style="display: none;">
-            <hr class="section-divider">
+            <div style="min-height: 30px; padding: 30px; border: 1px solid #ddd; border-radius: 8px; background: #fff;">
+                <fieldset style="width: 90%; margin: auto; border: 1px solid #ccc; padding: 15px;">
+                    <legend style="font-weight:bold;">Datos del paciente:</legend>
 
-            <form id="patientForm" action="{{ route('pacientes.store') }}" method="POST">
-                @csrf
+                    <form id="frm_paciente" name="frm_paciente" action="{{ route('legacy.pacientes.store') }}"
+                        method="POST"> @csrf
+                        <table border="0"
+                            style="width: 100%; margin: auto; font-size: 10pt; border-collapse: separate; border-spacing: 5px;">
+                            <tbody>
+                                <tr>
+                                    <td align="left" style="width:25%;"><label>Tipo de identificación*</label></td>
+                                    <td align="left" style="width:25%;"><label>Número de identificación*</label></td>
+                                    <td align="center" colspan="2" rowspan="2" valign="top"><b>Código de verificación <br>
+                                        </b></td>
+                                </tr>
+                                <tr>
+                                    <td align="left">
+                                        <select class="select" style="width:100%;" id="cmb_tipo_documento"
+                                            name="cmb_tipo_documento">
+                                            <option value="">-- Seleccione --</option>
+                                            <option value="3">Registro civil</option>
+                                            <option value="4">Tarjeta de identidad</option>
+                                            <option value="5">Cédula de ciudadanía</option>
+                                            <option value="6">Cédula de extranjería</option>
+                                            <option value="7">Pasaporte</option>
+                                            <option value="463">Permiso especial</option>
+                                        </select>
+                                    </td>
+                                    <td align="left">
+                                        <input type="text" id="txt_numero_documento" name="txt_numero_documento"
+                                            maxlength="20" style="width:100%;">
+                                    </td>
+                                </tr>
 
-                <div class="search-section">
-                    <div class="form-group">
-                        <label>Tipo de Identificación<span class="required">*</span></label>
-                        <select id="tipoId" name="tipo_id" required>
-                            <option value="">Seleccione el tipo</option>
-                            <option value="cc">Cédula de Ciudadanía</option>
-                            <option value="ti">Tarjeta de Identidad</option>
-                            <option value="ce">Cédula de Extranjería</option>
-                            <option value="pa">Pasaporte</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>No. de identificación<span class="required">*</span></label>
-                        <input type="text" id="numeroId" name="numero_id" required>
-                    </div>
-                    <div class="form-group">
-                        <label>&nbsp;</label>
-                        <button type="button" class="btn-primary" onclick="buscarPaciente()">Buscar paciente</button>
-                    </div>
-                </div>
+                                <tr>
+                                    <td align="left"><label>Primer nombre*</label></td>
+                                    <td align="left"><label>Segundo nombre</label></td>
+                                    <td align="left"><label>Primer apellido*</label></td>
+                                    <td align="left"><label>Segundo apellido</label></td>
+                                </tr>
+                                <tr>
+                                    <td align="left"><input type="text" id="txt_nombre_1" name="txt_nombre_1"
+                                            maxlength="100" style="width:100%;"></td>
+                                    <td align="left"><input type="text" id="txt_nombre_2" name="txt_nombre_2"
+                                            maxlength="100" style="width:100%;"></td>
+                                    <td align="left"><input type="text" id="txt_apellido_1" name="txt_apellido_1"
+                                            maxlength="100" style="width:100%;"></td>
+                                    <td align="left"><input type="text" id="txt_apellido_2" name="txt_apellido_2"
+                                            maxlength="100" style="width:100%;"></td>
+                                </tr>
 
-                <hr class="section-divider">
+                                <tr>
+                                    <td align="left"><label>Género*</label></td>
+                                    <td align="left"><label>Fecha de nacimiento*</label></td>
+                                    <td align="left"><label>País de nacimiento*</label></td>
+                                    <td align="left"><label>Teléfono*</label></td>
+                                </tr>
+                                <tr>
+                                    <td align="left">
+                                        <select class="select" style="width:100%;" id="cmb_sexo" name="cmb_sexo">
+                                            <option value="">-- Seleccione --</option>
+                                            <option value="1">Femenino</option>
+                                            <option value="2">Masculino</option>
+                                        </select>
+                                    </td>
+                                    <td align="left">
+                                        <input type="date" class="input required" name="txt_fecha_nacimiento"
+                                            id="txt_fecha_nacimiento" style="width:100%;">
+                                    </td>
+                                    <td align="left">
+                                        <select class="select" style="width:100%;" id="cmb_pais_nac" name="cmb_pais_nac">
+                                            <option value="">-- Seleccione --</option>
+                                            <option value="1">Colombia</option>
+                                            <option value="189">Venezuela</option>
+                                            <option value="52">Ecuador</option>
+                                        </select>
+                                    </td>
+                                    <td align="left">
+                                        <input type="text" id="txt_telefono" name="txt_telefono" maxlength="20"
+                                            style="width:100%;">
+                                    </td>
+                                </tr>
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Primer nombre<span class="required">*</span></label>
-                        <input type="text" id="primerNombre" name="primer_nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Segundo nombre</label>
-                        <input type="text" id="segundoNombre" name="segundo_nombre">
-                    </div>
-                    <div class="form-group">
-                        <label>Primer apellido<span class="required">*</span></label>
-                        <input type="text" id="primerApellido" name="primer_apellido" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Segundo apellido</label>
-                        <input type="text" id="segundoApellido" name="segundo_apellido">
-                    </div>
-                </div>
+                                <tr>
+                                    <td align="left"><label>País de residencia*</label></td>
+                                    <td align="left"><label>Email</label></td>
+                                    <td align="left" colspan="2"><label>Dirección*</label></td>
+                                </tr>
+                                <tr>
+                                    <td align="left">
+                                        <select class="select" style="width:100%;" id="cmb_pais_res" name="cmb_pais_res">
+                                            <option value="1">Colombia</option>
+                                        </select>
+                                    </td>
+                                    <td align="left">
+                                        <input type="email" id="txt_email" name="txt_email" maxlength="100"
+                                            style="width:100%;">
+                                    </td>
+                                    <td align="left" colspan="2">
+                                        <input type="text" id="txt_direccion" name="txt_direccion" maxlength="200"
+                                            style="width:100%;">
+                                    </td>
+                                </tr>
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Género<span class="required">*</span></label>
-                        <select id="genero" name="genero" required>
-                            <option value="">Seleccione el sexo</option>
-                            <option value="m">Masculino</option>
-                            <option value="f">Femenino</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha de nacimiento<span class="required">*</span></label>
-                        <input type="date" id="fechaNacimiento" name="fecha_nacimiento" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Tipo de Sangre<span class="required">*</span></label>
-                        <select id="tipoSangre" name="tipo_sangre" required>
-                            <option value="">Seleccione el tipo</option>
-                            <option value="a+">A+</option>
-                            <option value="a-">A-</option>
-                            <option value="b+">B+</option>
-                            <option value="b-">B-</option>
-                            <option value="ab+">AB+</option>
-                            <option value="ab-">AB-</option>
-                            <option value="o+">O+</option>
-                            <option value="o-">O-</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Factor RH<span class="required">*</span></label>
-                        <select id="factorRH" name="factor_rh" required>
-                            <option value="">Seleccione el factor</option>
-                            <option value="+">Positivo (+)</option>
-                            <option value="-">Negativo (-)</option>
-                        </select>
-                    </div>
-                </div>
+                                <tr>
+                                    <td align="left"><label>Convenio/Entidad*</label></td>
+                                    <td align="left"><label>Plan*</label></td>
+                                    <td align="left"><label>Rango*</label></td>
+                                    <td align="left"><label>Tipo de usuario*</label></td>
+                                </tr>
+                                <tr>
+                                    <td align="left">
+                                        <select class="select" style="width:100%;" id="cmb_convenio" name="cmb_convenio"
+                                            onchange="getPlanes(this.value, 'registro');">
+                                            <option value="">--Seleccione--</option>
+                                            @foreach($convenios as $convenio)
+                                                <option value="{{ $convenio->id }}">{{ $convenio->nombre }}</option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td align="left">
+                                        <select class="select" style="width:100%;" id="cmb_plan" name="cmb_plan">
+                                            <option value="">--Seleccione--</option>
+                                        </select>
+                                    </td>
+                                    <td align="left">
+                                        <select class="select" style="width:100%;" id="cmb_rango" name="cmb_rango">
+                                            <option value="0">No aplica</option>
+                                            <option value="1">Rango A</option>
+                                            <option value="2">Rango B</option>
+                                        </select>
+                                    </td>
+                                    <td align="left">
+                                        <select class="select" style="width:100%;" id="cmb_tipoUsuario"
+                                            name="cmb_tipoUsuario">
+                                            <option value="613">Contributivo</option>
+                                            <option value="616">Subsidiado</option>
+                                            <option value="620">Particular</option>
+                                        </select>
+                                    </td>
+                                </tr>
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>País de nacimiento<span class="required">*</span></label>
-                        <select id="paisNacimiento" name="pais_nacimiento" required>
-                            <option value="co">Colombia</option>
-                            <option value="ve">Venezuela</option>
-                            <option value="ec">Ecuador</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Departamento de nacimiento<span class="required">*</span></label>
-                        <select id="deptoNacimiento" name="depto_nacimiento" required>
-                            <option value="santander">Santander</option>
-                            <option value="antioquia">Antioquia</option>
-                            <option value="cundinamarca">Cundinamarca</option>
-                        </select>
-                    </div>
-                    <div class="form-group span-2">
-                        <label>Municipio de nacimiento<span class="required">*</span></label>
-                        <select id="municipioNacimiento" name="municipio_nacimiento" required>
-                            <option value="">Seleccione el municipio</option>
-                            <option value="bucaramanga">Bucaramanga</option>
-                            <option value="floridablanca">Floridablanca</option>
-                        </select>
-                    </div>
-                </div>
+                                <tr>
+                                    <td align="left" colspan="4"><label>Observaciones</label></td>
+                                </tr>
+                                <tr>
+                                    <td align="left" colspan="4">
+                                        <textarea id="txt_observ_paciente" name="txt_observ_paciente"
+                                            style="width:100%; height:75px;"></textarea>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>País de residencia<span class="required">*</span></label>
-                        <select id="paisResidencia" name="pais_residencia" required>
-                            <option value="co">Colombia</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Departamento de residencia<span class="required">*</span></label>
-                        <select id="deptoResidencia" name="depto_residencia" required>
-                            <option value="santander">Santander</option>
-                        </select>
-                    </div>
-                    <div class="form-group span-2">
-                        <label>Municipio de residencia<span class="required">*</span></label>
-                        <select id="municipioResidencia" name="municipio_residencia" required>
-                            <option value="">Seleccione el municipio</option>
-                            <option value="bucaramanga">Bucaramanga</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-grid">
-                    <div class="form-group span-2">
-                        <label>Dirección<span class="required">*</span></label>
-                        <input type="text" id="direccion" name="direccion" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Zona<span class="required">*</span></label>
-                        <select id="zona" name="zona" required>
-                            <option value="urbana">Urbana</option>
-                            <option value="rural">Rural</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Teléfono 1<span class="required">*</span></label>
-                        <input type="text" id="telefono1" name="telefono1" required>
-                    </div>
-                </div>
-
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Teléfono 2</label>
-                        <input type="text" id="telefono2" name="telefono2">
-                    </div>
-                    <div class="form-group">
-                        <label>e-mail<span class="required">*</span></label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Profesión<span class="required">*</span></label>
-                        <input type="text" id="profesion" name="profesion" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Estado civil<span class="required">*</span></label>
-                        <select id="estadoCivil" name="estado_civil" required>
-                            <option value="">Seleccione el estado civil</option>
-                            <option value="soltero">Soltero(a)</option>
-                            <option value="casado">Casado(a)</option>
-                            <option value="union">Unión libre</option>
-                            <option value="viudo">Viudo(a)</option>
-                            <option value="divorciado">Divorciado(a)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Etnia</label>
-                        <select id="etnia" name="etnia">
-                            <option value="ninguna">Ninguna</option>
-                            <option value="indigena">Indígena</option>
-                            <option value="afro">Afrocolombiano</option>
-                            <option value="rom">ROM</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Número de hijos<span class="required">*</span></label>
-                        <select id="numeroHijos" name="numero_hijos" required>
-                            <option value="">Seleccione</option>
-                            @for ($i = 0; $i <= 25; $i++)
-                            <option value="{{ $i }}">{{ $i }}</option> @endfor
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Número de hijas<span class="required">*</span></label>
-                        <select id="numeroHijas" name="numero_hijas" required>
-                            <option value="">Seleccione</option>
-                            @for ($i = 0; $i <= 25; $i++)
-                            <option value="{{ $i }}">{{ $i }}</option> @endfor
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Número de hermanos<span class="required">*</span></label>
-                        <select id="numeroHermanos" name="numero_hermanos" required>
-                            <option value="">Seleccione</option>
-                            @for ($i = 0; $i <= 25; $i++)
-                            <option value="{{ $i }}">{{ $i }}</option> @endfor
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Número de hermanas<span class="required">*</span></label>
-                        <select id="numeroHermanas" name="numero_hermanas" required>
-                            <option value="">Seleccione</option>
-                            @for ($i = 0; $i <= 25; $i++)
-                            <option value="{{ $i }}">{{ $i }}</option> @endfor
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Desplazado</label>
-                        <select id="desplazado" name="desplazado">
-                            <option value="no">No</option>
-                            <option value="si">Sí</option>
-                        </select>
-                    </div>
-                </div>
-
-                <hr class="section-divider">
-
-                <div class="button-group">
-                    <button type="button" class="btn-primary">Abrir cámara</button>
-                    <button type="button" class="btn-secondary">Datos adicionales</button>
-                    <button type="submit" class="btn-primary" style="background-color: #10b981;">Guardar paciente</button>
-                </div>
-            </form>
+                        <br>
+                        <div id="d_btn_guardar_paciente" style="text-align:center;">
+                            <input type="submit" id="btn_guardar" value="Registrar" class="btnPrincipal">
+                        </div>
+                    </form>
+                </fieldset>
+            </div>
         </div>
     </div>
 
     <script>
-        function mostrarSeccion(seccion) {
+        function mostrarSeccion(seccion, limpiar = false) {
             const divImportar = document.getElementById('seccion_importar');
             const divRegistro = document.getElementById('seccion_registro');
+            divImportar.style.display = (seccion === 'importar') ? 'block' : 'none';
+            divRegistro.style.display = (seccion === 'registro') ? 'block' : 'none';
 
-            if (seccion === 'importar') {
-                divImportar.style.display = 'block';
-                divRegistro.style.display = 'none';
-            } else if (seccion === 'registro') {
-                divImportar.style.display = 'none';
-                divRegistro.style.display = 'block';
+            if (seccion === 'registro' && limpiar) {
+                limpiarFormulario();
             }
+        }
+
+        function limpiarFormulario() {
+            document.getElementById('frm_paciente').reset();
+            document.getElementById('txt_paciente_hc').value = '';
+            document.getElementById('cmb_plan').innerHTML = '<option value="">--Seleccione--</option>';
+        }
+
+        function trim_cadena(input) {
+            if (input && input.value) {
+                input.value = input.value.trim();
+            }
+        }
+
+        function getPlanes(convenioId, tipo) {
+            const selectPlan = (tipo === 'import') ? document.getElementById('cmb_plan_import') : document.getElementById('cmb_plan');
+
+            if (!convenioId) {
+                selectPlan.innerHTML = '<option value="">--Seleccione--</option>';
+                return;
+            }
+
+            fetch(`/convenios/${convenioId}/planes`)
+                .then(response => response.json())
+                .then(data => {
+                    let options = '<option value="">-- Seleccione el plan --</option>';
+                    data.forEach(plan => {
+                        options += `<option value="${plan.id}">${plan.nombre}</option>`;
+                    });
+                    selectPlan.innerHTML = options;
+                })
+                .catch(error => console.error('Error cargando planes:', error));
+        }
+
+        function buscar_paciente() {
+            let termino = document.getElementById('txt_paciente_hc').value.trim();
+
+            if (termino.length < 3) {
+                return;
+            }
+
+            fetch(`/legacy/buscar?search=${termino}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        cargarDatosPaciente(data[0]);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        function cargarDatosPaciente(paciente) {
+            mostrarSeccion('registro', false);
+
+            document.getElementById('cmb_tipo_documento').value = paciente.tipo_documento || "";
+            document.getElementById('txt_numero_documento').value = paciente.documento || "";
+
+            const nombresArr = (paciente.nombres || "").split(" ");
+            document.getElementById('txt_nombre_1').value = nombresArr[0] || "";
+            document.getElementById('txt_nombre_2').value = nombresArr.slice(1).join(" ") || "";
+
+            const apellidosArr = (paciente.apellidos || "").split(" ");
+            document.getElementById('txt_apellido_1').value = apellidosArr[0] || "";
+            document.getElementById('txt_apellido_2').value = apellidosArr.slice(1).join(" ") || "";
+
+            document.getElementById('txt_fecha_nacimiento').value = paciente.fecha_nacimiento || "";
+
+            let sexoVal = "";
+            if (paciente.sexo === 'F') sexoVal = "1";
+            if (paciente.sexo === 'M') sexoVal = "2";
+            document.getElementById('cmb_sexo').value = sexoVal;
+
+            // --- Nuevos Campos ---
+            document.getElementById('txt_telefono').value = paciente.telefono || "";
+            document.getElementById('txt_email').value = paciente.email || "";
+            document.getElementById('txt_direccion').value = paciente.direccion || "";
+
+            document.getElementById('cmb_pais_nac').value = paciente.pais_nacimiento_cod || "";
+            document.getElementById('cmb_pais_res').value = paciente.pais_residencia_cod || "1";
+
+            if (paciente.convenio_id) {
+                document.getElementById('cmb_convenio').value = paciente.convenio_id;
+                getPlanes(paciente.convenio_id, 'registro');
+                setTimeout(() => {
+                    if (paciente.plan_id) {
+                        document.getElementById('cmb_plan').value = paciente.plan_id;
+                    }
+                }, 500);
+            }
+
+            document.getElementById('cmb_tipoUsuario').value = paciente.tipo_usuario || "";
+            document.getElementById('cmb_rango').value = paciente.rango || "";
+            document.getElementById('txt_observ_paciente').value = paciente.observaciones || "";
         }
     </script>
 
@@ -404,74 +386,17 @@
             color: #1a1a1a;
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group.span-2 {
-            grid-column: span 2;
-        }
-
-        .form-group.span-3 {
-            grid-column: span 3;
-        }
-
-        label {
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: #374151;
-        }
-
-        label .required {
-            color: #ef4444;
-        }
-
+        .select,
         input[type="text"],
         input[type="email"],
         input[type="date"],
-        select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 14px;
-            color: #1f2937;
-            background-color: white;
-            transition: border-color 0.2s;
+        textarea {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
         }
 
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: #0ea5e9;
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
-        }
-
-        select {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding-right: 36px;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        button,
         .btnPrincipal {
             padding: 10px 24px;
             border: none;
@@ -479,73 +404,13 @@
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btnPrincipal {
             background-color: #0ea5e9;
             color: white;
+            transition: 0.2s;
         }
 
-        .btn-primary,
-        .btn-secondary {
-            background-color: #0ea5e9;
-            color: white;
-        }
-
-        .btn-primary:hover,
-        .btn-secondary:hover,
         .btnPrincipal:hover {
             background-color: #0284c7;
-        }
-
-        .search-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 16px;
-            align-items: end;
-            margin-bottom: 32px;
-        }
-
-        .section-divider {
-            margin: 32px 0;
-            border: 0;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .div_barra_progreso {
-            border: 1px solid #ccc;
-            background: #eee;
-            height: 20px;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .div_barra_progreso_int {
-            background: #4caf50;
-            height: 100%;
-            text-align: center;
-            color: white;
-            font-size: 12px;
-            line-height: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .form-group.span-2 {
-                grid-column: span 1;
-            }
-
-            .search-section {
-                grid-template-columns: 1fr;
-            }
-
-            .container {
-                padding: 20px;
-            }
         }
     </style>
 @endsection
