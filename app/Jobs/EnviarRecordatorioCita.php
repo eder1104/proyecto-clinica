@@ -24,16 +24,17 @@ class EnviarRecordatorioCita implements ShouldQueue
 
     public function handle(): void
     {
+        $this->recordatorio->load('cita.paciente');
         $cita = $this->recordatorio->cita; 
         
-        if (!$cita) {
-            Log::error("Error en Job: El recordatorio {$this->recordatorio->id} no tiene cita asociada.");
+        if (!$cita || !$cita->paciente) {
+            Log::error("Error en Job: Datos incompletos para el recordatorio {$this->recordatorio->id}");
             return;
         }
 
         $paciente = $cita->paciente;
 
-        Log::info("📧 [SIMULACIÓN] Recordatorio enviado al paciente {$paciente->nombres} {$paciente->apellidos} para la cita del {$cita->fecha_programada} a las {$cita->hora_cita}");
+        Log::info("📧 [SIMULACIÓN] Recordatorio enviado al paciente {$paciente->nombres} {$paciente->apellidos} para la cita del {$cita->fecha} a las {$cita->hora_inicio}");
 
         $this->recordatorio->update([
             'estado' => 'enviado',
@@ -41,7 +42,7 @@ class EnviarRecordatorioCita implements ShouldQueue
         ]);
 
         BitacoraAuditoria::create([
-            'usuario_id' => null, 
+            'user_id' => null, 
             'accion' => 'RECORDATORIO_ENVIADO',
             'detalles' => "Se procesó el recordatorio ID: {$this->recordatorio->id} para la Cita ID: {$cita->id}",
             'ip_address' => '127.0.0.1', 

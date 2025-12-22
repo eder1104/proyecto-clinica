@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container">
-        <h1>Datos del paciente</h1>
+        <h1 class="title">Buscar paciente</h1>
 
         <div class="contenedor_principal">
             <div id="guardar_historia_clinica" style="width:100%;">
@@ -17,7 +17,7 @@
                         <tr>
                             <td style="width:70%; text-align:right;">
                                 <input type="text" id="txt_paciente_hc"
-                                    placeholder="Buscar por nombre, documento o teléfono..."
+                                    placeholder="Buscar por nombre, documento o teléfono del paciente"
                                     style="width:100%; float:right; padding:8px; border:1px solid #ccc; border-radius:4px;"
                                     onblur="trim_cadena(this);">
                             </td>
@@ -73,7 +73,7 @@
                                     <input type="file" id="fileISS" name="fileISS" accept=".csv">
                                 </td>
                                 <td>
-                                    <input type="button" value="Ejecutar Importación" onclick="validarImportarPacientes();"
+                                    <input type="button" value="Importar" onclick="validarImportarPacientes();"
                                         class="btnPrincipal">
                                 </td>
                             </tr>
@@ -96,8 +96,6 @@
                                 <tr>
                                     <td align="left" style="width:25%;"><label>Tipo de identificación*</label></td>
                                     <td align="left" style="width:25%;"><label>Número de identificación*</label></td>
-                                    <td align="center" colspan="2" rowspan="2" valign="top"><b>Código de verificación <br>
-                                        </b></td>
                                 </tr>
                                 <tr>
                                     <td align="left">
@@ -168,65 +166,6 @@
                                 </tr>
 
                                 <tr>
-                                    <td align="left"><label>País de residencia*</label></td>
-                                    <td align="left"><label>Email</label></td>
-                                    <td align="left" colspan="2"><label>Dirección*</label></td>
-                                </tr>
-                                <tr>
-                                    <td align="left">
-                                        <select class="select" style="width:100%;" id="cmb_pais_res" name="cmb_pais_res">
-                                            <option value="1">Colombia</option>
-                                        </select>
-                                    </td>
-                                    <td align="left">
-                                        <input type="email" id="txt_email" name="txt_email" maxlength="100"
-                                            style="width:100%;">
-                                    </td>
-                                    <td align="left" colspan="2">
-                                        <input type="text" id="txt_direccion" name="txt_direccion" maxlength="200"
-                                            style="width:100%;">
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td align="left"><label>Convenio/Entidad*</label></td>
-                                    <td align="left"><label>Plan*</label></td>
-                                    <td align="left"><label>Rango*</label></td>
-                                    <td align="left"><label>Tipo de usuario*</label></td>
-                                </tr>
-                                <tr>
-                                    <td align="left">
-                                        <select class="select" style="width:100%;" id="cmb_convenio" name="cmb_convenio"
-                                            onchange="getPlanes(this.value, 'registro');">
-                                            <option value="">--Seleccione--</option>
-                                            @foreach($convenios as $convenio)
-                                                <option value="{{ $convenio->id }}">{{ $convenio->nombre }}</option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td align="left">
-                                        <select class="select" style="width:100%;" id="cmb_plan" name="cmb_plan">
-                                            <option value="">--Seleccione--</option>
-                                        </select>
-                                    </td>
-                                    <td align="left">
-                                        <select class="select" style="width:100%;" id="cmb_rango" name="cmb_rango">
-                                            <option value="0">No aplica</option>
-                                            <option value="1">Rango A</option>
-                                            <option value="2">Rango B</option>
-                                        </select>
-                                    </td>
-                                    <td align="left">
-                                        <select class="select" style="width:100%;" id="cmb_tipoUsuario"
-                                            name="cmb_tipoUsuario">
-                                            <option value="613">Contributivo</option>
-                                            <option value="616">Subsidiado</option>
-                                            <option value="620">Particular</option>
-                                        </select>
-                                    </td>
-                                </tr>
-
-                                <tr>
                                     <td align="left" colspan="4"><label>Observaciones</label></td>
                                 </tr>
                                 <tr>
@@ -248,169 +187,6 @@
         </div>
     </div>
 
-    <script>
-        function mostrarSeccion(seccion, limpiar = false) {
-            const divImportar = document.getElementById('seccion_importar');
-            const divRegistro = document.getElementById('seccion_registro');
-            divImportar.style.display = (seccion === 'importar') ? 'block' : 'none';
-            divRegistro.style.display = (seccion === 'registro') ? 'block' : 'none';
-
-            if (seccion === 'registro' && limpiar) {
-                limpiarFormulario();
-            }
-        }
-
-        function limpiarFormulario() {
-            document.getElementById('frm_paciente').reset();
-            document.getElementById('txt_paciente_hc').value = '';
-            document.getElementById('cmb_plan').innerHTML = '<option value="">--Seleccione--</option>';
-        }
-
-        function trim_cadena(input) {
-            if (input && input.value) {
-                input.value = input.value.trim();
-            }
-        }
-
-        function getPlanes(convenioId, tipo) {
-            const selectPlan = (tipo === 'import') ? document.getElementById('cmb_plan_import') : document.getElementById('cmb_plan');
-
-            if (!convenioId) {
-                selectPlan.innerHTML = '<option value="">--Seleccione--</option>';
-                return;
-            }
-
-            fetch(`/convenios/${convenioId}/planes`)
-                .then(response => response.json())
-                .then(data => {
-                    let options = '<option value="">-- Seleccione el plan --</option>';
-                    data.forEach(plan => {
-                        options += `<option value="${plan.id}">${plan.nombre}</option>`;
-                    });
-                    selectPlan.innerHTML = options;
-                })
-                .catch(error => console.error('Error cargando planes:', error));
-        }
-
-        function buscar_paciente() {
-            let termino = document.getElementById('txt_paciente_hc').value.trim();
-
-            if (termino.length < 3) {
-                return;
-            }
-
-            fetch(`/legacy/buscar?search=${termino}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        cargarDatosPaciente(data[0]);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-        }
-
-        function cargarDatosPaciente(paciente) {
-            mostrarSeccion('registro', false);
-
-            document.getElementById('cmb_tipo_documento').value = paciente.tipo_documento || "";
-            document.getElementById('txt_numero_documento').value = paciente.documento || "";
-
-            const nombresArr = (paciente.nombres || "").split(" ");
-            document.getElementById('txt_nombre_1').value = nombresArr[0] || "";
-            document.getElementById('txt_nombre_2').value = nombresArr.slice(1).join(" ") || "";
-
-            const apellidosArr = (paciente.apellidos || "").split(" ");
-            document.getElementById('txt_apellido_1').value = apellidosArr[0] || "";
-            document.getElementById('txt_apellido_2').value = apellidosArr.slice(1).join(" ") || "";
-
-            document.getElementById('txt_fecha_nacimiento').value = paciente.fecha_nacimiento || "";
-
-            let sexoVal = "";
-            if (paciente.sexo === 'F') sexoVal = "1";
-            if (paciente.sexo === 'M') sexoVal = "2";
-            document.getElementById('cmb_sexo').value = sexoVal;
-
-            // --- Nuevos Campos ---
-            document.getElementById('txt_telefono').value = paciente.telefono || "";
-            document.getElementById('txt_email').value = paciente.email || "";
-            document.getElementById('txt_direccion').value = paciente.direccion || "";
-
-            document.getElementById('cmb_pais_nac').value = paciente.pais_nacimiento_cod || "";
-            document.getElementById('cmb_pais_res').value = paciente.pais_residencia_cod || "1";
-
-            if (paciente.convenio_id) {
-                document.getElementById('cmb_convenio').value = paciente.convenio_id;
-                getPlanes(paciente.convenio_id, 'registro');
-                setTimeout(() => {
-                    if (paciente.plan_id) {
-                        document.getElementById('cmb_plan').value = paciente.plan_id;
-                    }
-                }, 500);
-            }
-
-            document.getElementById('cmb_tipoUsuario').value = paciente.tipo_usuario || "";
-            document.getElementById('cmb_rango').value = paciente.rango || "";
-            document.getElementById('txt_observ_paciente').value = paciente.observaciones || "";
-        }
-    </script>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f5f5f5;
-            padding: 20px;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 32px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 32px;
-            color: #1a1a1a;
-        }
-
-        .select,
-        input[type="text"],
-        input[type="email"],
-        input[type="date"],
-        textarea {
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-
-        .btnPrincipal {
-            padding: 10px 24px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            background-color: #0ea5e9;
-            color: white;
-            transition: 0.2s;
-        }
-
-        .btnPrincipal:hover {
-            background-color: #0284c7;
-        }
-    </style>
+    <input type="hidden" id="url_importar" value="{{ route('legacy.pacientes.importar') }}">
+    <input type="hidden" id="token_csrf" value="{{ csrf_token() }}">
 @endsection

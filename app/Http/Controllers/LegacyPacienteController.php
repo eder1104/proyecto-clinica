@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Paciente;
-use App\Models\Doctores;
+use App\Models\doctores;
 use App\Models\Cita;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -13,10 +13,9 @@ class LegacyPacienteController extends Controller
 {
     public function index()
     {
-        $doctores = Doctores::all();
+        $doctores = doctores::all();
         $convenios = DB::table('convenios')
             ->where('activo', true)
-            ->orderBy('nombre', 'asc')
             ->get();
 
         return view('pacientes.contenedor-legacy', compact('doctores', 'convenios'));
@@ -26,7 +25,6 @@ class LegacyPacienteController extends Controller
     {
         $planes = DB::table('planes')
             ->where('convenio_id', $convenioId)
-            ->orderBy('nombre', 'asc')
             ->get();
 
         return response()->json($planes);
@@ -43,13 +41,12 @@ class LegacyPacienteController extends Controller
         $pacientes = Paciente::where('documento', 'LIKE', "%{$search}%")
             ->orWhere('nombres', 'LIKE', "%{$search}%")
             ->orWhere('apellidos', 'LIKE', "%{$search}%")
-            ->orWhere('telefono', 'LIKE', "%{$search}%")
             ->get();
 
         return response()->json($pacientes);
     }
 
-   public function store(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'txt_numero_documento' => 'required|unique:pacientes,documento',
@@ -61,15 +58,7 @@ class LegacyPacienteController extends Controller
         $nombres = trim($request->input('txt_nombre_1') . ' ' . $request->input('txt_nombre_2'));
         $apellidos = trim($request->input('txt_apellido_1') . ' ' . $request->input('txt_apellido_2'));
         
-        $sexo = null;
-        if($request->input('cmb_sexo') == '1') $sexo = 'F';
-        if($request->input('cmb_sexo') == '2') $sexo = 'M';
-
-        $fechaNacimiento = $request->input('txt_fecha_nacimiento') ?: null;
-        $convenioId = $request->input('cmb_convenio') ?: null;
-        $planId = $request->input('cmb_plan') ?: null;
-        $paisNac = $request->input('cmb_pais_nac') ?: null;
-        $paisRes = $request->input('cmb_pais_res') ?: null;
+        $sexo = $request->input('cmb_sexo') == '1' ? 'F' : ($request->input('cmb_sexo') == '2' ? 'M' : null);
 
         $user = Auth::user();
         $creador = ($user->nombres ?? $user->name ?? 'Usuario') . ' ' . ($user->apellidos ?? '');
@@ -79,15 +68,15 @@ class LegacyPacienteController extends Controller
             $request->input('txt_numero_documento'),
             $nombres,
             $apellidos,
-            $fechaNacimiento,
+            $request->input('txt_fecha_nacimiento'),
             $sexo,
-            $paisNac,
+            $request->input('cmb_pais_nac'),
             $request->input('txt_telefono'),
-            $paisRes,
+            $request->input('cmb_pais_res'),
             $request->input('txt_direccion'),
             $request->input('txt_email'),
-            $convenioId,
-            $planId,
+            $request->input('cmb_convenio'),
+            $request->input('cmb_plan'),
             $request->input('cmb_rango'),
             $request->input('cmb_tipoUsuario'),
             $request->input('txt_observ_paciente'),
@@ -97,6 +86,86 @@ class LegacyPacienteController extends Controller
         DB::statement('CALL sp_crear_paciente_legacy(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', $parametros);
 
         return redirect()->route('legacy.index')->with('success', 'Paciente guardado correctamente.');
+    }
+
+    public function importarCSV(Request $request)
+    {
+        try {
+            $request->validate([
+                'fileISS' => 'required|file',
+                'cmb_plan' => 'required'
+            ]);
+
+            $file = $request->file('fileISS');
+            $handle = fopen($file->getRealPath(), 'r');
+
+            fgetcsv($handle, 1000, ";");
+
+            $primeraFilaData = fgetcsv($handle, 1000, ";");
+            $nombreConvenio = isset($primeraFilaData[0]) ? trim($primeraFilaData[0]) : null;
+
+            if (!$nombreConvenio) {
+                fclose($handle);
+                return response()->json(['res' => 0, 'error' => 'No se encontró el nombre del convenio'], 422);
+            }
+
+            $convenio = DB::table('convenios')
+                ->where('nombre', 'LIKE', $nombreConvenio)
+                ->first();
+
+            if (!$convenio) {
+                fclose($handle);
+                return response()->json(['res' => 0, 'error' => 'El convenio no existe'], 422);
+            }
+
+            $planId = $request->input('cmb_plan');
+            $user = Auth::user();
+            $creador = ($user->nombres ?? $user->name ?? 'Sistema') . ' (Importación)';
+            $insertados = 0;
+
+            $procesarFila = function($datos) use ($convenio, $planId, $creador, &$insertados) {
+                if (empty($datos[2])) return;
+
+                $parametros = [
+                    $datos[1],
+                    $datos[2],
+                    $datos[3],
+                    $datos[4],
+                    $datos[6] ?? '1900-01-01',
+                    $datos[5] ?? null,
+                    1,
+                    $datos[7] ?? '0',
+                    1,
+                    $datos[8] ?? 'Sin dirección',
+                    $datos[9] ?? 'sin@correo.com',
+                    $convenio->id,
+                    $planId,
+                    0,
+                    620,
+                    'Importado masivamente via CSV',
+                    $creador
+                ];
+
+                DB::statement('CALL sp_crear_paciente_legacy(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', $parametros);
+                $insertados++;
+            };
+
+            $procesarFila($primeraFilaData);
+
+            while (($datos = fgetcsv($handle, 1000, ";")) !== FALSE) {
+                $procesarFila($datos);
+            }
+
+            fclose($handle);
+
+            return response()->json([
+                'res' => 1,
+                'mensaje' => "Importación exitosa. Total: {$insertados} pacientes registrados."
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['res' => 0, 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function agendar(Request $request)
@@ -113,7 +182,7 @@ class LegacyPacienteController extends Controller
                 'paciente_id' => $request->paciente_id,
                 'doctor_id' => $request->doctor_id,
                 'fecha' => $request->fecha,
-                'hora' => $request->hora,
+                'hora_inicio' => $request->hora,
                 'estado' => 'programada'
             ]);
 

@@ -47,6 +47,7 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
         Route::get('/legacy/buscar', 'buscar')->name('legacy.buscar');
         Route::post('/legacy/agendar', 'agendar')->name('legacy.agendar');
         Route::post('/legacy/pacientes/store', 'store')->name('legacy.pacientes.store');
+        Route::post('/legacy/pacientes/importar', 'importarCSV')->name('legacy.pacientes.importar');
     });
 
     Route::get('/test-redis', function () {
