@@ -3,50 +3,42 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\Cita;
 use App\Models\RecordatorioCita;
 use App\Jobs\EnviarRecordatorioCita;
+use App\Models\BitacoraAuditoria;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class GenerarRecordatoriosCitas extends Command
 {
-    protected $signature = 'citas:generar-recordatorios';
-    protected $description = 'Busca citas de mañana y genera sus recordatorios en la cola';
+    protected $signature = 'recordatorios:procesar';
+
+    protected $description = 'Procesa recordatorios vencidos';
 
     public function handle()
     {
-        $this->info('🔍 Buscando citas para mañana...');
+        $recordatorios = RecordatorioCita::where('estado', 'pendiente')
+            ->where('fecha_programada', '<=', Carbon::now())
+            ->get();
 
-        $manana = Carbon::tomorrow()->format('Y-m-d');
+        foreach ($recordatorios as $recordatorio) {
+            try {
+                EnviarRecordatorioCita::dispatch($recordatorio);
 
-        $citas = Cita::where('fecha', $manana) 
-                     ->where('estado', '!=', 'cancelada')
-                     ->get();
-
-        if ($citas->isEmpty()) {
-            $this->info('No hay citas programadas para el ' . $manana);
-            return;
-        }
-
-        $contador = 0;
-
-        foreach ($citas as $cita) {
-            $yaExiste = RecordatorioCita::where('cita_id', $cita->id)->exists();
-
-            if (!$yaExiste) {
-                $recordatorio = RecordatorioCita::create([
-                    'cita_id' => $cita->id,
-                    'fecha_programada' => now(),
-                    'estado' => 'pendiente'
+                BitacoraAuditoria::create([
+                    'usuario_id' => null,
+                    'accion' => 'SCHEDULER_ENCOLADO',
+                    'modulo' => 'RECORDATORIOS',
+                    'detalles' => json_encode([
+                        'recordatorio_id' => $recordatorio->id,
+                        'cita_id' => $recordatorio->cita_id,
+                        'mensaje' => 'Enviado a cola (Redis)'
+                    ]),
+                    'ip_address' => '127.0.0.1',
+                    'user_agent' => 'System Scheduler',
                 ]);
 
-                EnviarRecordatorioCita::dispatch($recordatorio);
-                $contador++;
+            } catch (\Exception $e) {
             }
         }
-
-        $this->info("✅ Proceso terminado. Se generaron {$contador} recordatorios.");
-        Log::info("SCHEDULER: Se generaron {$contador} recordatorios para el día {$manana}");
     }
 }

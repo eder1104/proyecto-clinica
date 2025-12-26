@@ -43,7 +43,6 @@
                 style="min-height: 30px; padding: 30px; border: 1px solid #ddd; border-radius: 8px; background: #fff;">
                 <fieldset style="width: 90%; margin: auto; border: 1px solid #ccc; padding: 20px;">
                     <legend style="font-weight:bold;">Importar pacientes:</legend>
-
                     <table border="0" style="width:100%; margin: 0 auto;">
                         <tbody>
                             <tr>
@@ -85,7 +84,7 @@
 
         <div id="seccion_registro" style="display: none;">
             <div style="min-height: 30px; padding: 30px; border: 1px solid #ddd; border-radius: 8px; background: #fff;">
-                <fieldset style="width: 90%; margin: auto; border: 1px solid #ccc; padding: 15px;">
+                <fieldset style="width: 95%; margin: auto; border: 1px solid #ccc; padding: 15px;">
                     <legend style="font-weight:bold;">Datos del paciente:</legend>
 
                     <form id="frm_paciente" name="frm_paciente" action="{{ route('legacy.pacientes.store') }}"
@@ -96,11 +95,12 @@
                                 <tr>
                                     <td align="left" style="width:25%;"><label>Tipo de identificación*</label></td>
                                     <td align="left" style="width:25%;"><label>Número de identificación*</label></td>
+                                    <td align="left" style="width:25%;"><label>Género*</label></td>
+                                    <td align="left" style="width:25%;"><label>Fecha de nacimiento*</label></td>
                                 </tr>
                                 <tr>
                                     <td align="left">
-                                        <select class="select" style="width:100%;" id="cmb_tipo_documento"
-                                            name="cmb_tipo_documento">
+                                        <select class="select" style="width:100%;" id="cmb_tipo_documento" name="cmb_tipo_documento">
                                             <option value="">-- Seleccione --</option>
                                             <option value="3">Registro civil</option>
                                             <option value="4">Tarjeta de identidad</option>
@@ -111,8 +111,17 @@
                                         </select>
                                     </td>
                                     <td align="left">
-                                        <input type="text" id="txt_numero_documento" name="txt_numero_documento"
-                                            maxlength="20" style="width:100%;">
+                                        <input type="text" id="txt_numero_documento" name="txt_numero_documento" maxlength="20" style="width:100%;">
+                                    </td>
+                                    <td align="left">
+                                        <select class="select" style="width:100%;" id="cmb_sexo" name="cmb_sexo">
+                                            <option value="">-- Seleccione --</option>
+                                            <option value="1">Femenino</option>
+                                            <option value="2">Masculino</option>
+                                        </select>
+                                    </td>
+                                    <td align="left">
+                                        <input type="date" name="txt_fecha_nacimiento" id="txt_fecha_nacimiento" style="width:100%;">
                                     </td>
                                 </tr>
 
@@ -123,34 +132,19 @@
                                     <td align="left"><label>Segundo apellido</label></td>
                                 </tr>
                                 <tr>
-                                    <td align="left"><input type="text" id="txt_nombre_1" name="txt_nombre_1"
-                                            maxlength="100" style="width:100%;"></td>
-                                    <td align="left"><input type="text" id="txt_nombre_2" name="txt_nombre_2"
-                                            maxlength="100" style="width:100%;"></td>
-                                    <td align="left"><input type="text" id="txt_apellido_1" name="txt_apellido_1"
-                                            maxlength="100" style="width:100%;"></td>
-                                    <td align="left"><input type="text" id="txt_apellido_2" name="txt_apellido_2"
-                                            maxlength="100" style="width:100%;"></td>
+                                    <td align="left"><input type="text" id="txt_nombre_1" name="txt_nombre_1" maxlength="100" style="width:100%;"></td>
+                                    <td align="left"><input type="text" id="txt_nombre_2" name="txt_nombre_2" maxlength="100" style="width:100%;"></td>
+                                    <td align="left"><input type="text" id="txt_apellido_1" name="txt_apellido_1" maxlength="100" style="width:100%;"></td>
+                                    <td align="left"><input type="text" id="txt_apellido_2" name="txt_apellido_2" maxlength="100" style="width:100%;"></td>
                                 </tr>
 
                                 <tr>
-                                    <td align="left"><label>Género*</label></td>
-                                    <td align="left"><label>Fecha de nacimiento*</label></td>
                                     <td align="left"><label>País de nacimiento*</label></td>
+                                    <td align="left"><label>País de residencia*</label></td>
                                     <td align="left"><label>Teléfono*</label></td>
+                                    <td align="left"><label>Email*</label></td>
                                 </tr>
                                 <tr>
-                                    <td align="left">
-                                        <select class="select" style="width:100%;" id="cmb_sexo" name="cmb_sexo">
-                                            <option value="">-- Seleccione --</option>
-                                            <option value="1">Femenino</option>
-                                            <option value="2">Masculino</option>
-                                        </select>
-                                    </td>
-                                    <td align="left">
-                                        <input type="date" class="input required" name="txt_fecha_nacimiento"
-                                            id="txt_fecha_nacimiento" style="width:100%;">
-                                    </td>
                                     <td align="left">
                                         <select class="select" style="width:100%;" id="cmb_pais_nac" name="cmb_pais_nac">
                                             <option value="">-- Seleccione --</option>
@@ -160,18 +154,68 @@
                                         </select>
                                     </td>
                                     <td align="left">
-                                        <input type="text" id="txt_telefono" name="txt_telefono" maxlength="20"
-                                            style="width:100%;">
+                                        <select class="select" style="width:100%;" id="cmb_pais_res" name="cmb_pais_res">
+                                            <option value="">-- Seleccione --</option>
+                                            <option value="1">Colombia</option>
+                                            <option value="189">Venezuela</option>
+                                            <option value="52">Ecuador</option>
+                                        </select>
+                                    </td>
+                                    <td align="left">
+                                        <input type="text" id="txt_telefono" name="txt_telefono" style="width:100%;">
+                                    </td>
+                                    <td align="left">
+                                        <input type="email" id="txt_email" name="txt_email" style="width:100%;">
                                     </td>
                                 </tr>
 
                                 <tr>
-                                    <td align="left" colspan="4"><label>Observaciones</label></td>
+                                    <td align="left" colspan="2"><label>Dirección de residencia*</label></td>
+                                    <td align="left"><label>Convenio*</label></td>
+                                    <td align="left"><label>Plan*</label></td>
                                 </tr>
                                 <tr>
-                                    <td align="left" colspan="4">
-                                        <textarea id="txt_observ_paciente" name="txt_observ_paciente"
-                                            style="width:100%; height:75px;"></textarea>
+                                    <td align="left" colspan="2">
+                                        <input type="text" id="txt_direccion" name="txt_direccion" style="width:100%;">
+                                    </td>
+                                    <td align="left">
+                                        <select class="select" style="width:100%;" id="cmb_convenio" name="cmb_convenio" onchange="getPlanes(this.value, 'registro');">
+                                            <option value="">-- Seleccione --</option>
+                                            @foreach($convenios as $convenio)
+                                                <option value="{{ $convenio->id }}">{{ $convenio->nombre }}</option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td align="left">
+                                        <div id="div_plan_registro">
+                                            <select class="select" style="width:100%;" id="cmb_plan" name="cmb_plan">
+                                                <option value="">-- Seleccione --</option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td align="left"><label>Rango*</label></td>
+                                    <td align="left"><label>Tipo de Usuario*</label></td>
+                                    <td align="left" colspan="2"><label>Observaciones</label></td>
+                                </tr>
+                                <tr>
+                                    <td align="left">
+                                        <select class="select" style="width:100%;" id="cmb_rango" name="cmb_rango">
+                                            <option value="0">Rango 0</option>
+                                            <option value="1">Rango 1</option>
+                                            <option value="2">Rango 2</option>
+                                        </select>
+                                    </td>
+                                    <td align="left">
+                                        <select class="select" style="width:100%;" id="cmb_tipoUsuario" name="cmb_tipoUsuario">
+                                            <option value="620">Cotizante</option>
+                                            <option value="621">Beneficiario</option>
+                                        </select>
+                                    </td>
+                                    <td align="left" colspan="2">
+                                        <textarea id="txt_observ_paciente" name="txt_observ_paciente" style="width:100%; height:40px;"></textarea>
                                     </td>
                                 </tr>
                             </tbody>

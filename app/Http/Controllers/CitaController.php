@@ -223,28 +223,6 @@ class CitaController extends Controller
         return redirect()->route('citas.index');
     }
 
-    public function finalizar(Cita $cita)
-    {
-        $fechaCita = Carbon::parse($cita->fecha)->format('Y-m-d');
-        $horaFin = Carbon::parse($fechaCita . ' ' . $cita->hora_fin);
-        $isBlocked = in_array($cita->estado, ['cancelada', 'finalizada', 'no_asistida', 'asistida']) || Carbon::now()->greaterThan($horaFin);
-
-        if ($isBlocked) {
-            return redirect()->route('citas.index')->with('error', 'No se puede finalizar esta cita. Está bloqueada.');
-        }
-
-        $cita->update(['estado' => 'finalizada']);
-
-        return redirect()->route('citas.preexamen', ['cita' => $cita->id])->with('success', 'Cita finalizada correctamente.');
-    }
-
-    public function preExamen(Cita $cita)
-    {
-        $paciente = $cita->paciente;
-        $consentimientos = ConsentimientoPaciente::where('cita_id', $cita->id)->get();
-        return view('citas.preexamen', compact('cita', 'paciente', 'consentimientos'));
-    }
-
     public function obtenerCitasPorFecha($fecha)
     {
         $citas = Cita::with('paciente')

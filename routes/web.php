@@ -111,11 +111,13 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
     });
 
     Route::middleware(['checkrole:admin,doctor,callcenter,admisiones'])->group(function () {
+        // [IMPORTANTE] Rutas específicas de pacientes ANTES del resource
         Route::controller(PacienteController::class)->group(function () {
             Route::get('/pacientes/buscar', 'buscar')->name('pacientes.buscar');
             Route::get('/pacientes/buscar/lista', 'Paciente_buscar')->name('pacientes.buscar.lista');
             Route::put('/pacientes/{id}/actualizar', 'actualizarApi')->name('pacientes.actualizarApi');
         });
+        
         Route::resource('pacientes', PacienteController::class);
 
         Route::controller(CitaController::class)->group(function () {

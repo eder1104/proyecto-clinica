@@ -45,12 +45,6 @@ class HistoriaClinicaController extends Controller
             ->with('error', 'No existe una plantilla asociada a este tipo de cita.');
     }
 
-    public function edit(HistoriaClinica $historia)
-    {
-        $historia->load('paciente');
-        return view('historias.edit', compact('historia'));
-    }
-
     public function store(Request $request, Cita $cita)
     {
         $request->validate([

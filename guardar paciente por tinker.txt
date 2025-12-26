@@ -1,0 +1,18 @@
+$paciente_id = \App\Models\Paciente::value('id') ?? 1;
+$doctor_id = \App\Models\doctores::value('id') ?? 1;
+$user_id = \App\Models\User::value('id') ?? 1;
+
+$cita = \App\Models\Cita::create([
+    'fecha' => \Carbon\Carbon::now()->format('Y-m-d'), 
+    'hora_inicio' => '08:00:00',
+    'hora_fin' => '08:30:00',
+    'estado' => 'programada',
+    'paciente_id' => $paciente_id,
+    'doctor_id' => $doctor_id,
+    'created_by' => $user_id,
+    'tipo_cita_id' => 1,
+    'motivo_consulta' => 'Prueba Recordatorio Vencido',
+]);
+
+echo "Cita creada ID: " . $cita->id . "\n";
+echo "Esta cita genera un recordatorio con fecha de AYER, por lo que el Scheduler debe tomarlo.\n";

@@ -8,7 +8,8 @@ use App\Models\Cita;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-use App\Http\Controllers\BitacoraAuditoriaController;
+use Illuminate\Validation\Rule;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class PacienteController extends Controller
 {
@@ -46,15 +47,11 @@ class PacienteController extends Controller
     public function update(PacientesRequest $request, Paciente $paciente)
     {
         $validated = $request->validated();
-
-        $datosAnteriores = $paciente->toArray();
-
         $validated['updated_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
 
         $paciente->fill($validated);
 
         if ($paciente->isDirty()) {
-
             Paciente::withoutEvents(function () use ($paciente) {
                 $paciente->save();
             });
@@ -89,12 +86,30 @@ class PacienteController extends Controller
 
     public function buscar(Request $request)
     {
-        if (!$request->ajax()) {
-            return response()->json(['error' => 'Solicitud inválida'], 400);
+        $tipo = trim($request->query('tipo'));
+        $numero = trim($request->query('numero'));
+
+        if (!$tipo || !$numero) {
+            return response()->json(['error' => 'Faltan parámetros de búsqueda'], 400);
         }
 
-        $paciente = Paciente::where('tipo_documento', $request->tipo)
-            ->where('documento', $request->numero)
+        $mapaTipos = [
+            'CC' => 5,
+            'TI' => 4,
+            'CE' => 6,
+            'RC' => 3,
+            'PA' => 7,
+            'PE' => 463
+        ];
+
+        $paciente = Paciente::where('documento', $numero)
+            ->where(function($q) use ($tipo, $mapaTipos) {
+                $q->where('tipo_documento', $tipo);
+                
+                if (isset($mapaTipos[$tipo])) {
+                    $q->orWhere('tipo_documento', $mapaTipos[$tipo]);
+                }
+            })
             ->first();
 
         if (!$paciente) {
@@ -111,12 +126,21 @@ class PacienteController extends Controller
 
             $validated = $request->validate([
                 'tipo_documento'   => 'required|string|max:20',
-                'documento'        => 'required|string|max:20|unique:pacientes,documento,' . $id,
+                'documento'        => [
+                    'required', 
+                    'string', 
+                    'max:20', 
+                    Rule::unique('pacientes', 'documento')->ignore($paciente->id)
+                ],
                 'nombres'          => 'required|string|max:255',
                 'apellidos'        => 'required|string|max:255',
                 'telefono'         => 'nullable|string|max:20',
                 'direccion'        => 'nullable|string|max:255',
-                'email'            => 'nullable|email|unique:pacientes,email,' . $id,
+                'email'            => [
+                    'nullable', 
+                    'email', 
+                    Rule::unique('pacientes', 'email')->ignore($paciente->id)
+                ],
                 'fecha_nacimiento' => 'nullable|date',
                 'sexo'             => 'nullable|in:M,F',
             ]);
@@ -128,11 +152,14 @@ class PacienteController extends Controller
                 'paciente' => $paciente
             ]);
 
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['mensaje' => 'El paciente con ID ' . $id . ' no existe.'], 404);
+
         } catch (ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
+            return response()->json(['errors' => $e->errors(), 'mensaje' => 'Error de validación'], 422);
 
         } catch (\Throwable $e) {
-            return response()->json(['mensaje' => 'Error interno al actualizar el paciente.'], 500);
+            return response()->json(['mensaje' => 'Error interno: ' . $e->getMessage()], 500);
         }
     }
 
