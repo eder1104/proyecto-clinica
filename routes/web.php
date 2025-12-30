@@ -23,6 +23,8 @@ use App\Jobs\EnviarRecordatorioCita;
 use App\Models\Cita;
 use App\Models\RecordatorioCita;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\DB;
+use app\html\middleware\CheckRole;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('welcome'));
@@ -110,7 +112,7 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
         });
     });
 
-    Route::middleware(['checkrole:admin,doctor,callcenter,admisiones'])->group(function () {
+    Route::middleware(['checkrole:doctor,callcenter,admisiones'])->group(function () {
         Route::controller(PacienteController::class)->group(function () {
             Route::get('/pacientes/buscar', 'buscar')->name('pacientes.buscar');
             Route::get('/pacientes/buscar/lista', 'Paciente_buscar')->name('pacientes.buscar.lista');
