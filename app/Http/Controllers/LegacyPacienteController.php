@@ -57,12 +57,13 @@ class LegacyPacienteController extends Controller
 
         $nombres = trim($request->input('txt_nombre_1') . ' ' . $request->input('txt_nombre_2'));
         $apellidos = trim($request->input('txt_apellido_1') . ' ' . $request->input('txt_apellido_2'));
-        
+
         $sexo = $request->input('cmb_sexo') == '1' ? 'F' : ($request->input('cmb_sexo') == '2' ? 'M' : null);
 
         $user = Auth::user();
         $creador = ($user->nombres ?? $user->name ?? 'Usuario') . ' ' . ($user->apellidos ?? '');
 
+        // Corrección: Nombres de inputs coinciden con la vista (txt_estado_residencia, etc.)
         $parametros = [
             $request->input('cmb_tipo_documento'),
             $request->input('txt_numero_documento'),
@@ -73,17 +74,22 @@ class LegacyPacienteController extends Controller
             $request->input('cmb_pais_nac'),
             $request->input('txt_telefono'),
             $request->input('cmb_pais_res'),
+            $request->input('txt_estado_residencia'),
+            $request->input('txt_municipio_residencia'),
+            $request->input('cmb_zona_residencia'),
             $request->input('txt_direccion'),
             $request->input('txt_email'),
             $request->input('cmb_convenio'),
             $request->input('cmb_plan'),
             $request->input('cmb_rango'),
             $request->input('cmb_tipoUsuario'),
+            $request->input('cmb_estado_aseguradora'),
+            $request->input('cmb_exento_cuota'),
             $request->input('txt_observ_paciente'),
             trim($creador)
         ];
 
-        DB::statement('CALL sp_crear_paciente_legacy(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', $parametros);
+        DB::statement('CALL sp_crear_paciente_legacy(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', $parametros);
 
         return redirect()->route('legacy.index')->with('success', 'Paciente guardado correctamente.');
     }
@@ -123,8 +129,10 @@ class LegacyPacienteController extends Controller
             $creador = ($user->nombres ?? $user->name ?? 'Sistema') . ' (Importación)';
             $insertados = 0;
 
-            $procesarFila = function($datos) use ($convenio, $planId, $creador, &$insertados) {
+            $procesarFila = function ($datos) use ($convenio, $planId, $creador, &$insertados) {
                 if (empty($datos[2])) return;
+
+                $exento = isset($datos[14]) && strtolower($datos[14]) == 'si' ? 1 : 0;
 
                 $parametros = [
                     $datos[1],
@@ -136,17 +144,22 @@ class LegacyPacienteController extends Controller
                     1,
                     $datos[7] ?? '0',
                     1,
+                    $datos[10] ?? null,
+                    $datos[11] ?? null,
+                    $datos[12] ?? null,
                     $datos[8] ?? 'Sin dirección',
                     $datos[9] ?? 'sin@correo.com',
                     $convenio->id,
                     $planId,
                     0,
                     620,
+                    $datos[13] ?? 'Activo',
+                    $exento,
                     'Importado masivamente via CSV',
                     $creador
                 ];
 
-                DB::statement('CALL sp_crear_paciente_legacy(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', $parametros);
+                DB::statement('CALL sp_crear_paciente_legacy(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', $parametros);
                 $insertados++;
             };
 
@@ -162,12 +175,11 @@ class LegacyPacienteController extends Controller
                 'res' => 1,
                 'mensaje' => "Importación exitosa. Total: {$insertados} pacientes registrados."
             ]);
-
         } catch (\Exception $e) {
             return response()->json(['res' => 0, 'error' => $e->getMessage()], 500);
         }
     }
-
+    
     public function agendar(Request $request)
     {
         $request->validate([

@@ -28,8 +28,6 @@ return new class extends Migration
 
             START TRANSACTION;
 
-            -- 1. Verificar si el médico está ocupado
-            -- Usamos 'fecha' y 'hora_inicio' según tu Modelo
             SELECT COUNT(*) INTO v_medico_ocupado
             FROM citas
             WHERE doctor_id = p_doctor_id 
@@ -42,7 +40,6 @@ return new class extends Migration
                 SET MESSAGE_TEXT = 'El médico no está disponible en ese horario';
             END IF;
 
-            -- 2. Verificar si el paciente ya tiene cita
             SELECT COUNT(*) INTO v_paciente_ocupado
             FROM citas
             WHERE paciente_id = p_paciente_id 
@@ -55,8 +52,6 @@ return new class extends Migration
                 SET MESSAGE_TEXT = 'El paciente ya tiene una cita en ese horario';
             END IF;
 
-            -- 3. Insertar la cita
-            -- Asignamos 'hora_inicio' y calculamos 'hora_fin' (ej: +30 min) o la dejamos igual si es null
             INSERT INTO citas (
                 paciente_id, 
                 doctor_id, 

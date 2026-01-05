@@ -21,7 +21,6 @@ return new class extends Migration
             $table->string('estado_afiliacion')->nullable();
             $table->boolean('exento_cuota')->default(false);
             $table->text('observaciones')->nullable();
-            $table->string('telefono2')->nullable();
         });
     }
 
@@ -42,8 +41,7 @@ return new class extends Migration
                 'tipo_usuario',
                 'estado_afiliacion',
                 'exento_cuota',
-                'observaciones',
-                'telefono2'
+                'observaciones'
             ]);
         });
     }

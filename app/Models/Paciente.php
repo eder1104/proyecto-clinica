@@ -36,7 +36,6 @@ class Paciente extends Model
         'estado_afiliacion',
         'exento_cuota',
         'observaciones',
-        'telefono2',
         'created_by',
         'updated_by',
         'cancelled_by',
