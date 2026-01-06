@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('bitacora_auditoria', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('usuario_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('usuario_id')->nullable()->constrained('users');
             $table->string('modulo');
             $table->string('accion');
             $table->unsignedBigInteger('registro_afectado')->nullable();

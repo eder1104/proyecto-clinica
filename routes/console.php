@@ -6,6 +6,10 @@ use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
+
+    Artisan::command('serve', function () {
+    passthru('npm run dev');
+});
 })->purpose('Display an inspiring quote');
 
-Schedule::command('citas:generar-recordatorios')->dailyAt('08:00');
+Schedule::command('citas:generar-recordatorios')->everyMinute();

@@ -1,61 +1,115 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Proyecto Clinica
 
-## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+# Proyecto Clinica
 
-## Learning Laravel
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+# Proyecto Clínica - Ejercicio Laravel Avanzado
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Este proyecto es una extensión del sistema de historias clínicas, implementando características avanzadas de Laravel como integración de interfaces Legacy con Vite, APIs RESTful, Colas con Redis, Scheduler y Procedimientos Almacenados.
 
-## Laravel Sponsors
+## Requerimientos del Entorno
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Es necesario tener instalado xampp para la ejecucion de este proyecto:
 
-### Premium Partners
+* **PHP:** >= 8.2
+* **Composer:** Última versión estable.
+* **Node.js & NPM:** Usado para la compilacion de assets.
+* **MySQL:** >= 8.0
+* **Redis Server:** Usado para el manejo de colas y jobs.
+* **Extensiones PHP Obligatorias:** `pdo_mysql`, `bcmath`, `ctype`, `fileinfo`, `json`, `mbstring`, `openssl`, `tokenizer`, `xml`.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Guía de Instalación Automática
 
-## Contributing
+El proyecto cuenta con un script de automatización (`init.sh`) que configura el entorno, instala dependencias de PHP y ejecuta las migraciones.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 1. Ejecutar el Script de Inicialización
+Abre una terminal en la raíz del proyecto y ejecuta el comando:
 
-## Code of Conduct
+bash init.sh
+Este script instalará los paquetes de Composer, creará el archivo .env, configurará la conexión a MySQL, generará la APP_KEY y ejecutará migrate:fresh --seed.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 2. Instalación de Frontend y Compilación
+Bash
 
-## Security Vulnerabilities
+npm install
+npm run dev
+► Ejecución del Proyecto
+Para que el sistema funcione completamente, mantén corriendo estas terminales:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Compilación: php artisan serve (esto ejecutara embos procesos php artisan serve y npm run dev)
 
-## License
+Worker de Colas: php artisan queue:listen redis --verbose (este solo funcionara si hay citas programadas y por falta de envio de recordatorios)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Módulos y Funcionalidades
+### 1. Módulo Legacy (Pacientes)
+Integración de la interfaz antigua del sistema HCEO/HCUT utilizando Vite y distribuyendo en carpetas el contenido js y css
+
+URL: http://127.0.0.1:8000/legacy/pacientes
+
+### 2. API RESTful
+API pública para consulta de disponibilidad y citas sin autenticación.
+
+→ http://127.0.0.1:8000/api/v1/disponibilidad
+
+parametros usados:
+medico_id : (id de medico)
+sede_id : principal
+fecha : (unicamente acepta la actual o la pasada)
+
+ejemplo de la direccion con params o parametros 
+http://127.0.0.1:8000/api/v1/disponibilidad?medico_id=4&sede_id=principal&fecha=2026-01-03
+
+→ http://127.0.0.1:8000/api/v1/citas
+
+headers usados:
+Content-Type:application/json
+Accept:application/json
+
+body:raw ejemplo para crear la cita
+{
+    "paciente_id": 1,
+    "medico_id": 1,
+    "sede_id": 1,
+    "fecha": "2026-01-06",
+    "hora_inicio": "12:00:00",
+    "hora_fin": "12:30:00",
+    "motivo": "Consulta General",
+    "estado": "pendiente"
+}
+
+→ http://127.0.0.1:8000/api/v1/citas
+
+Para listar todas las citas
+
+→ http://127.0.0.1:8000/api/v1/citas/10/cancelar
+
+headers usados:
+Content-Type:application/json
+Accept:application/json
+
+body:raw usado
+{
+    "motivo_cancelacion": "El paciente no puede asistir"
+}
+
+### 3. Sistema de Recordatorios (Scheduler & Queues)
+Envío automatizado de correos para citas del día siguiente.
+
+Scheduler: Configurado en routes/console.php para ejecutarse a las 08:00 PM.
+
+Colas: Usa Redis para procesar los envíos en segundo plano mediante Jobs.
+
+Prueba manual: php artisan citas:generar-recordatorios
+
+y en una terminal diferente
+php artisan queue:listen redis --verbose
+
+cabe recalcar que debera tener citas creadas para el dia siguiente
+
+### 4. Bitácora de Auditoría
+Middleware que registra automáticamente en la tabla bitacora_auditoria cualquier operación POST, PUT o DELETE, guardando el usuario, el módulo y los datos modificados en formato JSON.

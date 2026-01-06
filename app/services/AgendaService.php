@@ -30,27 +30,21 @@ class AgendaService
         $inicio = Carbon::parse($fecha . ' ' . $plantilla->hora_inicio);
         $fin = Carbon::parse($fecha . ' ' . $plantilla->hora_fin);
 
-        $period = new CarbonPeriod($inicio, $this->slotMinutes . ' minutes', $fin);
-
+        $period = CarbonPeriod::create($inicio, $this->slotMinutes . ' minutes', $fin);
         $slots = [];
-        $prev = null;
 
         foreach ($period as $slotStart) {
-
-            if ($prev && $slotStart->eq($prev)) {
-                continue;
-            }
-
             $slotEnd = $slotStart->copy()->addMinutes($this->slotMinutes);
-            if ($slotEnd->gt($fin)) break;
+
+            if ($slotEnd->gt($fin)) {
+                break;
+            }
 
             $slots[] = [
                 'start' => $slotStart->format('H:i:s'),
-                'end'   => $slotEnd->format('H:i:s'),
+                'end' => $slotEnd->format('H:i:s'),
                 'estado' => 'libre'
             ];
-
-            $prev = $slotStart->copy()->addMinutes($this->slotMinutes);
         }
 
         $bloqueos = BloqueoAgenda::where('doctor_id', $doctorId)
@@ -72,8 +66,8 @@ class AgendaService
 
         foreach ($citas as $c) {
             foreach ($slots as &$s) {
-                if ($this->timeRangesOverlap($s['start'], $s['end'], $c->hora_inicio, $c->hora_fin)) {
-                    if ($s['estado'] !== 'bloqueado') {
+                if ($s['estado'] !== 'bloqueado') {
+                    if ($this->timeRangesOverlap($s['start'], $s['end'], $c->hora_inicio, $c->hora_fin)) {
                         $s['estado'] = 'ocupado';
                     }
                 }
@@ -82,6 +76,16 @@ class AgendaService
         }
 
         return $slots;
+    }
+
+    protected function timeRangesOverlap($startA, $endA, $startB, $endB): bool
+    {
+        $aS = Carbon::parse($startA);
+        $aE = Carbon::parse($endA);
+        $bS = Carbon::parse($startB);
+        $bE = Carbon::parse($endB);
+
+        return $aS->lt($bE) && $bS->lt($aE);
     }
 
     public function estadoDelDia(int $doctorId, string $fecha): string
@@ -93,23 +97,14 @@ class AgendaService
         }
 
         $total = count($slots);
-        $ocupados = collect($slots)->filter(fn($s) => 
+        $ocupados = collect($slots)->filter(
+            fn($s) =>
             $s['estado'] === 'ocupado' || $s['estado'] === 'bloqueado'
         )->count();
 
         if ($ocupados === 0) return 'disponible';
         if ($ocupados >= $total) return 'bloqueado';
         return 'parcial';
-    }
-
-    protected function timeRangesOverlap($aStart, $aEnd, $bStart, $bEnd): bool
-    {
-        $aS = Carbon::createFromFormat('H:i:s', $aStart);
-        $aE = Carbon::createFromFormat('H:i:s', $aEnd);
-        $bS = Carbon::createFromFormat('H:i:s', $bStart);
-        $bE = Carbon::createFromFormat('H:i:s', $bEnd);
-
-        return $aS < $bE && $bS < $aE;
     }
 
     public function resumenDelDia(int $doctorId, string $fecha): array
