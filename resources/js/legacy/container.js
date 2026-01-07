@@ -1,16 +1,34 @@
-﻿window.mostrarSeccion = function(seccion, limpiar = false) {
+﻿window.pacientesEncontrados = [];
+
+window.mostrarSeccion = function(seccion, limpiar = false) {
     const divImportar = document.getElementById('seccion_importar');
     const divRegistro = document.getElementById('seccion_registro');
+    const divResultados = document.querySelector('.contenedor_principal');
+    
     divImportar.style.display = (seccion === 'importar') ? 'block' : 'none';
     divRegistro.style.display = (seccion === 'registro') ? 'block' : 'none';
 
-    if (seccion === 'registro' && limpiar) {
-        limpiarFormulario();
+    if (seccion === 'registro') {
+        if (limpiar) {
+            limpiarFormulario();
+            divResultados.innerHTML = '';
+        }
     }
 }
 
 window.limpiarFormulario = function() {
-    document.getElementById('frm_paciente').reset();
+    const form = document.getElementById('frm_paciente');
+    form.reset();
+    
+    const urlStore = document.getElementById('url_store').value;
+    form.action = urlStore;
+    
+    const methodInput = document.querySelector('input[name="_method"]');
+    if (methodInput) {
+        methodInput.remove();
+    }
+
+    document.getElementById('btn_guardar').value = "Registrar";
     document.getElementById('txt_paciente_hc').value = '';
     document.getElementById('cmb_plan').innerHTML = '<option value="">--Seleccione--</option>';
 }
@@ -38,26 +56,81 @@ window.getPlanes = function(convenioId, tipo) {
             });
             selectPlan.innerHTML = options;
         })
-        .catch(error => console.error('Error cargando planes:', error));
+        .catch(error => console.error('Error:', error));
 }
 
 window.buscar_paciente = function() {
     let termino = document.getElementById('txt_paciente_hc').value.trim();
+    const contenedor = document.querySelector('.contenedor_principal');
+    const urlBuscar = document.getElementById('url_buscar').value;
 
     if (termino.length < 3) {
+        alert("Ingrese al menos 3 caracteres");
         return;
     }
 
-    fetch(`/legacy/buscar?search=${termino}`)
+    contenedor.innerHTML = '<p style="padding:10px;">Buscando coincidencias...</p>';
+
+    fetch(`${urlBuscar}?search=${termino}`)
         .then(response => response.json())
         .then(data => {
+            window.pacientesEncontrados = data;
+
             if (data.length > 0) {
-                cargarDatosPaciente(data[0]);
+                document.getElementById('seccion_registro').style.display = 'none';
+
+                let html = `
+                    <div style="margin: 20px 0;">
+                        <h3>Resultados de la búsqueda:</h3>
+                        <table border="1" style="width:100%; border-collapse: collapse; background:white; font-size: 12px;">
+                            <thead style="background: #e0e0e0; font-weight:bold;">
+                                <tr>
+                                    <th style="padding:8px;">Documento</th>
+                                    <th style="padding:8px;">Nombre Completo</th>
+                                    <th style="padding:8px;">Teléfono</th>
+                                    <th style="padding:8px;">Email</th>
+                                    <th style="padding:8px;">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                data.forEach((p, index) => {
+                    html += `
+                        <tr>
+                            <td style="padding:8px; text-align:center;">${p.documento}</td>
+                            <td style="padding:8px;">${p.nombres} ${p.apellidos}</td>
+                            <td style="padding:8px; text-align:center;">${p.telefono || '-'}</td>
+                            <td style="padding:8px;">${p.email || '-'}</td>
+                            <td style="padding:8px; text-align:center;">
+                                <input type="button" class="btnPrincipal" 
+                                       value="Seleccionar" 
+                                       onclick="seleccionarPaciente(${index})"
+                                       style="cursor:pointer; padding: 5px 10px;">
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table></div>';
+                contenedor.innerHTML = html;
+
+            } else {
+                contenedor.innerHTML = '<p style="padding:10px; color:red; font-weight:bold;">No se encontraron pacientes con ese criterio.</p>';
             }
         })
         .catch(error => {
             console.error('Error:', error);
+            contenedor.innerHTML = '<p style="color:red;">Error en la búsqueda</p>';
         });
+}
+
+window.seleccionarPaciente = function(index) {
+    const paciente = window.pacientesEncontrados[index];
+    if (paciente) {
+        cargarDatosPaciente(paciente);
+        document.querySelector('.contenedor_principal').innerHTML = '';
+    }
 }
 
 window.validarImportarPacientes = function() {
@@ -103,6 +176,22 @@ window.validarImportarPacientes = function() {
 window.cargarDatosPaciente = function(paciente) {
     mostrarSeccion('registro', false);
 
+    document.getElementById('btn_guardar').value = "Actualizar Datos";
+
+    const form = document.getElementById('frm_paciente');
+    form.action = `/legacy/pacientes/${paciente.id}`;
+
+    let methodInput = document.querySelector('input[name="_method"]');
+    if (!methodInput) {
+        methodInput = document.createElement('input');
+        methodInput.type = 'hidden';
+        methodInput.name = '_method';
+        methodInput.value = 'PUT';
+        form.appendChild(methodInput);
+    } else {
+        methodInput.value = 'PUT';
+    }
+
     document.getElementById('cmb_tipo_documento').value = paciente.tipo_documento || "";
     document.getElementById('txt_numero_documento').value = paciente.documento || "";
 
@@ -114,7 +203,7 @@ window.cargarDatosPaciente = function(paciente) {
     document.getElementById('txt_apellido_1').value = apellidosArr[0] || "";
     document.getElementById('txt_apellido_2').value = apellidosArr.slice(1).join(" ") || "";
 
-    document.getElementById('txt_fecha_nacimiento').value = paciente.fecha_nacimiento || "";
+    document.getElementById('txt_fecha_nacimiento').value = paciente.fecha_nacimiento ? paciente.fecha_nacimiento.split(' ')[0] : "";
 
     let sexoVal = "";
     if (paciente.sexo === 'F') sexoVal = "1";
@@ -127,6 +216,9 @@ window.cargarDatosPaciente = function(paciente) {
 
     document.getElementById('cmb_pais_nac').value = paciente.pais_nacimiento_cod || "";
     document.getElementById('cmb_pais_res').value = paciente.pais_residencia_cod || "1";
+    document.getElementById('txt_estado_residencia').value = paciente.estado_residencia || "";
+    document.getElementById('txt_municipio_residencia').value = paciente.municipio_residencia || "";
+    document.getElementById('cmb_zona_residencia').value = paciente.zona_residencia || "";
 
     if (paciente.convenio_id) {
         document.getElementById('cmb_convenio').value = paciente.convenio_id;
@@ -140,5 +232,8 @@ window.cargarDatosPaciente = function(paciente) {
 
     document.getElementById('cmb_tipoUsuario').value = paciente.tipo_usuario || "";
     document.getElementById('cmb_rango').value = paciente.rango || "";
+    document.getElementById('cmb_estado_aseguradora').value = paciente.estado_aseguradora || "";
+    document.getElementById('cmb_exento_cuota').value = (paciente.exento_cuota == 1 || paciente.exento_cuota == 'Si') ? "1" : "2";
+
     document.getElementById('txt_observ_paciente').value = paciente.observaciones || "";
 }

@@ -29,7 +29,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => view('welcome'));
 
-Route::post('/legacy/citas/registrar', [LegacyPacienteController::class, 'storeCita'])->name('legacy.citas.store');
 
 Route::middleware(['auth', Bitacora::class])->group(function () {
 
@@ -42,42 +41,6 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
     });
 
     Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
-
-    Route::controller(LegacyPacienteController::class)->group(function () {
-        Route::get('/convenios/{id}/planes', 'getPlanes');
-        Route::get('/legacy/pacientes', 'index')->name('legacy.index');
-        Route::get('/legacy/buscar', 'buscar')->name('legacy.buscar');
-        Route::post('/legacy/agendar', 'agendar')->name('legacy.agendar');
-        Route::post('/legacy/pacientes/store', 'store')->name('legacy.pacientes.store');
-        Route::post('/legacy/pacientes/importar', 'importarCSV')->name('legacy.pacientes.importar');
-    });
-
-    Route::get('/test-redis', function () {
-        try {
-            Redis::set('prueba_redis', '¡Conexión exitosa con Redis!');
-            return response()->json([
-                'status' => 'OK',
-                'mensaje' => Redis::get('prueba_redis'),
-                'driver' => config('database.redis.client')
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['status' => 'ERROR', 'mensaje' => $e->getMessage()], 500);
-        }
-    });
-
-    Route::get('/test-job/{cita_id}', function ($cita_id) {
-        $cita = Cita::find($cita_id);
-        if (!$cita) return "Cita no encontrada.";
-
-        $recordatorio = RecordatorioCita::create([
-            'cita_id' => $cita->id,
-            'fecha_programada' => now(),
-            'estado' => 'pendiente'
-        ]);
-
-        EnviarRecordatorioCita::dispatch($recordatorio);
-        return "Éxito: Recordatorio ID " . $recordatorio->id . " creado.";
-    });
 
     Route::middleware(['checkrole:admin'])->group(function () {
         Route::controller(UserController::class)->group(function () {
@@ -112,7 +75,21 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
         });
     });
 
+    Route::middleware(['checkrole:doctor,admisiones'])->group(function () {
+        Route::controller(LegacyPacienteController::class)->group(function () {
+            Route::get('/convenios/{id}/planes', 'getPlanes');
+            Route::get('/legacy/pacientes', 'index')->name('legacy.index');
+            Route::post('/legacy/citas/registrar', [LegacyPacienteController::class, 'storeCita'])->name('legacy.citas.store');
+            Route::get('/legacy/buscar', 'buscar')->name('legacy.buscar');
+            Route::post('/legacy/agendar', 'agendar')->name('legacy.agendar');
+            Route::post('/legacy/pacientes/store', 'store')->name('legacy.pacientes.store');
+            Route::put('/legacy/pacientes/{id}', 'update')->name('legacy.pacientes.update');
+            Route::post('/legacy/pacientes/importar', 'importarCSV')->name('legacy.pacientes.importar');
+        });
+    });
+
     Route::middleware(['checkrole:doctor,callcenter,admisiones'])->group(function () {
+        
         Route::controller(PacienteController::class)->group(function () {
             Route::get('/pacientes/buscar', 'buscar')->name('pacientes.buscar');
             Route::get('/pacientes/buscar/lista', 'Paciente_buscar')->name('pacientes.buscar.lista');

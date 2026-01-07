@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Services\AgendaService;
+use App\Models\RecordatorioCita;
 use App\Http\Controllers\CalendarioController;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Http\Controllers\BitacoraAuditoriaController;
@@ -85,7 +86,11 @@ class CitaController extends Controller
     public function store(CitaRequest $request)
     {
         $validated = $request->validated();
-        $validated['created_by'] = Auth::user()->nombres . ' ' . Auth::user()->apellidos;
+        $user = Auth::user();
+
+        $medico = \App\Models\Doctores::where('user_id', $user->id)->first();
+
+        $validated['created_by'] = $user->nombres . ' ' . $user->apellidos;
         $validated['estado'] = 'programada';
 
         $cita = Cita::create([
@@ -93,11 +98,20 @@ class CitaController extends Controller
             'hora_inicio'     => $validated['hora_inicio'],
             'hora_fin'        => $validated['hora_fin'] ?? $request->input('hora_fin'),
             'paciente_id'     => $validated['paciente_id'],
+            'doctor_id'       => $medico ? $medico->id : null,
             'tipo_cita_id'    => $validated['tipo_cita_id'],
             'tipo_examen'     => $request->input('tipo_examen'),
             'motivo_consulta' => $request->input('motivo_consulta'),
             'estado'          => $validated['estado'],
             'created_by'      => $validated['created_by'],
+        ]);
+
+        $fechaLimpia = Carbon::parse($cita->fecha)->toDateString();
+
+        RecordatorioCita::create([
+            'cita_id' => $cita->id,
+            'fecha_programada' => Carbon::parse($fechaLimpia . ' ' . $cita->hora_inicio)->subDay(),
+            'estado' => 'pendiente',
         ]);
 
         return redirect()->route('citas.index')->with('success', 'Cita creada correctamente.');

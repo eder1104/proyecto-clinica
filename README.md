@@ -1,13 +1,3 @@
-
-# Proyecto Clinica
-
-
-
-
-# Proyecto Clinica
-
-
-
 # Proyecto Clínica - Ejercicio Laravel Avanzado
 
 Este proyecto es una extensión del sistema de historias clínicas, implementando características avanzadas de Laravel como integración de interfaces Legacy con Vite, APIs RESTful, Colas con Redis, Scheduler y Procedimientos Almacenados.

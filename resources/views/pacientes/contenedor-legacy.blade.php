@@ -1,6 +1,7 @@
 @extends('layouts.legacy-hc')
 
-@section('content') <div class="container">
+@section('content') 
+<div class="container">
 
     <div class="title-bar">
         <div class="wrapper">
@@ -15,14 +16,13 @@
     <div class="principal">
         <h1 class="title">Buscar paciente</h1>
 
-        <div class="contenedor_principal"></div>
         <div id="guardar_historia_clinica" style="width:100%;">
             <div class="contenedor_error" id="contenedor_error"></div>
             <div class="contenedor_exito" id="contenedor_exito"></div>
         </div>
 
         <div class="formulario" id="principal_historia_clinica"
-            style="width: 100%; display: block; margin-bottom: 30px;">
+            style="width: 100%; display: block; margin-bottom: 10px;">
             <table border="0" style="width:90%; margin: 0 auto;">
                 <tbody>
                     <tr>
@@ -30,7 +30,8 @@
                             <input type="text" id="txt_paciente_hc"
                                 placeholder="Buscar por nombre, documento o teléfono del paciente"
                                 style="width:100%; float:right; padding:8px; border:1px solid #ccc; border-radius:4px;"
-                                onblur="trim_cadena(this);">
+                                onblur="trim_cadena(this);"
+                                onkeypress="if(event.keyCode == 13) buscar_paciente();">
                         </td>
                         <td style="text-align:center;">
                             <input type="button" class="btnPrincipal" value="Buscar" onclick="buscar_paciente();">
@@ -47,6 +48,8 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="contenedor_principal" style="margin-top: 20px;"></div>
     </div>
 
     <div id="seccion_importar" style="display: none;">
@@ -307,5 +310,10 @@
 </div>
 
 <input type="hidden" id="url_importar" value="{{ route('legacy.pacientes.importar') }}">
+<input type="hidden" id="url_buscar" value="{{ route('legacy.buscar') }}">
+<input type="hidden" id="url_store" value="{{ route('legacy.pacientes.store') }}">
 <input type="hidden" id="token_csrf" value="{{ csrf_token() }}">
+
+@vite(['resources/js/legacy/container.js'])
+
 @endsection

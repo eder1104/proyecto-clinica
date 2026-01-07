@@ -63,7 +63,6 @@ class LegacyPacienteController extends Controller
         $user = Auth::user();
         $creador = ($user->nombres ?? $user->name ?? 'Usuario') . ' ' . ($user->apellidos ?? '');
 
-        // Corrección: Nombres de inputs coinciden con la vista (txt_estado_residencia, etc.)
         $parametros = [
             $request->input('cmb_tipo_documento'),
             $request->input('txt_numero_documento'),
@@ -92,6 +91,49 @@ class LegacyPacienteController extends Controller
         DB::statement('CALL sp_crear_paciente_legacy(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', $parametros);
 
         return redirect()->route('legacy.index')->with('success', 'Paciente guardado correctamente.');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'txt_numero_documento' => 'required|unique:pacientes,documento,' . $id,
+            'txt_nombre_1' => 'required',
+            'txt_apellido_1' => 'required',
+            'cmb_tipo_documento' => 'required',
+        ]);
+
+        $nombres = trim($request->input('txt_nombre_1') . ' ' . $request->input('txt_nombre_2'));
+        $apellidos = trim($request->input('txt_apellido_1') . ' ' . $request->input('txt_apellido_2'));
+
+        $sexo = $request->input('cmb_sexo') == '1' ? 'F' : ($request->input('cmb_sexo') == '2' ? 'M' : null);
+
+        $paciente = Paciente::findOrFail($id);
+
+        $paciente->update([
+            'tipo_documento' => $request->input('cmb_tipo_documento'),
+            'documento' => $request->input('txt_numero_documento'),
+            'nombres' => $nombres,
+            'apellidos' => $apellidos,
+            'fecha_nacimiento' => $request->input('txt_fecha_nacimiento'),
+            'sexo' => $sexo,
+            'pais_nacimiento_cod' => $request->input('cmb_pais_nac'),
+            'telefono' => $request->input('txt_telefono'),
+            'pais_residencia_cod' => $request->input('cmb_pais_res'),
+            'estado_residencia' => $request->input('txt_estado_residencia'),
+            'municipio_residencia' => $request->input('txt_municipio_residencia'),
+            'zona_residencia' => $request->input('cmb_zona_residencia'),
+            'direccion' => $request->input('txt_direccion'),
+            'email' => $request->input('txt_email'),
+            'convenio_id' => $request->input('cmb_convenio'),
+            'plan_id' => $request->input('cmb_plan'),
+            'rango' => $request->input('cmb_rango'),
+            'tipo_usuario' => $request->input('cmb_tipoUsuario'),
+            'estado_aseguradora' => $request->input('cmb_estado_aseguradora'),
+            'exento_cuota' => $request->input('cmb_exento_cuota'),
+            'observaciones' => $request->input('txt_observ_paciente'),
+        ]);
+
+        return redirect()->route('legacy.index')->with('success', 'Paciente actualizado correctamente.');
     }
 
     public function importarCSV(Request $request)
