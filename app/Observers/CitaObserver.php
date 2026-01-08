@@ -6,7 +6,7 @@ use App\Models\Cita;
 use App\Models\RecordatorioCita;
 use App\Models\BitacoraAuditoria;
 use App\Models\User;
-use App\Jobs\NotificarDoctorCita;
+use App\Jobs\EnviarRecordatorioCita;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -16,8 +16,6 @@ class CitaObserver
     {
         if ($cita->estado === 'programada') {
             
-            NotificarDoctorCita::dispatch($cita);
-
             $fechaLimpia = $cita->fecha instanceof Carbon 
                 ? $cita->fecha->format('Y-m-d') 
                 : substr((string)$cita->fecha, 0, 10);
@@ -31,6 +29,8 @@ class CitaObserver
                 'fecha_programada' => $fechaProgramada,
             ]);
 
+            EnviarRecordatorioCita::dispatch($recordatorio)->afterCommit();
+
             $usuarioId = Auth::id() ?? User::value('id') ?? 1;
 
             BitacoraAuditoria::create([
@@ -40,11 +40,10 @@ class CitaObserver
                 'detalles' => json_encode([
                     'cita_id' => $cita->id,
                     'recordatorio_id' => $recordatorio->id,
-                    'aviso_doctor' => 'Enviado a cola',
                     'fecha_programada' => $fechaProgramada->toDateTimeString()
                 ]),
                 'ip_address' => request()->ip() ?? '127.0.0.1',
-                'user_agent' => request()->header('User-Agent') ?? 'CLI',
+                'user_agent' => request()->header('User-Agent') ?? 'System',
             ]);
         }
     }

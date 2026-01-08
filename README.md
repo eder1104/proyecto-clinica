@@ -24,10 +24,9 @@ bash init.sh
 Este script instalará los paquetes de Composer, creará el archivo .env, configurará la conexión a MySQL, generará la APP_KEY y ejecutará migrate:fresh --seed.
 
 ### 2. Instalación de Frontend y Compilación
-Bash
 
 npm install
-npm run dev
+
 ► Ejecución del Proyecto
 Para que el sistema funcione completamente, mantén corriendo estas terminales:
 
@@ -97,9 +96,10 @@ Colas: Usa Redis para procesar los envíos en segundo plano mediante Jobs.
 Prueba manual: php artisan citas:generar-recordatorios
 
 y en una terminal diferente
-php artisan queue:listen redis --verbose
+php artisan queue:work
 
-cabe recalcar que debera tener citas creadas para el dia siguiente
+cabe recalcar que debera tener citas creadas para el dia siguiente y tener encendido el redis server para ejecutar los envios.
+Para visualizar los envios se pueden revisar desde redis insight
 
 ### 4. Bitácora de Auditoría
 Middleware que registra automáticamente en la tabla bitacora_auditoria cualquier operación POST, PUT o DELETE, guardando el usuario, el módulo y los datos modificados en formato JSON.

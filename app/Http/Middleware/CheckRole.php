@@ -39,7 +39,8 @@ class CheckRole
                 !$request->is('calendario*') &&
                 !$request->is('consentimientos*') &&
                 !$request->is('catalogos*') &&
-                !$request->is('legacy*')
+                !$request->is('legacy*') &&
+                !$request->is('convenios*')
             ) {
                 return redirect()->route('citas.index')
                     ->with('error', 'Usted no está autorizado para ingresar a esta ruta');

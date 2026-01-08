@@ -1,4 +1,5 @@
 CONVENIO;TIPO_DOC;DOCUMENTO;NOMBRES;APELLIDOS;SEXO;FECHA_NAC;TELEFONO;DIRECCION;EMAIL;DEPTO_RESIDENCIA;MUNICIPIO_RESIDENCIA;ZONA;ESTADO_AFILIACION;EXENTO_CUOTA
-Nueva eps;5;1098765432;Pedro;Perez;M;1995-05-15;3101234567;Calle 10 #20-30;pedro@email.com;Santander;Bucaramanga;Urbana;Activo;No
-;3;1234567890;Juanita;Alvarez;F;2010-08-22;3209876543;Carrera 5 #15-10;juanita@email.com;Santander;Bucaramanga;Urbana;Activo;No
-;5;1122334455;Mariana;Gomez;F;1988-12-11;3155554433;Avenida Central 45;mariana@email.com;Santander;Bucaramanga;Urbana;Activo;No
+Nueva eps;5;1098765432;Pedro;Perez;M;15/05/1995;3101234567;Calle 10 #20-30;pedro@email.com;Santander;Bucaramanga;Urbana;Activo;No
+;3;1234567890;Juanita;Alvarez;F;22/08/2010;3209876543;Carrera 5 #15-10;juanita@email.com;Santander;Bucaramanga;Urbana;Activo;No
+;5;1122334455;Mariana;Gomez;F;11/12/1988;3155554433;Avenida Central 45;mariana@email.com;Santander;Bucaramanga;Urbana;Activo;No
+;3;1122334635;Mariana;Gomez;F;11/12/1988;3155554433;Avenida Central 45;mariana1231@email.com;Santander;Bucaramanga;Urbana;Activo;No

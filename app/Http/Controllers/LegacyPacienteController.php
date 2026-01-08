@@ -90,7 +90,7 @@ class LegacyPacienteController extends Controller
 
         DB::statement('CALL sp_crear_paciente_legacy(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', $parametros);
 
-        return redirect()->route('legacy.index')->with('success', 'Paciente guardado correctamente.');
+        return redirect()->route('pacientes.index')->with('success', 'Paciente guardado correctamente.');
     }
 
     public function update(Request $request, $id)
@@ -133,7 +133,7 @@ class LegacyPacienteController extends Controller
             'observaciones' => $request->input('txt_observ_paciente'),
         ]);
 
-        return redirect()->route('legacy.index')->with('success', 'Paciente actualizado correctamente.');
+        return redirect()->route('pacientes.index')->with('success', 'Paciente actualizado correctamente.');
     }
 
     public function importarCSV(Request $request)
@@ -141,38 +141,25 @@ class LegacyPacienteController extends Controller
         try {
             $request->validate([
                 'fileISS' => 'required|file',
+                'cmb_convenio' => 'required',
                 'cmb_plan' => 'required'
             ]);
+
+            $convenioId = $request->input('cmb_convenio');
+            $planId = $request->input('cmb_plan');
 
             $file = $request->file('fileISS');
             $handle = fopen($file->getRealPath(), 'r');
 
             fgetcsv($handle, 1000, ";");
 
-            $primeraFilaData = fgetcsv($handle, 1000, ";");
-            $nombreConvenio = isset($primeraFilaData[0]) ? trim($primeraFilaData[0]) : null;
-
-            if (!$nombreConvenio) {
-                fclose($handle);
-                return response()->json(['res' => 0, 'error' => 'No se encontró el nombre del convenio'], 422);
-            }
-
-            $convenio = DB::table('convenios')
-                ->where('nombre', 'LIKE', $nombreConvenio)
-                ->first();
-
-            if (!$convenio) {
-                fclose($handle);
-                return response()->json(['res' => 0, 'error' => 'El convenio no existe'], 422);
-            }
-
-            $planId = $request->input('cmb_plan');
             $user = Auth::user();
             $creador = ($user->nombres ?? $user->name ?? 'Sistema') . ' (Importación)';
             $insertados = 0;
 
-            $procesarFila = function ($datos) use ($convenio, $planId, $creador, &$insertados) {
-                if (empty($datos[2])) return;
+            while (($datos = fgetcsv($handle, 1000, ";")) !== FALSE) {
+
+                if (empty($datos[2])) continue;
 
                 $exento = isset($datos[14]) && strtolower($datos[14]) == 'si' ? 1 : 0;
 
@@ -191,7 +178,7 @@ class LegacyPacienteController extends Controller
                     $datos[12] ?? null,
                     $datos[8] ?? 'Sin dirección',
                     $datos[9] ?? 'sin@correo.com',
-                    $convenio->id,
+                    $convenioId,
                     $planId,
                     0,
                     620,
@@ -201,14 +188,12 @@ class LegacyPacienteController extends Controller
                     $creador
                 ];
 
-                DB::statement('CALL sp_crear_paciente_legacy(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', $parametros);
-                $insertados++;
-            };
-
-            $procesarFila($primeraFilaData);
-
-            while (($datos = fgetcsv($handle, 1000, ";")) !== FALSE) {
-                $procesarFila($datos);
+                try {
+                    DB::statement('CALL sp_crear_paciente_legacy(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', $parametros);
+                    $insertados++;
+                } catch (\Exception $e) {
+                    continue;
+                }
             }
 
             fclose($handle);
@@ -221,7 +206,7 @@ class LegacyPacienteController extends Controller
             return response()->json(['res' => 0, 'error' => $e->getMessage()], 500);
         }
     }
-    
+
     public function agendar(Request $request)
     {
         $request->validate([

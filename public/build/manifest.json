@@ -9,7 +9,7 @@
     ]
   },
   "resources/css/legacy/container.css": {
-    "file": "assets/container-DJmqV6Wy.css",
+    "file": "assets/container-BAelOjWS.css",
     "src": "resources/css/legacy/container.css",
     "isEntry": true,
     "name": "container",
@@ -24,7 +24,7 @@
     "isEntry": true
   },
   "resources/js/legacy/container.js": {
-    "file": "assets/container-B6KfqI3w.js",
+    "file": "assets/container-BBj9w5-J.js",
     "name": "container",
     "src": "resources/js/legacy/container.js",
     "isEntry": true

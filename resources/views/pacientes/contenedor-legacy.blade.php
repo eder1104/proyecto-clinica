@@ -1,6 +1,7 @@
 @extends('layouts.legacy-hc')
 
-@section('content') 
+@section('content')
+
 <div class="container">
 
     <div class="title-bar">
@@ -306,12 +307,22 @@
                 </form>
             </fieldset>
         </div>
+        
     </div>
+    
 </div>
-
+<div class="footerpadre">
+    <div class="footer clearfix">
+                <div class="wrapper">
+                    <p class="left" style="text-align: left;">VG &amp; AT - Unión Temporal</p>
+                    <p class="right">Historia Clínica Electrónica Oftalmológica - Todos los derechos reservados - 2026</p>
+                </div>
+            </div>
+</div>
 <input type="hidden" id="url_importar" value="{{ route('legacy.pacientes.importar') }}">
 <input type="hidden" id="url_buscar" value="{{ route('legacy.buscar') }}">
 <input type="hidden" id="url_store" value="{{ route('legacy.pacientes.store') }}">
+<input type="hidden" id="url_obtener_planes" value="{{ url('/convenios') }}">
 <input type="hidden" id="token_csrf" value="{{ csrf_token() }}">
 
 @vite(['resources/js/legacy/container.js'])

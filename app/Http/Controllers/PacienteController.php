@@ -74,7 +74,7 @@ class PacienteController extends Controller
         return redirect()->route('pacientes.index')->with('success', 'Paciente eliminado correctamente.');
     }
 
-    public function show($id)
+/*     public function show($id)
     {
         $paciente = Paciente::findOrFail($id);
         $historias = Cita::where('paciente_id', $id)
@@ -83,7 +83,7 @@ class PacienteController extends Controller
 
         return view('pacientes.show', compact('paciente', 'historias'));
     }
-
+ */
     public function buscar(Request $request)
     {
         $tipo = trim($request->query('tipo'));

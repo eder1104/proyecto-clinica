@@ -1,10 +1,10 @@
 ﻿window.pacientesEncontrados = [];
 
-window.mostrarSeccion = function(seccion, limpiar = false) {
+window.mostrarSeccion = function (seccion, limpiar = false) {
     const divImportar = document.getElementById('seccion_importar');
     const divRegistro = document.getElementById('seccion_registro');
     const divResultados = document.querySelector('.contenedor_principal');
-    
+
     divImportar.style.display = (seccion === 'importar') ? 'block' : 'none';
     divRegistro.style.display = (seccion === 'registro') ? 'block' : 'none';
 
@@ -16,13 +16,13 @@ window.mostrarSeccion = function(seccion, limpiar = false) {
     }
 }
 
-window.limpiarFormulario = function() {
+window.limpiarFormulario = function () {
     const form = document.getElementById('frm_paciente');
     form.reset();
-    
+
     const urlStore = document.getElementById('url_store').value;
     form.action = urlStore;
-    
+
     const methodInput = document.querySelector('input[name="_method"]');
     if (methodInput) {
         methodInput.remove();
@@ -33,21 +33,22 @@ window.limpiarFormulario = function() {
     document.getElementById('cmb_plan').innerHTML = '<option value="">--Seleccione--</option>';
 }
 
-window.trim_cadena = function(input) {
+window.trim_cadena = function (input) {
     if (input && input.value) {
         input.value = input.value.trim();
     }
 }
 
-window.getPlanes = function(convenioId, tipo) {
+window.getPlanes = function (convenioId, tipo) {
     const selectPlan = (tipo === 'import') ? document.getElementById('cmb_plan_import') : document.getElementById('cmb_plan');
+    const urlBase = document.getElementById('url_obtener_planes').value;
 
     if (!convenioId) {
         selectPlan.innerHTML = '<option value="">--Seleccione--</option>';
         return;
     }
 
-    fetch(`/convenios/${convenioId}/planes`)
+    fetch(`${urlBase}/${convenioId}/planes`)
         .then(response => response.json())
         .then(data => {
             let options = '<option value="">-- Seleccione el plan --</option>';
@@ -59,15 +60,10 @@ window.getPlanes = function(convenioId, tipo) {
         .catch(error => console.error('Error:', error));
 }
 
-window.buscar_paciente = function() {
+window.buscar_paciente = function () {
     let termino = document.getElementById('txt_paciente_hc').value.trim();
     const contenedor = document.querySelector('.contenedor_principal');
     const urlBuscar = document.getElementById('url_buscar').value;
-
-    if (termino.length < 3) {
-        alert("Ingrese al menos 3 caracteres");
-        return;
-    }
 
     contenedor.innerHTML = '<p style="padding:10px;">Buscando coincidencias...</p>';
 
@@ -76,7 +72,9 @@ window.buscar_paciente = function() {
         .then(data => {
             window.pacientesEncontrados = data;
 
-            if (data.length > 0) {
+            if (data.length === 1) {
+                seleccionarPaciente(0);
+            } else if (data.length > 1) {
                 document.getElementById('seccion_registro').style.display = 'none';
 
                 let html = `
@@ -125,7 +123,7 @@ window.buscar_paciente = function() {
         });
 }
 
-window.seleccionarPaciente = function(index) {
+window.seleccionarPaciente = function (index) {
     const paciente = window.pacientesEncontrados[index];
     if (paciente) {
         cargarDatosPaciente(paciente);
@@ -133,11 +131,17 @@ window.seleccionarPaciente = function(index) {
     }
 }
 
-window.validarImportarPacientes = function() {
+window.validarImportarPacientes = function () {
     const fileInput = document.getElementById('fileISS');
+    const convenioSelect = document.getElementById('cmb_convenio_import');
     const planSelect = document.getElementById('cmb_plan_import');
     const url = document.getElementById('url_importar').value;
     const token = document.getElementById('token_csrf').value;
+
+    if (!convenioSelect.value) {
+        alert("Seleccione un convenio");
+        return;
+    }
 
     if (!planSelect.value) {
         alert("Seleccione un plan para la importación");
@@ -151,6 +155,7 @@ window.validarImportarPacientes = function() {
 
     let formData = new FormData();
     formData.append('fileISS', fileInput.files[0]);
+    formData.append('cmb_convenio', convenioSelect.value);
     formData.append('cmb_plan', planSelect.value);
     formData.append('_token', token);
 
@@ -158,22 +163,22 @@ window.validarImportarPacientes = function() {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if(data.res == 1) {
-            alert(data.mensaje);
-            location.reload();
-        } else {
-            alert("Error: " + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert("Ocurrió un error al procesar el archivo");
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.res == 1) {
+                alert(data.mensaje);
+                location.reload();
+            } else {
+                alert("Error: " + (data.error || "Ocurrió un error desconocido"));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Ocurrió un error al procesar el archivo");
+        });
 }
 
-window.cargarDatosPaciente = function(paciente) {
+window.cargarDatosPaciente = function (paciente) {
     mostrarSeccion('registro', false);
 
     document.getElementById('btn_guardar').value = "Actualizar Datos";

@@ -75,7 +75,7 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
         });
     });
 
-    Route::middleware(['checkrole:doctor,admisiones'])->group(function () {
+    Route::middleware(['checkrole:doctor,admisiones,admin'])->group(function () {
         Route::controller(LegacyPacienteController::class)->group(function () {
             Route::get('/convenios/{id}/planes', 'getPlanes');
             Route::get('/legacy/pacientes', 'index')->name('legacy.index');

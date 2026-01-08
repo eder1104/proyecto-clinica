@@ -1,0 +1,11 @@
+CONVENIO;TIPO_DOC;DOCUMENTO;NOMBRES;APELLIDOS;SEXO;FECHA_NAC;TELEFONO;DIRECCION;EMAIL;DEPTO_RESIDENCIA;MUNICIPIO_RESIDENCIA;ZONA;ESTADO_AFILIACION;EXENTO_CUOTA
+Nueva eps;5;1095812301;Carlos Andres;Ruizzzzzzz;M;12/03/1990;3104567890;Calle 45 #23-10;carlos.ruiz@email.com;Santander;Bucaramanga;Urbana;Activo;No
+;5;1098432156;Ana Maria;Torres;F;25/07/1985;3159876543;Carrera 27 #34-12;ana.torres@email.com;Santander;Floridablanca;Urbana;Activo;Si
+;5;63456789;Jorge Luis;Vargas;M;5/11/1978;3001239876;Avenida Quebradaseca 15;jorge.vargas@email.com;Santander;Bucaramanga;Urbana;Activo;No
+;3;1023456789;Maria Fernanda;Lopez;F;14/02/2015;3115678901;Calle 105 #15-30;mafe.lopez@email.com;Santander;Giron;Urbana;Activo;No
+;5;91234567;Luis Eduardo;Castro;M;30/09/1982;3126789012;Transversal 9 #45-20;luis.castro@email.com;Santander;Piedecuesta;Rural;Activo;No
+;5;1096789012;Diana Carolina;Rios;F;18/06/1992;3137890123;Calle 36 #12-45;diana.rios@email.com;Santander;Bucaramanga;Urbana;Activo;Si
+;4;1198765432;Andres Felipe;Martinez;M;22/01/2008;3148901234;Carrera 33 #56-78;andres.martinez@email.com;Santander;Floridablanca;Urbana;Activo;No
+;5;37890123;Sandra Milena;Guzman;F;8/04/1975;3169012345;Calle 56 #21-10;sandra.guzman@email.com;Santander;Bucaramanga;Urbana;Activo;No
+;5;13890123;Camilo Andres;Ortiz;M;1/12/1980;3170123456;Avenida Gonzalez Valencia;camilo.ortiz@email.com;Santander;Bucaramanga;Urbana;Activo;No
+;5;1099123456;Paula Andrea;Silva;F;10/10/1998;3181234567;Calle 14 #25-36;paula.silva@email.com;Santander;Giron;Rural;Activo;Si

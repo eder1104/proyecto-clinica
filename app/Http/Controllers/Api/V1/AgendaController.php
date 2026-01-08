@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Cita;
 use App\Services\AgendaService;
 use Carbon\Carbon;
@@ -15,7 +16,7 @@ class AgendaController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'medico_id' => 'required|exists:users,id',
-            'sede_id'   => 'required', 
+            'sede_id'   => 'required',
             'fecha'     => 'required|date_format:Y-m-d|after_or_equal:today',
         ]);
 
@@ -143,16 +144,34 @@ class AgendaController extends Controller
 
     public function index(Request $request)
     {
+        $request->validate([
+            'medico_id' => 'nullable|integer',
+            'fecha'     => 'nullable|date_format:Y-m-d',
+            'estado'    => 'nullable|string|in:programada,cancelada,atendida,finalizada'
+        ]);
+
+        if ($request->filled('medico_id')) {
+            $existeMedico = DB::table('doctores')->where('id', $request->medico_id)->exists();
+
+            if (!$existeMedico) {
+                return response()->json([
+                    'res' => 0,
+                    'mensaje' => 'este medico no existe'
+                ], 200);
+            }
+        }
+
         $query = Cita::query();
 
-        if ($request->has('medico_id')) {
+        if ($request->filled('medico_id')) {
             $query->where('doctor_id', $request->medico_id);
         }
 
-        if ($request->has('fecha')) {
+        if ($request->filled('fecha')) {
             $query->whereDate('fecha', $request->fecha);
         }
-        if ($request->has('estado')) {
+
+        if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
         }
 
