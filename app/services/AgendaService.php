@@ -17,6 +17,53 @@ class AgendaService
         $this->slotMinutes = $slotMinutes;
     }
 
+    public function verificarDisponibilidad($doctorId, $fecha, $horaInicio, $horaFin)
+    {
+        if (Carbon::parse($fecha)->isToday() && Carbon::parse($fecha . ' ' . $horaInicio)->lt(Carbon::now())) {
+            return false;
+        }
+
+        $plantilla = PlantillaHorario::where('doctor_id', $doctorId)
+            ->where('activo', true)
+            ->first();
+
+        if (!$plantilla) {
+            return false;
+        }
+
+        $jornadaInicio = Carbon::parse($fecha . ' ' . $plantilla->hora_inicio);
+        $jornadaFin = Carbon::parse($fecha . ' ' . $plantilla->hora_fin);
+        $citaInicio = Carbon::parse($fecha . ' ' . $horaInicio);
+        $citaFin = Carbon::parse($fecha . ' ' . $horaFin);
+
+        if ($citaInicio->lt($jornadaInicio) || $citaFin->gt($jornadaFin)) {
+            return false;
+        }
+
+        $bloqueos = BloqueoAgenda::where('doctor_id', $doctorId)
+            ->whereDate('fecha', $fecha)
+            ->get();
+
+        foreach ($bloqueos as $bloqueo) {
+            if ($this->timeRangesOverlap($horaInicio, $horaFin, $bloqueo->hora_inicio, $bloqueo->hora_fin)) {
+                return false;
+            }
+        }
+
+        $citasExistentes = Cita::where('doctor_id', $doctorId)
+            ->whereDate('fecha', $fecha)
+            ->where('estado', '!=', 'cancelada')
+            ->get();
+
+        foreach ($citasExistentes as $cita) {
+            if ($this->timeRangesOverlap($horaInicio, $horaFin, $cita->hora_inicio, $cita->hora_fin)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function generarSlotsDelDia(int $doctorId, string $fecha): array
     {
         $plantilla = PlantillaHorario::where('doctor_id', $doctorId)
@@ -62,6 +109,7 @@ class AgendaService
 
         $citas = Cita::where('doctor_id', $doctorId)
             ->whereDate('fecha', $fecha)
+            ->where('estado', '!=', 'cancelada')
             ->get();
 
         foreach ($citas as $c) {

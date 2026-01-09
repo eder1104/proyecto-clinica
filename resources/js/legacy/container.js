@@ -1,4 +1,25 @@
-﻿window.pacientesEncontrados = [];
+﻿document.addEventListener('DOMContentLoaded', function() {
+    const userDropdownBtn = document.querySelector('nav .sm\\:ms-6 button');
+    const userDropdownContent = document.querySelector('nav .sm\\:ms-6 .absolute');
+
+    if (userDropdownBtn && userDropdownContent) {
+        userDropdownBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isHidden = window.getComputedStyle(userDropdownContent).display === 'none';
+            userDropdownContent.style.display = isHidden ? 'block' : 'none';
+            userDropdownContent.style.opacity = isHidden ? '1' : '0';
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!userDropdownBtn.contains(e.target)) {
+                userDropdownContent.style.display = 'none';
+                userDropdownContent.style.opacity = '0';
+            }
+        });
+    }
+});
+
+window.pacientesEncontrados = [];
 
 window.mostrarSeccion = function (seccion, limpiar = false) {
     const divImportar = document.getElementById('seccion_importar');

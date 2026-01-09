@@ -2,6 +2,8 @@
 
 @section('content')
 
+@include('layouts.navigation')
+
 <div class="container">
 
     <div class="title-bar">

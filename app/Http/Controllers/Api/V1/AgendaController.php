@@ -52,7 +52,7 @@ class AgendaController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, AgendaService $agendaService)
     {
         $validator = Validator::make($request->all(), [
             'paciente_id' => 'required|exists:pacientes,id',
@@ -70,34 +70,28 @@ class AgendaController extends Controller
             ], 400);
         }
 
-        $solapamiento = Cita::where('doctor_id', $request->medico_id)
-            ->whereDate('fecha', $request->fecha)
-            ->whereIn('estado', ['programada', 'confirmada', 'modificada'])
-            ->where(function ($q) use ($request) {
-                $q->whereBetween('hora_inicio', [$request->hora_inicio, $request->hora_fin])
-                    ->orWhereBetween('hora_fin', [$request->hora_inicio, $request->hora_fin])
-                    ->orWhere(function ($sub) use ($request) {
-                        $sub->where('hora_inicio', '<=', $request->hora_inicio)
-                            ->where('hora_fin', '>=', $request->hora_fin);
-                    });
-            })
-            ->exists();
-
-        if ($solapamiento) {
+        if (Carbon::parse($request->fecha)->isToday() && Carbon::parse($request->hora_inicio)->lt(Carbon::now())) {
             return response()->json([
-                'mensaje' => 'El horario seleccionado no está disponible (solapamiento detectado).'
+                'mensaje' => 'No se puede agendar una cita en una hora que ya pasó.'
+            ], 422);
+        }
+
+        if (!$agendaService->verificarDisponibilidad($request->medico_id, $request->fecha, $request->hora_inicio, $request->hora_fin)) {
+            return response()->json([
+                'mensaje' => 'El doctor no tiene disponibilidad en el horario seleccionado (Agenda cerrada, bloqueada u ocupada).'
             ], 409);
         }
 
         try {
             $cita = Cita::create([
-                'paciente_id' => $request->paciente_id,
-                'doctor_id'   => $request->medico_id,
-                'fecha'       => $request->fecha,
-                'hora_inicio' => $request->hora_inicio,
-                'hora_fin'    => $request->hora_fin,
-                'estado'      => 'programada',
-                'created_by'  => 'API REST',
+                'paciente_id'  => $request->paciente_id,
+                'doctor_id'    => $request->medico_id,
+                'sede_id'      => $request->sede_id,
+                'fecha'        => $request->fecha,
+                'hora_inicio'  => $request->hora_inicio,
+                'hora_fin'     => $request->hora_fin,
+                'estado'       => 'programada',
+                'created_by'   => 'API REST',
                 'tipo_cita_id' => 1
             ]);
 
@@ -105,6 +99,7 @@ class AgendaController extends Controller
                 'mensaje' => 'Cita agendada exitosamente',
                 'cita' => $cita
             ], 201);
+
         } catch (\Exception $e) {
             return response()->json(['mensaje' => 'Error interno', 'detalle' => $e->getMessage()], 500);
         }
