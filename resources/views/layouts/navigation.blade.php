@@ -68,7 +68,7 @@
                         <a href="{{ route('pacientes.index') }}" class="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-t-xl transition-colors duration-150">
                             {{ __('Listado Moderno') }}
                         </a>
-                        <a href="{{ route('legacy.index') }}" class="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-b-xl transition-colors duration-150">
+                        <a href="{{ route('legacy.index_legacy') }}" class="block px-5 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-b-xl transition-colors duration-150">
                             {{ __('Contenedor HCEO/HCUT (Legacy)') }}
                         </a>
                     </div>
@@ -124,7 +124,7 @@
             <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                 {{ __('users') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('legacy.index')" :active="request()->routeIs('legacy.index')">
+            <x-responsive-nav-link :href="route('legacy.index_legacy')" :active="request()->routeIs('legacy.index')">
                 {{ __('Contenedor Legacy') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('citas.bitacora')" :active="request()->routeIs('citas.bitacora')">

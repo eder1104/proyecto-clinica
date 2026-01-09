@@ -78,7 +78,7 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
     Route::middleware(['checkrole:doctor,admisiones,admin'])->group(function () {
         Route::controller(LegacyPacienteController::class)->group(function () {
             Route::get('/convenios/{id}/planes', 'getPlanes');
-            Route::get('/legacy/pacientes', 'index')->name('legacy.index');
+            Route::get('/legacy/pacientes', 'index_legacy')->name('legacy.index_legacy');
             Route::post('/legacy/citas/registrar', [LegacyPacienteController::class, 'storeCita'])->name('legacy.citas.store');
             Route::get('/legacy/buscar', 'buscar')->name('legacy.buscar');
             Route::post('/legacy/agendar', 'agendar')->name('legacy.agendar');

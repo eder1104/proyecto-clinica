@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class LegacyPacienteController extends Controller
 {
-    public function index()
+    public function index_legacy()
     {
         $doctores = doctores::all();
         $convenios = DB::table('convenios')
@@ -90,7 +90,7 @@ class LegacyPacienteController extends Controller
 
         DB::statement('CALL sp_crear_paciente_legacy(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', $parametros);
 
-        return redirect()->route('pacientes.index')->with('success', 'Paciente guardado correctamente.');
+        return redirect()->route('legacy.index_legacy')->with('success', 'Paciente guardado correctamente.');
     }
 
     public function update(Request $request, $id)
@@ -133,7 +133,7 @@ class LegacyPacienteController extends Controller
             'observaciones' => $request->input('txt_observ_paciente'),
         ]);
 
-        return redirect()->route('pacientes.index')->with('success', 'Paciente actualizado correctamente.');
+        return redirect()->route('legacy.index_legacy')->with('success', 'Paciente actualizado correctamente.');
     }
 
     public function importarCSV(Request $request)
@@ -151,24 +151,38 @@ class LegacyPacienteController extends Controller
             $file = $request->file('fileISS');
             $handle = fopen($file->getRealPath(), 'r');
 
-            fgetcsv($handle, 1000, ";");
+            fgetcsv($handle, 0, ";");
 
             $user = Auth::user();
             $creador = ($user->nombres ?? $user->name ?? 'Sistema') . ' (Importación)';
             $insertados = 0;
+            $errores = [];
 
-            while (($datos = fgetcsv($handle, 1000, ";")) !== FALSE) {
+            while (($datos = fgetcsv($handle, 0, ";")) !== FALSE) {
 
                 if (empty($datos[2])) continue;
 
-                $exento = isset($datos[14]) && strtolower($datos[14]) == 'si' ? 1 : 0;
+                $fecha_raw = $datos[6] ?? '1900-01-01';
+                $fecha_nac = null;
+
+                if ($fecha_raw !== '1900-01-01') {
+                    try {
+                        $fecha_nac = \Carbon\Carbon::createFromFormat('d/m/Y', $fecha_raw)->format('Y-m-d');
+                    } catch (\Exception $e) {
+                        $fecha_nac = '1900-01-01';
+                    }
+                } else {
+                    $fecha_nac = '1900-01-01';
+                }
+
+                $exento = isset($datos[14]) && strtolower(trim($datos[14])) == 'si' ? 1 : 0;
 
                 $parametros = [
                     $datos[1],
                     $datos[2],
                     $datos[3],
                     $datos[4],
-                    $datos[6] ?? '1900-01-01',
+                    $fecha_nac,
                     $datos[5] ?? null,
                     1,
                     $datos[7] ?? '0',
@@ -192,6 +206,7 @@ class LegacyPacienteController extends Controller
                     DB::statement('CALL sp_crear_paciente_legacy(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', $parametros);
                     $insertados++;
                 } catch (\Exception $e) {
+                    $errores[] = "Error en documento {$datos[2]}: " . $e->getMessage();
                     continue;
                 }
             }
@@ -200,34 +215,11 @@ class LegacyPacienteController extends Controller
 
             return response()->json([
                 'res' => 1,
-                'mensaje' => "Importación exitosa. Total: {$insertados} pacientes registrados."
+                'mensaje' => "Importación finalizada. Total: {$insertados} pacientes registrados.",
+                'detalles_errores' => $errores
             ]);
         } catch (\Exception $e) {
             return response()->json(['res' => 0, 'error' => $e->getMessage()], 500);
-        }
-    }
-
-    public function agendar(Request $request)
-    {
-        $request->validate([
-            'paciente_id' => 'required',
-            'doctor_id' => 'required',
-            'fecha' => 'required|date',
-            'hora' => 'required',
-        ]);
-
-        try {
-            Cita::create([
-                'paciente_id' => $request->paciente_id,
-                'doctor_id' => $request->doctor_id,
-                'fecha' => $request->fecha,
-                'hora_inicio' => $request->hora,
-                'estado' => 'programada'
-            ]);
-
-            return response()->json(['mensaje' => 'Cita agendada correctamente']);
-        } catch (\Exception $e) {
-            return response()->json(['detalle' => $e->getMessage()], 500);
         }
     }
 }
