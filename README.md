@@ -93,10 +93,9 @@ Scheduler: Configurado en routes/console.php para ejecutarse a las 08:00 PM.
 
 Colas: Usa Redis para procesar los envíos en segundo plano mediante Jobs.
 
-Prueba manual: php artisan citas:generar-recordatorios
+Prueba manual: php artisan queue:work   php artisan schedule:work en terminales distintas 
 
-y en una terminal diferente
-php artisan queue:work
+con redis insight se pueden consultar los datos
 
 cabe recalcar que debera tener citas creadas para el dia siguiente y tener encendido el redis server para ejecutar los envios.
 Para visualizar los envios se pueden revisar desde redis insight
