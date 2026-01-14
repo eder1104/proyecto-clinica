@@ -21,12 +21,21 @@ sed -i 's/DB_DATABASE=laravel/DB_DATABASE=clinica/g' .env
 sed -i 's/# DB_USERNAME=root/DB_USERNAME=root/g' .env
 sed -i 's/# DB_PASSWORD=/DB_PASSWORD=/g' .env
 
-sed -i 's/SESSION_DRIVER=database/SESSION_DRIVER=file/g' .env
+echo "🔌 Configurando Redis para Session, Cache y Queue..."
+sed -i 's/SESSION_DRIVER=file/SESSION_DRIVER=redis/g' .env
+sed -i 's/SESSION_DRIVER=database/SESSION_DRIVER=redis/g' .env
+sed -i 's/CACHE_STORE=database/CACHE_STORE=redis/g' .env
+sed -i 's/QUEUE_CONNECTION=sync/QUEUE_CONNECTION=redis/g' .env
+sed -i 's/QUEUE_CONNECTION=database/QUEUE_CONNECTION=redis/g' .env
+
+sed -i 's/# REDIS_HOST=127.0.0.1/REDIS_HOST=127.0.0.1/g' .env
+sed -i 's/REDIS_CLIENT=phpredis/REDIS_CLIENT=phpredis/g' .env
 
 php artisan key:generate --force
 php artisan config:clear
 php artisan cache:clear
-php artisan migrate
 
 echo "🗄️ Ejecutando migraciones..."
 php artisan migrate:fresh --seed --force
+
+echo "✅ Instalación completada con Redis configurado."

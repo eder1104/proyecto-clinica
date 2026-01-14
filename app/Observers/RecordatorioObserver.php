@@ -23,8 +23,6 @@ class RecordatorioObserver
                     'cita_id' => $recordatorio->cita_id,
                     'resultado' => 'Enviado correctamente'
                 ]),
-                'ip_address' => request()->ip() ?? '127.0.0.1',
-                'user_agent' => Auth::check() ? request()->header('User-Agent') : 'Laravel Queue Worker',
             ]);
         }
     }

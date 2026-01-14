@@ -30,9 +30,7 @@ npm install
 ► Ejecución del Proyecto
 Para que el sistema funcione completamente, mantén corriendo estas terminales:
 
-Compilación: php artisan serve (esto ejecutara embos procesos php artisan serve y npm run dev)
-
-Worker de Colas: php artisan queue:listen redis --verbose (este solo funcionara si hay citas programadas y por falta de envio de recordatorios)
+Compilación: php artisan serve por la configuracion de los assets y npm run build no es necesario mantener una terminal con npm run dev
 
 Módulos y Funcionalidades
 ### 1. Módulo Legacy (Pacientes)
@@ -101,4 +99,4 @@ cabe recalcar que debera tener citas creadas para el dia siguiente y tener encen
 Para visualizar los envios se pueden revisar desde redis insight
 
 ### 4. Bitácora de Auditoría
-Middleware que registra automáticamente en la tabla bitacora_auditoria cualquier operación POST, PUT o DELETE, guardando el usuario, el módulo y los datos modificados en formato JSON.
+Middleware que registra automáticamente en la tabla bitacora_auditoria cualquier operación POST, PUT o DELETE, guardando el usuario, el módulo y los datos modificados en formato JSON o en procesos en segundo plano se crea mediante comando preestablecidos.

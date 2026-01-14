@@ -52,8 +52,6 @@ class EnviarRecordatorioCita implements ShouldQueue
                 'cita_id' => $cita->id,
                 'enviado_a_paciente' => $paciente->email
             ]),
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Queue Worker',
         ]);
     }
 }

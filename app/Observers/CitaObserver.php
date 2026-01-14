@@ -42,8 +42,6 @@ class CitaObserver
                     'recordatorio_id' => $recordatorio->id,
                     'fecha_programada' => $fechaProgramada->toDateTimeString()
                 ]),
-                'ip_address' => request()->ip() ?? '127.0.0.1',
-                'user_agent' => request()->header('User-Agent') ?? 'System',
             ]);
         }
     }

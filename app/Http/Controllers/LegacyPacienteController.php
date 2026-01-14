@@ -8,6 +8,7 @@ use App\Models\doctores;
 use App\Models\Cita;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class LegacyPacienteController extends Controller
 {
@@ -167,7 +168,7 @@ class LegacyPacienteController extends Controller
 
                 if ($fecha_raw !== '1900-01-01') {
                     try {
-                        $fecha_nac = \Carbon\Carbon::createFromFormat('d/m/Y', $fecha_raw)->format('Y-m-d');
+                        $fecha_nac = Carbon::createFromFormat('d/m/Y', $fecha_raw)->format('Y-m-d');
                     } catch (\Exception $e) {
                         $fecha_nac = '1900-01-01';
                     }
