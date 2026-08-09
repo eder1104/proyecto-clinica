@@ -1,38 +1,44 @@
 # Imagen base de PHP con Apache
 FROM php:8.2-apache
 
-# Instalar dependencias necesarias
+# Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
-    git unzip libzip-dev libpq-dev && \
-    docker-php-ext-install pdo pdo_mysql zip
+    git unzip curl libzip-dev libpq-dev \
+    && docker-php-ext-install pdo pdo_mysql zip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Habilitar mod_rewrite para Laravel
 RUN a2enmod rewrite
 
-# Copiar los archivos del proyecto al contenedor
+# ── Configurar Apache: DocumentRoot → /public ───────────────────────────
+COPY laravel.conf /etc/apache2/sites-available/laravel.conf
+RUN a2dissite 000-default.conf && a2ensite laravel.conf
+
+# ── Copiar código del proyecto ───────────────────────────────────────────
 COPY . /var/www/html
 
-# ✅ FIX: Configurar Apache para servir desde /public (DocumentRoot de Laravel)
-COPY laravel.conf /etc/apache2/sites-available/laravel.conf
-RUN a2dissite 000-default.conf && \
-    a2ensite laravel.conf
-
-# Establecer permisos para Laravel
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
-    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Configurar el directorio de trabajo
 WORKDIR /var/www/html
 
-# Instalar Composer
-RUN curl -sS https://getcomposer.org/installer | php && \
-    php composer.phar install --no-dev --optimize-autoloader
+# ── Instalar Composer y dependencias PHP ─────────────────────────────────
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+    && composer install --no-dev --optimize-autoloader --no-interaction
 
-# Generar app key y enlace de storage en tiempo de build
+# ── Crear .env base desde .env.example (APP_KEY se genera en start.sh) ───
+RUN cp .env.example .env
+
+# ── Enlace simbólico de storage ──────────────────────────────────────────
 RUN php artisan storage:link --no-interaction || true
 
-# Exponer el puerto 80
+# ── Permisos de escritura ────────────────────────────────────────────────
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# ── Script de arranque: genera key, migraciones, inicia Apache ───────────
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 EXPOSE 80
 
-# Iniciar Apache
-CMD ["apache2-foreground"]
+# Usar start.sh como entrypoint (no CMD directo a apache)
+ENTRYPOINT ["/start.sh"]
+
