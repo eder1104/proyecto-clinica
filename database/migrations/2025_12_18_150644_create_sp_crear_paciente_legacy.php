@@ -7,6 +7,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
         $procedure = "
             DROP PROCEDURE IF EXISTS sp_crear_paciente_legacy;
             
@@ -61,6 +64,9 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
         DB::unprepared("DROP PROCEDURE IF EXISTS sp_crear_paciente_legacy");
     }
 };

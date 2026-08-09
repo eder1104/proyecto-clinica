@@ -7,6 +7,9 @@ return new class extends Migration
 {
     public function up()
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
         $procedure = "
         DROP PROCEDURE IF EXISTS sp_registrar_cita;
         
@@ -82,6 +85,9 @@ return new class extends Migration
 
     public function down()
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
         DB::unprepared("DROP PROCEDURE IF EXISTS sp_registrar_cita");
     }
 };

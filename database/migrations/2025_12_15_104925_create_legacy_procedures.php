@@ -7,6 +7,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
         DB::unprepared("
             DROP PROCEDURE IF EXISTS sp_buscar_pacientes;
             CREATE PROCEDURE sp_buscar_pacientes (IN termino VARCHAR(100))
@@ -19,6 +22,9 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
         DB::unprepared("DROP PROCEDURE IF EXISTS sp_buscar_pacientes");
     }
 };
