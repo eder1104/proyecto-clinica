@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 use App\Models\User;
 
+use Spatie\Permission\Models\Role;
+
 class RegisteredUserController extends Controller
 {
     public function create(): View
@@ -26,23 +28,31 @@ class RegisteredUserController extends Controller
             'role'      => 'required|in:admin,admisiones,callcenter,doctor',
         ]);
 
+        try {
+            $creatorId = Auth::id() ?? 0;
 
-        $creatorId = Auth::id() ?? 0;
+            $user = User::create([
+                'nombres'    => $request->nombres,
+                'apellidos'  => $request->apellidos,
+                'email'      => $request->email,
+                'password'   => $request->password,
+                'role'       => $request->role,
+                'status'     => 'activo',
+                'created_by' => $creatorId,
+                'updated_by' => $creatorId,
+            ]);
 
-        $user = User::create([
-            'nombres'    => $request->nombres,
-            'apellidos'  => $request->apellidos,
-            'email'      => $request->email,
-            'password'   => Hash::make($request->password),
-            'role'       => $request->role,
-            'status'     => 'activo',
-            'created_by' => $creatorId,
-            'updated_by' => $creatorId,
-        ]);
+            $role = Role::firstOrCreate(['name' => $request->role, 'guard_name' => 'web']);
+            $user->assignRole($role);
 
-        Auth::login($user);
+            Auth::login($user);
 
-        return redirect()->route('dashboard')
-            ->with('success', 'Registro completado correctamente.');
+            return redirect()->route('dashboard')
+                ->with('success', 'Registro completado correctamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->withErrors([
+                'email' => 'Error en el servidor: ' . $e->getMessage(),
+            ]);
+        }
     }
 }
