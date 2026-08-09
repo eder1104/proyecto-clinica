@@ -9,6 +9,8 @@ unset DB_HOST DB_PORT DB_USERNAME DB_PASSWORD DB_URL
 export DB_CONNECTION=sqlite
 export DB_DATABASE="/var/www/html/storage/database/database.sqlite"
 export SESSION_DRIVER=file
+export SESSION_SECURE_COOKIE=true
+export SESSION_SAME_SITE=none
 export CACHE_STORE=file
 export QUEUE_CONNECTION=sync
 
