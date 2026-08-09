@@ -12,8 +12,14 @@ RUN a2enmod rewrite
 # Copiar los archivos del proyecto al contenedor
 COPY . /var/www/html
 
+# ✅ FIX: Configurar Apache para servir desde /public (DocumentRoot de Laravel)
+COPY laravel.conf /etc/apache2/sites-available/laravel.conf
+RUN a2dissite 000-default.conf && \
+    a2ensite laravel.conf
+
 # Establecer permisos para Laravel
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Configurar el directorio de trabajo
 WORKDIR /var/www/html
@@ -21,6 +27,9 @@ WORKDIR /var/www/html
 # Instalar Composer
 RUN curl -sS https://getcomposer.org/installer | php && \
     php composer.phar install --no-dev --optimize-autoloader
+
+# Generar app key y enlace de storage en tiempo de build
+RUN php artisan storage:link --no-interaction || true
 
 # Exponer el puerto 80
 EXPOSE 80
