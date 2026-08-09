@@ -40,8 +40,6 @@ Route::middleware(['auth', Bitacora::class])->group(function () {
         Route::delete('/profile', 'destroy')->name('profile.destroy');
     });
 
-    Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
-
     Route::middleware(['checkrole:admin'])->group(function () {
         Route::controller(UserController::class)->group(function () {
             Route::patch('/users/{user}/toggle', 'toggleStatus')->name('users.toggle');
