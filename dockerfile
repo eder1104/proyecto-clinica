@@ -3,8 +3,8 @@ FROM php:8.2-apache
 
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
-    git unzip curl libzip-dev libpq-dev \
-    && docker-php-ext-install pdo pdo_mysql zip \
+    git unzip curl libzip-dev libpq-dev libsqlite3-dev \
+    && docker-php-ext-install pdo pdo_mysql pdo_sqlite zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Habilitar mod_rewrite para Laravel
