@@ -4,11 +4,19 @@ echo "🚀 Iniciando contenedor Laravel en Render..."
 
 cd /var/www/html
 
-# ── 1. Crear .env ────────────────────────────────────────────────────────
+# ── 1. Forzar variables de entorno para SQLite (anular variables erróneas de Render) ──
+unset DB_HOST DB_PORT DB_USERNAME DB_PASSWORD DB_URL
+export DB_CONNECTION=sqlite
+export DB_DATABASE="/var/www/html/storage/database/database.sqlite"
+export SESSION_DRIVER=file
+export CACHE_STORE=file
+export QUEUE_CONNECTION=sync
+
+# ── 2. Crear .env ────────────────────────────────────────────────────────
 echo "📄 Creando .env..."
 cp .env.example .env
 
-# ── 2. Crear directorios de Storage y Framework ─────────────────────────
+# ── 3. Crear directorios de Storage y Framework ─────────────────────────
 echo "📁 Creando estructura de directorios storage..."
 mkdir -p /var/www/html/storage/database
 mkdir -p /var/www/html/storage/framework/sessions
@@ -18,11 +26,9 @@ mkdir -p /var/www/html/storage/logs
 mkdir -p /var/www/html/storage/app/public
 mkdir -p /var/www/html/bootstrap/cache
 
-SQLITE_PATH="/var/www/html/storage/database/database.sqlite"
-touch "$SQLITE_PATH"
+touch "$DB_DATABASE"
 
-# ── 3. Configurar SQLite y drivers en .env ───────────────────────────────
-echo "🗄️  Configurando SQLite y variables de producción..."
+# ── 4. Configurar .env ───────────────────────────────────────────────────
 sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|g"      .env
 sed -i "s|^# DB_HOST=.*|# DB_HOST=|g"                    .env
 sed -i "s|^# DB_PORT=.*|# DB_PORT=|g"                    .env
@@ -30,11 +36,9 @@ sed -i "s|^# DB_USERNAME=.*|# DB_USERNAME=|g"            .env
 sed -i "s|^# DB_PASSWORD=.*|# DB_PASSWORD=|g"            .env
 
 if grep -q "^DB_DATABASE=" .env; then
-    sed -i "s|^DB_DATABASE=.*|DB_DATABASE=${SQLITE_PATH}|g" .env
-elif grep -q "^# DB_DATABASE=" .env; then
-    sed -i "s|^# DB_DATABASE=.*|DB_DATABASE=${SQLITE_PATH}|g" .env
+    sed -i "s|^DB_DATABASE=.*|DB_DATABASE=${DB_DATABASE}|g" .env
 else
-    echo "DB_DATABASE=${SQLITE_PATH}" >> .env
+    echo "DB_DATABASE=${DB_DATABASE}" >> .env
 fi
 
 sed -i "s|^APP_ENV=.*|APP_ENV=production|g"     .env
@@ -48,28 +52,32 @@ sed -i "s|^SESSION_DRIVER=.*|SESSION_DRIVER=file|g"      .env
 sed -i "s|^CACHE_STORE=.*|CACHE_STORE=file|g"            .env
 sed -i "s|^QUEUE_CONNECTION=.*|QUEUE_CONNECTION=sync|g"  .env
 
-# ── 4. Generar APP_KEY ───────────────────────────────────────────────────
-echo "🔑 Generando APP_KEY..."
-php artisan key:generate --force || true
-
 # ── 5. Permisos de carpetas ─────────────────────────────────────────────
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# ── 6. Limpiar y refrescar cache de configuración ────────────────────────
-echo "🧹 Preparando configuración..."
+# ── 6. Generar APP_KEY ───────────────────────────────────────────────────
+echo "🔑 Generando APP_KEY..."
+php artisan key:generate --force || true
+
+# ── 7. Limpiar cache previo ──────────────────────────────────────────────
+echo "🧹 Limpiando caché previo..."
 php artisan config:clear || true
 php artisan cache:clear  || true
 php artisan view:clear   || true
 
-# ── 7. Migraciones y Seeders ─────────────────────────────────────────────
+# ── 8. Migraciones y Seeders sobre SQLite ────────────────────────────────
 echo "📦 Ejecutando migraciones..."
-php artisan migrate --force || echo "⚠️ Migraciones ejecutadas con advertencias"
+php artisan migrate --force
 
 echo "🌱 Ejecutando seeders..."
-php artisan db:seed --force || echo "⚠️ Seeders ejecutados con advertencias"
+php artisan db:seed --force
 
-# ── 8. Re-aplicar permisos tras migraciones/seeders ───────────────────────
+# ── 9. Cachear configuración final para bloquear SQLite en producción ────
+echo "⚡ Cacheando configuración para producción..."
+php artisan config:cache || true
+
+# ── 10. Permisos finales ─────────────────────────────────────────────────
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache
 
